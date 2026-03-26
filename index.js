@@ -1,10 +1,21 @@
 const express = require('express');
 const { Pool } = require('pg');
+const session = require('express-session');
 const dotenv = require('dotenv').config();
 
 // Create express app
 const app = express();
 const port = 3000;
+
+// Middleware
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+app.use(session({
+    secret: 'your-secret-key', // Change this to a secure key
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false } // Set to true if using HTTPS
+}));
 
 // Create pool
 const pool = new Pool({
@@ -25,9 +36,44 @@ process.on('SIGINT', function() {
 	 	 	 	
 app.set("view engine", "ejs");
 
+// Hardcoded credentials
+const credentials = {
+    cashier: { username: 'cashier', password: 'cashier123' },
+    manager: { username: 'manager', password: 'manager456' }
+};
+
 app.get('/', (req, res) => {
-    const data = {name: 'Mario'};
-    res.render('index', data);
+    res.render('login');
+});
+
+app.post('/login', (req, res) => {
+    const { username, password } = req.body;
+    if (username === credentials.cashier.username && password === credentials.cashier.password) {
+        req.session.role = 'cashier';
+        res.redirect('/cashier');
+    } else if (username === credentials.manager.username && password === credentials.manager.password) {
+        req.session.role = 'manager';
+        res.redirect('/manager');
+    } else {
+        res.render('login', { error: 'Invalid credentials' });
+    }
+});
+
+app.get('/kiosk', (req, res) => {
+    res.render('kiosk');
+});
+
+app.get('/cashier', (req, res) => {
+    if (req.session.role === 'cashier') {
+        res.render('cashier');
+    } else {
+        res.redirect('/');
+    }
+});
+
+app.get('/logout', (req, res) => {
+    req.session.destroy();
+    res.redirect('/');
 });
 
 app.get('/user', (req, res) => {
