@@ -2,12 +2,16 @@ const express = require('express');
 const { Pool } = require('pg');
 const session = require('express-session');
 const dotenv = require('dotenv').config();
+const path = require('path');
+const favicon = require('serve-favicon');
+
 
 // Create express app
 const app = express();
 const port = 3000;
 
 // Middleware
+app.use(favicon(path.join(__dirname, 'images', 'favicon.ico')));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(session({
