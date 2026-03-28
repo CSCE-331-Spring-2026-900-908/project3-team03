@@ -16,6 +16,7 @@ app.use(session({
     saveUninitialized: true,
     cookie: { secure: false } // Set to true if using HTTPS
 }));
+app.use(express.static('images'));
 
 // Create pool
 const pool = new Pool({
@@ -62,6 +63,12 @@ app.post('/login', (req, res) => {
 app.get('/kiosk', (req, res) => {
     res.render('kiosk');
 });
+
+app.get('/favicon.ico', (req, res) => {
+    res.send('<p>favicon.ico requested!</p>');
+    res.sendFile('favicon.ico');
+    console.log("favicon.ico requested");
+})
 
 app.get('/cashier', (req, res) => {
     if (req.session.role === 'cashier') {
