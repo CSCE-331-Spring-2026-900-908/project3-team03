@@ -2,12 +2,16 @@ const express = require('express');
 const { Pool } = require('pg');
 const session = require('express-session');
 const dotenv = require('dotenv').config();
+const path = require('path');
+const favicon = require('serve-favicon');
+
 
 // Create express app
 const app = express();
 const port = 3000;
 
 // Middleware
+app.use(favicon(path.join(__dirname, 'images', 'favicon.ico')));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(session({
@@ -16,7 +20,6 @@ app.use(session({
     saveUninitialized: true,
     cookie: { secure: false } // Set to true if using HTTPS
 }));
-app.use(express.static('images'));
 
 // Create pool
 const pool = new Pool({
@@ -63,12 +66,6 @@ app.post('/login', (req, res) => {
 app.get('/kiosk', (req, res) => {
     res.render('kiosk');
 });
-
-app.get('/favicon.ico', (req, res) => {
-    res.send('<p>favicon.ico requested!</p>');
-    res.sendFile('favicon.ico');
-    console.log("favicon.ico requested");
-})
 
 app.get('/cashier', (req, res) => {
     if (req.session.role === 'cashier') {
