@@ -4,10 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manager Interface</title>
+    <style>
+        table { border-collapse: collapse; width: 50%; margin: 16px auto; }
+        th, td { border: 1px solid #aaa; padding: 8px; text-align: left; }
+        th { background: #eee; }
+    </style>
 </head>
 <body>
     <h1>Manager Interface</h1>
     <p>Welcome, Manager! Manage the system here.</p>
+    
+    <h2>All Managers</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Role</th>
+            </tr>
+        </thead>
+        <tbody>
+        <% if (managers && managers.length) { %>
+            <% managers.forEach(manager => { %>
+            <tr>
+                <td><%= manager.employee_id %></td>
+                <td><%= manager.first_name %> <%= manager.last_name %></td>
+                <td><%= manager.role %></td>
+            </tr>
+            <% }) %>
+        <% } else { %>
+            <tr><td colspan="3">No managers found</td></tr>
+        <% } %>
+        </tbody>
+    </table>
+    
     <!-- Add manager functionality here -->
     <a href="/logout">Logout</a>
 </body>

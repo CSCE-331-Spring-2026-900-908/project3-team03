@@ -65,7 +65,29 @@ app.get('/kiosk', (req, res) => {
 
 app.get('/cashier', (req, res) => {
     if (req.session.role === 'cashier') {
-        res.render('cashier');
+        pool.query("SELECT * FROM employee WHERE role = 'CASHIER' ORDER BY employee_id;")
+            .then(query_res => {
+                res.render('cashier', { employees: query_res.rows });
+            })
+            .catch(err => {
+                console.error('Error fetching employees:', err);
+                res.status(500).send('Database error');
+            });
+    } else {
+        res.redirect('/');
+    }
+});
+
+app.get('/manager', (req, res) => {
+    if (req.session.role === 'manager') {
+        pool.query("SELECT * FROM employee WHERE role = 'MANAGER' ORDER BY employee_id;")
+            .then(query_res => {
+                res.render('manager', { managers: query_res.rows });
+            })
+            .catch(err => {
+                console.error('Error fetching managers:', err);
+                res.status(500).send('Database error');
+            });
     } else {
         res.redirect('/');
     }
@@ -77,7 +99,7 @@ app.get('/logout', (req, res) => {
 });
 
 app.get('/user', (req, res) => {
-    teammembers = []
+    let teammembers = []
     pool
         .query('SELECT * FROM teammembers;')
         .then(query_res => {
@@ -87,6 +109,10 @@ app.get('/user', (req, res) => {
             const data = {teammembers: teammembers};
             console.log(teammembers);
             res.render('user', data);
+        })
+        .catch(err => {
+            console.error('Error fetching teammembers:', err);
+            res.status(500).send('Database error');
         });
 });
 
