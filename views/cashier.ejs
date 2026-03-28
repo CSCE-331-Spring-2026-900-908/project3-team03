@@ -4,10 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cashier Interface</title>
+    <style>
+        table { border-collapse: collapse; width: 50%; margin: 16px auto; }
+        th, td { border: 1px solid #aaa; padding: 8px; text-align: left; }
+        th { background: #eee; }
+    </style>
 </head>
 <body>
     <h1>Cashier Interface</h1>
     <p>Welcome, Cashier! Manage orders here.</p>
+    
+    <h2>All Cashiers</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Role</th>
+            </tr>
+        </thead>
+        <tbody>
+        <% if (employees && employees.length) { %>
+            <% employees.forEach(employee => { %>
+            <tr>
+                <td><%= employee.employee_id %></td>
+                <td><%= employee.first_name %> <%= employee.last_name %></td>
+                <td><%= employee.role %></td>
+            </tr>
+            <% }) %>
+        <% } else { %>
+            <tr><td colspan="3">No cashiers found</td></tr>
+        <% } %>
+        </tbody>
+    </table>
+    
     <!-- Add cashier functionality here -->
     <a href="/logout">Logout</a>
 </body>
