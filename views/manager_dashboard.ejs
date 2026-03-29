@@ -47,7 +47,70 @@
         </div>
       </section>
 
-      
+      <section class="tables-row">
+        <div class="panel panel-large">
+          <div class="panel-header">
+            <h3>Recent Orders (Today)</h3>
+            <a href="/manager_reports" class="panel-link">Open Reports</a>
+          </div>
+
+          <% if (recentOrders && recentOrders.length > 0) { %>
+            <table>
+              <thead>
+                <tr>
+                  <th>Order #</th>
+                  <th>Time</th>
+                  <th>Status</th>
+                  <th>Pay</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% recentOrders.forEach(order => { %>
+                  <tr>
+                    <td><%= order.order_id %></td>
+                    <td><%= order.created_at %></td>
+                    <td><%= order.status %></td>
+                    <td><%= order.payment_method %></td>
+                    <td>$<%= order.total %></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          <% } else { %>
+            <div class="empty">No recent orders for today.</div>
+          <% } %>
+        </div>
+
+        <div class="panel panel-small">
+          <div class="panel-header">
+            <h3>Low Stock Alerts</h3>
+          </div>
+
+          <% if (lowStock && lowStock.length > 0) { %>
+            <table>
+              <thead>
+                <tr>
+                  <th>Ingredient</th>
+                  <th>Qty</th>
+                  <th>Reorder</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% lowStock.forEach(item => { %>
+                  <tr>
+                    <td><%= item.name %></td>
+                    <td><%= item.quantity %></td>
+                    <td><%= item.reorder_point %></td>
+                  </tr>
+                <% }) %>
+              </tbody>
+            </table>
+          <% } else { %>
+            <div class="empty">No low stock alerts.</div>
+          <% } %>
+        </div>
+      </section>
     </main>
   </div>
 </body>
