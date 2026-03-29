@@ -78,38 +78,6 @@ app.get('/cashier', (req, res) => {
     }
 });
 
-app.get('/manager_dashboard', (req, res) => {
-  res.render('manager_dashboard', {
-    salesToday: '245.50',
-    ordersToday: 18,
-    avgOrderToday: '13.64',
-    
-    // TEST: mock data
-    recentOrders: [
-      {
-        order_id: 101,
-        created_at: '10:25 AM',
-        status: 'PAID',
-        payment_method: 'CARD',
-        total: '12.50'
-      },
-      {
-        order_id: 102,
-        created_at: '10:40 AM',
-        status: 'SERVED',
-        payment_method: 'CASH',
-        total: '9.75'
-      }
-    ],
-    
-    // TEST: mock data
-    lowStock: [
-      { name: 'Boba Pearls', quantity: 5, reorder_point: 20 },
-      { name: 'Milk', quantity: 8, reorder_point: 15 }
-    ]
-  });
-});
-
 app.get('/logout', (req, res) => {
     req.session.destroy();
     res.redirect('/');
@@ -145,6 +113,97 @@ app.get('/manager', (req, res) => {
 app.get('/login', (req, res) => {
     res.render('login');
 });
+
+// -------------------- MANAGER SCREENS --------------------
+app.get('/manager_dashboard', (req, res) => {
+  res.render('manager_dashboard', {
+    salesToday: '245.50',
+    ordersToday: 18,
+    avgOrderToday: '13.64',
+    
+    // TEST: mock data
+    recentOrders: [
+      {
+        order_id: 101,
+        created_at: '10:25 AM',
+        status: 'PAID',
+        payment_method: 'CARD',
+        total: '12.50'
+      },
+      {
+        order_id: 102,
+        created_at: '10:40 AM',
+        status: 'SERVED',
+        payment_method: 'CASH',
+        total: '9.75'
+      }
+    ],
+
+    // TEST: mock data
+    lowStock: [
+      { name: 'Boba Pearls', quantity: 5, reorder_point: 20 },
+      { name: 'Milk', quantity: 8, reorder_point: 15 }
+    ]
+  });
+});
+
+app.get('/manager_reports', (req, res) => {
+  res.render('manager_reports', {
+    // TEST: mock data
+    xReport: {
+      date: '',
+      beginHour: 8,
+      endHour: 17,
+      status: '',
+      orders: 12,
+      discards: 1,
+      sales: '142.50',
+      cardPayments: 8,
+      cashPayments: 4,
+      avgRevenue: '11.88'
+    },
+
+    // TEST: mock data
+    salesReport: {
+      startDate: '',
+      endDate: '',
+      status: '',
+      items: [
+        { name: 'Classic Milk Tea', qty: 8, revenue: '48.00' },
+        { name: 'Taro Smoothie', qty: 4, revenue: '28.00' }
+      ],
+      totalRevenue: '76.00'
+    },
+
+    // TEST: mock data
+    usageReport: {
+      startDate: '',
+      endDate: '',
+      status: '',
+      items: [
+        { name: 'Milk', used: 12, unit: 'cups' },
+        { name: 'Boba Pearls', used: 7, unit: 'scoops' }
+      ]
+    },
+
+    // TEST: mock data
+    zReport: {
+      businessDay: 'today',
+      closed: false,
+      status: '',
+      sales: '142.50',
+      tax: '11.76',
+      totalCash: '48.00',
+      cardPayments: 8,
+      cashPayments: 4,
+      adjustments: '0.00',
+      sig1: '',
+      sig2: '',
+      notes: ''
+    }
+  });
+});
+
 
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`);
