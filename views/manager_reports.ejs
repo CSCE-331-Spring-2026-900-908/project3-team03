@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Manager Reports</title>
+  <!-- TODO: CSS styles for later -->
   <link rel="stylesheet" href="/css/manager_reports.css" />
 </head>
 <body>
@@ -30,6 +31,68 @@
         <button class="tab-button" data-tab="usage-report">Product Usage</button>
         <button class="tab-button" data-tab="z-report">Z-Report</button>
       </div>
+
+      <!-- X-REPORT -->
+      <section class="tab-panel active" id="x-report">
+        <div class="report-grid">
+          <div class="panel">
+            <h2>X-Report Options</h2>
+
+            <form method="GET" action="/manager/reports/x" class="form-stack">
+              <input type="date" name="date" value="<%= xReport?.date || '' %>" />
+
+              <div class="form-row">
+                <div class="form-group">
+                  <select name="beginHour">
+                    <% for (let i = 0; i < 24; i++) { %>
+                      <option value="<%= i %>" <%= xReport?.beginHour == i ? 'selected' : '' %>><%= i %>:00</option>
+                    <% } %>
+                  </select>
+                  <label>Begin Hour</label>
+                </div>
+
+                <div class="form-group">
+                  <select name="endHour">
+                    <% for (let i = 0; i < 24; i++) { %>
+                      <option value="<%= i %>" <%= xReport?.endHour == i ? 'selected' : '' %>><%= i %>:00</option>
+                    <% } %>
+                  </select>
+                  <label>End Hour</label>
+                </div>
+              </div>
+
+              <button type="submit" class="primary-btn">Generate X-Report</button>
+            </form>
+
+            <p class="status-text"><%= xReport?.status || '' %></p>
+          </div>
+
+          <div class="panel">
+            <h2 class="section-title">Report Summary</h2>
+
+            <div class="metric-row">
+              <div class="metric-card">
+                <span class="metric-label">Paid Orders</span>
+                <span class="metric-value"><%= xReport?.orders ?? 0 %></span>
+              </div>
+              <div class="metric-card">
+                <span class="metric-label">Discards</span>
+                <span class="metric-value"><%= xReport?.discards ?? 0 %></span>
+              </div>
+              <div class="metric-card">
+                <span class="metric-label">Total Sales</span>
+                <span class="metric-value">$<%= xReport?.sales ?? '0.00' %></span>
+              </div>
+            </div>
+
+            <div class="summary-list">
+              <div class="summary-item"><span>Card Payments:</span><span><%= xReport?.cardPayments ?? 0 %></span></div>
+              <div class="summary-item"><span>Cash Payments:</span><span><%= xReport?.cashPayments ?? 0 %></span></div>
+              <div class="summary-item"><span>Avg. Revenue / Order:</span><span>$<%= xReport?.avgRevenue ?? '0.00' %></span></div>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
   </div>
 </body>
