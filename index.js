@@ -2,16 +2,12 @@ const express = require('express');
 const { Pool } = require('pg');
 const session = require('express-session');
 const dotenv = require('dotenv').config();
-const path = require('path');
-const favicon = require('serve-favicon');
-
 
 // Create express app
 const app = express();
 const port = 3000;
 
 // Middleware
-app.use(favicon(path.join(__dirname, 'images', 'favicon.ico')));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(session({
@@ -47,7 +43,7 @@ const credentials = {
 };
 
 app.get('/', (req, res) => {
-    res.render('login');
+    res.render('index');
 });
 
 app.post('/login', (req, res) => {
@@ -94,13 +90,13 @@ app.get('/user', (req, res) => {
         });
 });
 
-app.get('/manager', (req, res) => {
-    res.render('manager');
+app.get('/user', (req, res) => {
+    res.render('user');
 });
 
 
-app.get('/user', (req, res) => {
-    res.render('user');
+app.get('/manager', (req, res) => {
+    res.render('manager');
 });
 
 app.get('/login', (req, res) => {
