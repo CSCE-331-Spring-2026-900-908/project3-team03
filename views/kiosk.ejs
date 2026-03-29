@@ -3,13 +3,452 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Self-Serving Kiosk</title>
+    <title>Kiosk</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f3f4f6;
+            color: #111827;
+        }
+        .page {
+            max-width: 1450px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .topbar h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+        .topbar a {
+            text-decoration: none;
+            background: #111827;
+            color: white;
+            padding: 10px 14px;
+            border-radius: 10px;
+        }
+        .layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+        .panel {
+            background: white;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 10px 28px rgba(0,0,0,0.08);
+        }
+        .section-title {
+            margin: 0 0 14px 0;
+            font-size: 1.35rem;
+        }
+        .category-tabs {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+        .tab-btn {
+            border: none;
+            border-radius: 999px;
+            padding: 12px 18px;
+            font-weight: 700;
+            cursor: pointer;
+            background: #e5e7eb;
+            color: #111827;
+        }
+        .tab-btn.active {
+            background: #2563eb;
+            color: white;
+        }
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 14px;
+        }
+        .item-btn {
+            border: 2px solid #d1d5db;
+            border-radius: 14px;
+            background: #f9fafb;
+            padding: 18px;
+            text-align: left;
+            cursor: pointer;
+            min-height: 108px;
+        }
+        .item-btn:hover {
+            border-color: #2563eb;
+        }
+        .item-btn h3 {
+            margin: 0 0 8px 0;
+            font-size: 1.1rem;
+        }
+        .item-btn p {
+            margin: 0;
+            color: #4b5563;
+            font-size: 0.95rem;
+        }
+        .addons {
+            margin-top: 22px;
+        }
+        .addon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+        .addon-btn {
+            border: 2px solid #d1d5db;
+            border-radius: 12px;
+            background: white;
+            padding: 12px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+        .addon-btn.selected {
+            background: #dbeafe;
+            border-color: #2563eb;
+        }
+        .selected-box {
+            margin-top: 20px;
+            padding: 16px;
+            border-radius: 14px;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+        }
+        .selected-box h3 {
+            margin-top: 0;
+        }
+        .qty-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        .qty-btn, .action-btn, .cart-btn {
+            border: none;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .qty-btn { background: #d1d5db; }
+        .action-btn { background: #2563eb; color: white; }
+        .cart-btn.secondary { background: #6b7280; color: white; }
+        .cart-btn.danger { background: #dc2626; color: white; }
+        .order-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 16px 0;
+        }
+        .order-item {
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 14px;
+            background: #f9fafb;
+        }
+        .order-item h3 {
+            margin: 0 0 6px 0;
+        }
+        .total {
+            font-size: 1.35rem;
+            font-weight: 800;
+            margin: 18px 0;
+        }
+        .muted {
+            color: #6b7280;
+        }
+        .cart-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .hidden {
+            display: none;
+        }
+        @media (max-width: 960px) {
+            .layout { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
 <body>
-    <h1>Self-Serving Kiosk</h1>
-    <p>Welcome to the kiosk! Place your order here.</p>
-    <p>This is a test of Render's ability to reload the website in realtime.</p>
-    
-    <!-- Add kiosk functionality here -->
+    <div class="page">
+        <div class="topbar">
+            <div>
+                <h1>Self Service Kiosk</h1>
+                <div class="muted">Minimum viable version with hardcoded buttons</div>
+            </div>
+            <a href="/">Back to home</a>
+        </div>
+
+        <div class="layout">
+            <div class="panel">
+                <h2 class="section-title">Choose a category</h2>
+                <div class="category-tabs" id="categoryTabs"></div>
+
+                <h2 class="section-title">Menu items</h2>
+                <div class="menu-grid" id="menuGrid"></div>
+
+                <div class="addons">
+                    <h2 class="section-title">Add ons</h2>
+                    <div class="addon-grid" id="addonGrid"></div>
+                </div>
+
+                <div class="selected-box">
+                    <h3>Current selection</h3>
+                    <div id="selectedDrink" class="muted">No drink selected yet</div>
+                    <div id="selectedAddons" class="muted" style="margin-top:8px;">No add ons selected</div>
+
+                    <div class="qty-row">
+                        <span>Quantity</span>
+                        <button class="qty-btn" id="minusQty" type="button">-</button>
+                        <strong id="qtyValue">1</strong>
+                        <button class="qty-btn" id="plusQty" type="button">+</button>
+                        <button class="action-btn" id="addToOrder" type="button">Add to order</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2 class="section-title">Your order</h2>
+                <div id="orderList" class="order-list">
+                    <div class="muted">Your order is empty</div>
+                </div>
+                <div class="total">Total $<span id="orderTotal">0.00</span></div>
+                <div class="cart-actions">
+                    <button class="cart-btn secondary" id="clearOrder" type="button">Clear order</button>
+                    <button class="cart-btn" id="checkoutOrder" type="button">Checkout</button>
+                </div>
+                <p class="muted" style="margin-top:14px;">For now this is front end only. Next step can post this into your SQL order tables.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const menuData = {
+            categories: {
+                'Milk Tea': [
+                    { id: 1, name: 'Classic Milk Tea', price: 4.50 },
+                    { id: 2, name: 'Taro Milk Tea', price: 5.00 },
+                    { id: 3, name: 'Thai Milk Tea', price: 5.00 },
+                    { id: 4, name: 'Brown Sugar Milk Tea', price: 5.50 }
+                ],
+                'Tea': [
+                    { id: 5, name: 'Black Tea', price: 3.75 },
+                    { id: 6, name: 'Green Tea', price: 3.75 },
+                    { id: 7, name: 'Jasmine Tea', price: 4.00 }
+                ],
+                'Fruit Tea': [
+                    { id: 8, name: 'Mango Fruit Tea', price: 4.75 },
+                    { id: 9, name: 'Peach Fruit Tea', price: 4.75 },
+                    { id: 10, name: 'Strawberry Fruit Tea', price: 4.75 }
+                ],
+                'Smoothie': [
+                    { id: 11, name: 'Mango Smoothie', price: 5.50 },
+                    { id: 12, name: 'Strawberry Smoothie', price: 5.50 },
+                    { id: 13, name: 'Avocado Smoothie', price: 5.75 }
+                ],
+                'Matcha': [
+                    { id: 14, name: 'Matcha Latte', price: 5.25 },
+                    { id: 15, name: 'Strawberry Matcha', price: 5.75 }
+                ]
+            },
+            addons: [
+                { id: 101, name: 'Boba', price: 0.75 },
+                { id: 102, name: 'Pudding', price: 0.75 },
+                { id: 103, name: 'Grass Jelly', price: 0.75 },
+                { id: 104, name: 'Lychee Jelly', price: 0.75 },
+                { id: 105, name: 'Cheese Foam', price: 1.00 }
+            ]
+        };
+
+        const categoryTabs = document.getElementById('categoryTabs');
+        const menuGrid = document.getElementById('menuGrid');
+        const addonGrid = document.getElementById('addonGrid');
+        const selectedDrinkEl = document.getElementById('selectedDrink');
+        const selectedAddonsEl = document.getElementById('selectedAddons');
+        const qtyValueEl = document.getElementById('qtyValue');
+        const orderListEl = document.getElementById('orderList');
+        const orderTotalEl = document.getElementById('orderTotal');
+
+        let currentCategory = Object.keys(menuData.categories)[0];
+        let selectedDrink = null;
+        let selectedAddons = [];
+        let quantity = 1;
+        let order = [];
+
+        function money(value) {
+            return value.toFixed(2);
+        }
+
+        function renderTabs() {
+            categoryTabs.innerHTML = '';
+            Object.keys(menuData.categories).forEach((category) => {
+                const button = document.createElement('button');
+                button.className = 'tab-btn' + (category === currentCategory ? ' active' : '');
+                button.textContent = category;
+                button.type = 'button';
+                button.onclick = () => {
+                    currentCategory = category;
+                    renderTabs();
+                    renderMenu();
+                };
+                categoryTabs.appendChild(button);
+            });
+        }
+
+        function renderMenu() {
+            menuGrid.innerHTML = '';
+            menuData.categories[currentCategory].forEach((item) => {
+                const button = document.createElement('button');
+                button.className = 'item-btn';
+                button.type = 'button';
+                button.innerHTML = `<h3>${item.name}</h3><p>$${money(item.price)}</p>`;
+                button.onclick = () => {
+                    selectedDrink = item;
+                    renderSelection();
+                };
+                menuGrid.appendChild(button);
+            });
+        }
+
+        function renderAddons() {
+            addonGrid.innerHTML = '';
+            menuData.addons.forEach((addon) => {
+                const button = document.createElement('button');
+                button.className = 'addon-btn' + (selectedAddons.some((a) => a.id === addon.id) ? ' selected' : '');
+                button.type = 'button';
+                button.textContent = `${addon.name} +$${money(addon.price)}`;
+                button.onclick = () => {
+                    const exists = selectedAddons.some((a) => a.id === addon.id);
+                    if (exists) {
+                        selectedAddons = selectedAddons.filter((a) => a.id !== addon.id);
+                    } else {
+                        selectedAddons.push(addon);
+                    }
+                    renderAddons();
+                    renderSelection();
+                };
+                addonGrid.appendChild(button);
+            });
+        }
+
+        function renderSelection() {
+            if (!selectedDrink) {
+                selectedDrinkEl.textContent = 'No drink selected yet';
+            } else {
+                selectedDrinkEl.textContent = `${selectedDrink.name}  $${money(selectedDrink.price)}`;
+            }
+
+            if (selectedAddons.length === 0) {
+                selectedAddonsEl.textContent = 'No add ons selected';
+            } else {
+                selectedAddonsEl.textContent = 'Add ons  ' + selectedAddons.map((a) => `${a.name} +$${money(a.price)}`).join(', ');
+            }
+
+            qtyValueEl.textContent = quantity;
+        }
+
+        function renderOrder() {
+            if (order.length === 0) {
+                orderListEl.innerHTML = '<div class="muted">Your order is empty</div>';
+                orderTotalEl.textContent = '0.00';
+                return;
+            }
+
+            orderListEl.innerHTML = '';
+            let total = 0;
+
+            order.forEach((item, index) => {
+                total += item.total;
+                const div = document.createElement('div');
+                div.className = 'order-item';
+                div.innerHTML = `
+                    <h3>${item.quantity} x ${item.name}</h3>
+                    <div>${item.addons.length ? 'Add ons  ' + item.addons.map((a) => a.name).join(', ') : 'No add ons'}</div>
+                    <div style="margin-top:8px;"><strong>$${money(item.total)}</strong></div>
+                    <button class="cart-btn danger" type="button" style="margin-top:10px;" onclick="removeOrderItem(${index})">Remove</button>
+                `;
+                orderListEl.appendChild(div);
+            });
+
+            orderTotalEl.textContent = money(total);
+        }
+
+        function addToOrder() {
+            if (!selectedDrink) {
+                alert('Pick a drink first');
+                return;
+            }
+
+            const addonTotal = selectedAddons.reduce((sum, addon) => sum + addon.price, 0);
+            const total = (selectedDrink.price + addonTotal) * quantity;
+
+            order.push({
+                drinkId: selectedDrink.id,
+                name: selectedDrink.name,
+                addons: [...selectedAddons],
+                quantity,
+                total
+            });
+
+            selectedDrink = null;
+            selectedAddons = [];
+            quantity = 1;
+            renderAddons();
+            renderSelection();
+            renderOrder();
+        }
+
+        function removeOrderItem(index) {
+            order.splice(index, 1);
+            renderOrder();
+        }
+        window.removeOrderItem = removeOrderItem;
+
+        document.getElementById('minusQty').onclick = () => {
+            if (quantity > 1) {
+                quantity -= 1;
+                renderSelection();
+            }
+        };
+
+        document.getElementById('plusQty').onclick = () => {
+            quantity += 1;
+            renderSelection();
+        };
+
+        document.getElementById('addToOrder').onclick = addToOrder;
+
+        document.getElementById('clearOrder').onclick = () => {
+            order = [];
+            renderOrder();
+        };
+
+        document.getElementById('checkoutOrder').onclick = () => {
+            if (order.length === 0) {
+                alert('Order is empty');
+                return;
+            }
+
+            alert('MVP checkout only. Next step is inserting this order into SQL.');
+        };
+
+        renderTabs();
+        renderMenu();
+        renderAddons();
+        renderSelection();
+        renderOrder();
+    </script>
 </body>
 </html>
