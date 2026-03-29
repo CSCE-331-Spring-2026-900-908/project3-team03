@@ -13,11 +13,11 @@
       <h2 class="sidebar-title">Manager</h2>
       <hr class="sidebar-divider" />
 
-      <a href="/manager_dashboard" class="sidebar-link">Dashboard</a>
-      <a href="/manager_reports" class="sidebar-link">Reports</a>
-      <a href="/manager_inventory" class="sidebar-link">Inventory</a>
-      <a href="/manager_menu" class="sidebar-link">Menu</a>
-      <a href="/manager_employees" class="sidebar-link">Employees</a>
+      <a href="/manager/dashboard" class="sidebar-link">Dashboard</a>
+      <a href="/manager/reports" class="sidebar-link">Reports</a>
+      <a href="/manager/inventory" class="sidebar-link">Inventory</a>
+      <a href="/manager/menu" class="sidebar-link">Menu</a>
+      <a href="/manager/employees" class="sidebar-link">Employees</a>
 
       <hr class="sidebar-divider" />
 
@@ -27,7 +27,7 @@
     <main class="main">
       <div class="topbar">
         <h1 class="page-title">Dashboard</h1>
-        <a class="refresh-btn" href="/manager_dashboard">Refresh</a>
+        <a class="refresh-btn" href="/manager/dashboard">Refresh</a>
       </div>
 
       <section class="cards">
@@ -51,7 +51,7 @@
         <div class="panel panel-large">
           <div class="panel-header">
             <h3>Recent Orders (Today)</h3>
-            <a href="/manager_reports" class="panel-link">Open Reports</a>
+            <a href="/manager/reports" class="panel-link">Open Reports</a>
           </div>
 
           <% if (recentOrders && recentOrders.length > 0) { %>
