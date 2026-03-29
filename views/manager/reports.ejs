@@ -143,6 +143,54 @@
         </div>
       </section>
 
+      <!-- PRODUCT USAGE -->
+      <section class="tab-panel" id="usage-report">
+        <div class="report-grid">
+          <div class="panel">
+            <h2>Product Usage Options</h2>
+
+            <form method="GET" action="/manager/reports/usage" class="form-stack">
+              <input type="date" name="startDate" value="<%= usageReport?.startDate || '' %>" />
+              <input type="date" name="endDate" value="<%= usageReport?.endDate || '' %>" />
+              <button type="submit" class="primary-btn">Generate Usage Report</button>
+            </form>
+
+            <p class="status-text"><%= usageReport?.status || '' %></p>
+          </div>
+
+          <div class="panel">
+            <h2 class="section-title">Inventory Used (Time Window)</h2>
+
+            <% if (usageReport?.items?.length) { %>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Inventory Item</th>
+                    <th>Used</th>
+                    <th>Unit</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% usageReport.items.forEach(item => { %>
+                    <tr>
+                      <td><%= item.name %></td>
+                      <td><%= item.used %></td>
+                      <td><%= item.unit %></td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            <% } else { %>
+              <p class="empty-text">No usage data available.</p>
+            <% } %>
+
+            <div class="chart-placeholder">
+              Usage chart placeholder
+            </div>
+          </div>
+        </div>
+      </section>
+
     </main>
   </div>
 </body>
