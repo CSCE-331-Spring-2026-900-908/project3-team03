@@ -38,7 +38,7 @@
           <div class="panel">
             <h2>X-Report Options</h2>
 
-            <form method="GET" action="/manager_reports_x" class="form-stack">
+            <form method="GET" action="/manager/reports/x" class="form-stack">
               <input type="date" name="date" value="<%= xReport?.date || '' %>" />
 
               <div class="form-row">
@@ -93,6 +93,56 @@
           </div>
         </div>
       </section>
+
+      <!-- SALES REPORT -->
+      <section class="tab-panel" id="sales-report">
+        <div class="report-grid">
+          <div class="panel">
+            <h2>Sales Report Options</h2>
+
+            <form method="GET" action="/manager/reports/sales" class="form-stack">
+              <input type="date" name="startDate" value="<%= salesReport?.startDate || '' %>" />
+              <input type="date" name="endDate" value="<%= salesReport?.endDate || '' %>" />
+              <button type="submit" class="primary-btn">Generate Sales Report</button>
+            </form>
+
+            <p class="status-text"><%= salesReport?.status || '' %></p>
+          </div>
+
+          <div class="panel">
+            <h2 class="section-title">Sales by Item</h2>
+
+            <% if (salesReport?.items?.length) { %>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th>Qty</th>
+                    <th>Revenue</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% salesReport.items.forEach(item => { %>
+                    <tr>
+                      <td><%= item.name %></td>
+                      <td><%= item.qty %></td>
+                      <td>$<%= item.revenue %></td>
+                    </tr>
+                  <% }) %>
+                </tbody>
+              </table>
+            <% } else { %>
+              <p class="empty-text">No sales data available.</p>
+            <% } %>
+
+            <div class="footer-total">
+              <span>Total Revenue (sans tax and addons):</span>
+              <strong>$<%= salesReport?.totalRevenue ?? '0.00' %></strong>
+            </div>
+          </div>
+        </div>
+      </section>
+
     </main>
   </div>
 </body>
