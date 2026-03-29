@@ -129,6 +129,12 @@ app.get('/user', (req, res) => {
         });
 });
 
+
+app.get('/manager', (req, res) => {
+    res.render('manager');
+});
+
+
 app.get('/user', (req, res) => {
     res.render('user');
 });
