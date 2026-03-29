@@ -13,11 +13,11 @@
       <h2 class="sidebar-title">Manager</h2>
       <hr class="sidebar-divider" />
 
-      <a href="/manager_dashboard" class="sidebar-link">Dashboard</a>
-      <a href="/manager_reports" class="sidebar-link active">Reports</a>
-      <a href="/manager_inventory" class="sidebar-link">Inventory</a>
-      <a href="/manager_menu" class="sidebar-link">Menu</a>
-      <a href="/manager_employees" class="sidebar-link">Employees</a>
+      <a href="/manager/dashboard" class="sidebar-link">Dashboard</a>
+      <a href="/manager/reports" class="sidebar-link active">Reports</a>
+      <a href="/manager/inventory" class="sidebar-link">Inventory</a>
+      <a href="/manager/menu" class="sidebar-link">Menu</a>
+      <a href="/manager/employees" class="sidebar-link">Employees</a>
     </aside>
 
     <main class="main">
@@ -38,7 +38,7 @@
           <div class="panel">
             <h2>X-Report Options</h2>
 
-            <form method="GET" action="/manager/reports/x" class="form-stack">
+            <form method="GET" action="/manager_reports_x" class="form-stack">
               <input type="date" name="date" value="<%= xReport?.date || '' %>" />
 
               <div class="form-row">

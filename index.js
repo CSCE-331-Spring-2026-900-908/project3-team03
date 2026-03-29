@@ -53,7 +53,7 @@ app.post('/login', (req, res) => {
         res.redirect('/cashier');
     } else if (username === credentials.manager.username && password === credentials.manager.password) {
         req.session.role = 'manager';
-        res.redirect('/manager_dashboard');
+        res.redirect('/manager/dashboard');
     } else {
         res.render('login', { error: 'Invalid credentials' });
     }
@@ -115,8 +115,8 @@ app.get('/login', (req, res) => {
 });
 
 // -------------------- MANAGER SCREENS --------------------
-app.get('/manager_dashboard', (req, res) => {
-  res.render('manager_dashboard', {
+app.get('/manager/dashboard', (req, res) => {
+  res.render('manager/dashboard', {
     salesToday: '245.50',
     ordersToday: 18,
     avgOrderToday: '13.64',
@@ -147,8 +147,8 @@ app.get('/manager_dashboard', (req, res) => {
   });
 });
 
-app.get('/manager_reports', (req, res) => {
-  res.render('manager_reports', {
+app.get('/manager/reports', (req, res) => {
+  res.render('manager/reports', {
     // TEST: mock data
     xReport: {
       date: '',
