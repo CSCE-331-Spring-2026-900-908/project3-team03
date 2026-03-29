@@ -94,6 +94,19 @@ app.get('/user', (req, res) => {
         });
 });
 
+app.get('/manager', (req, res) => {
+    res.render('manager');
+});
+
+
+app.get('/user', (req, res) => {
+    res.render('user');
+});
+
+app.get('/login', (req, res) => {
+    res.render('login');
+});
+
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`);
 });
