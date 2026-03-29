@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manager Dashboard</title>
+  <!-- TODO: CSS styles for later -->
+  <link rel="stylesheet" href="/css/manager_dashboard.css" />
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <h2 class="sidebar-title">Manager</h2>
+      <hr class="sidebar-divider" />
+
+      <a href="/manager_dashboard" class="sidebar-link">Dashboard</a>
+      <a href="/manager_reports" class="sidebar-link">Reports</a>
+      <a href="/manager_inventory" class="sidebar-link">Inventory</a>
+      <a href="/manager_menu" class="sidebar-link">Menu</a>
+      <a href="/manager_employees" class="sidebar-link">Employees</a>
+
+      <hr class="sidebar-divider" />
+
+      <a href="/cashier" class="sidebar-link">Switch to Cashier</a>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <h1 class="page-title">Dashboard</h1>
+        <a class="refresh-btn" href="/manager_dashboard">Refresh</a>
+      </div>
+
+      <section class="cards">
+        <div class="card">
+          <div class="card-label">Sales Today</div>
+          <div class="card-value">$<%= salesToday ?? "0.00" %></div>
+        </div>
+
+        <div class="card">
+          <div class="card-label">Orders Today</div>
+          <div class="card-value"><%= ordersToday ?? 0 %></div>
+        </div>
+
+        <div class="card">
+          <div class="card-label">Avg Order</div>
+          <div class="card-value">$<%= avgOrderToday ?? "0.00" %></div>
+        </div>
+      </section>
+
+      
+    </main>
+  </div>
+</body>
+</html>

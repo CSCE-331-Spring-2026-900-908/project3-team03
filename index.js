@@ -53,7 +53,7 @@ app.post('/login', (req, res) => {
         res.redirect('/cashier');
     } else if (username === credentials.manager.username && password === credentials.manager.password) {
         req.session.role = 'manager';
-        res.redirect('/manager');
+        res.redirect('/manager_dashboard');
     } else {
         res.render('login', { error: 'Invalid credentials' });
     }
@@ -78,19 +78,36 @@ app.get('/cashier', (req, res) => {
     }
 });
 
-app.get('/manager', (req, res) => {
-    if (req.session.role === 'manager') {
-        pool.query("SELECT * FROM employee WHERE role = 'MANAGER' ORDER BY employee_id;")
-            .then(query_res => {
-                res.render('manager', { managers: query_res.rows });
-            })
-            .catch(err => {
-                console.error('Error fetching managers:', err);
-                res.status(500).send('Database error');
-            });
-    } else {
-        res.redirect('/');
-    }
+app.get('/manager_dashboard', (req, res) => {
+  res.render('manager_dashboard', {
+    salesToday: '245.50',
+    ordersToday: 18,
+    avgOrderToday: '13.64',
+    
+    // TEST: mock data
+    recentOrders: [
+      {
+        order_id: 101,
+        created_at: '10:25 AM',
+        status: 'PAID',
+        payment_method: 'CARD',
+        total: '12.50'
+      },
+      {
+        order_id: 102,
+        created_at: '10:40 AM',
+        status: 'SERVED',
+        payment_method: 'CASH',
+        total: '9.75'
+      }
+    ],
+    
+    // TEST: mock data
+    lowStock: [
+      { name: 'Boba Pearls', quantity: 5, reorder_point: 20 },
+      { name: 'Milk', quantity: 8, reorder_point: 15 }
+    ]
+  });
 });
 
 app.get('/logout', (req, res) => {
