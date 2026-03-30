@@ -116,141 +116,164 @@ app.get('/login', (req, res) => {
 
 // -------------------- MANAGER SCREENS --------------------
 app.get('/manager/dashboard', (req, res) => {
-  res.render('manager/dashboard', {
-    salesToday: '245.50',
-    ordersToday: 18,
-    avgOrderToday: '13.64',
-    
-    // TEST: mock data
-    recentOrders: [
-      {
-        order_id: 101,
-        created_at: '10:25 AM',
-        status: 'PAID',
-        payment_method: 'CARD',
-        total: '12.50'
-      },
-      {
-        order_id: 102,
-        created_at: '10:40 AM',
-        status: 'SERVED',
-        payment_method: 'CASH',
-        total: '9.75'
-      }
-    ],
+    res.render('manager/dashboard', {
+        salesToday: '245.50',
+        ordersToday: 18,
+        avgOrderToday: '13.64',
+        
+        // TEST: mock data
+        recentOrders: [
+        {
+            order_id: 101,
+            created_at: '10:25 AM',
+            status: 'PAID',
+            payment_method: 'CARD',
+            total: '12.50'
+        },
+        {
+            order_id: 102,
+            created_at: '10:40 AM',
+            status: 'SERVED',
+            payment_method: 'CASH',
+            total: '9.75'
+        }
+        ],
 
-    // TEST: mock data
-    lowStock: [
-      { name: 'Boba Pearls', quantity: 5, reorder_point: 20 },
-      { name: 'Milk', quantity: 8, reorder_point: 15 }
-    ]
-  });
+        // TEST: mock data
+        lowStock: [
+        { name: 'Boba Pearls', quantity: 5, reorder_point: 20 },
+        { name: 'Milk', quantity: 8, reorder_point: 15 }
+        ]
+    });
 });
 
 app.get('/manager/reports', (req, res) => {
-  res.render('manager/reports', {
-    // TEST: mock data
-    xReport: {
-      date: '',
-      beginHour: 8,
-      endHour: 17,
-      status: '',
-      orders: 12,
-      discards: 1,
-      sales: '142.50',
-      cardPayments: 8,
-      cashPayments: 4,
-      avgRevenue: '11.88'
-    },
+    res.render('manager/reports', {
+        // TEST: mock data
+        xReport: {
+        date: '',
+        beginHour: 8,
+        endHour: 17,
+        status: '',
+        orders: 12,
+        discards: 1,
+        sales: '142.50',
+        cardPayments: 8,
+        cashPayments: 4,
+        avgRevenue: '11.88'
+        },
 
-    // TEST: mock data
-    salesReport: {
-      startDate: '',
-      endDate: '',
-      status: '',
-      items: [
-        { name: 'Classic Milk Tea', qty: 8, revenue: '48.00' },
-        { name: 'Taro Smoothie', qty: 4, revenue: '28.00' }
-      ],
-      totalRevenue: '76.00'
-    },
+        // TEST: mock data
+        salesReport: {
+        startDate: '',
+        endDate: '',
+        status: '',
+        items: [
+            { name: 'Classic Milk Tea', qty: 8, revenue: '48.00' },
+            { name: 'Taro Smoothie', qty: 4, revenue: '28.00' }
+        ],
+        totalRevenue: '76.00'
+        },
 
-    // TEST: mock data
-    usageReport: {
-      startDate: '',
-      endDate: '',
-      status: '',
-      items: [
-        { name: 'Milk', used: 12, unit: 'cups' },
-        { name: 'Boba Pearls', used: 7, unit: 'scoops' }
-      ]
-    },
+        // TEST: mock data
+        usageReport: {
+        startDate: '',
+        endDate: '',
+        status: '',
+        items: [
+            { name: 'Milk', used: 12, unit: 'cups' },
+            { name: 'Boba Pearls', used: 7, unit: 'scoops' }
+        ]
+        },
 
-    // TEST: mock data
-    zReport: {
-      businessDay: 'today',
-      closed: false,
-      status: '',
-      sales: '142.50',
-      tax: '11.76',
-      totalCash: '48.00',
-      cardPayments: 8,
-      cashPayments: 4,
-      adjustments: '0.00',
-      sig1: '',
-      sig2: '',
-      notes: ''
-    }
-  });
+        // TEST: mock data
+        zReport: {
+        businessDay: 'today',
+        closed: false,
+        status: '',
+        sales: '142.50',
+        tax: '11.76',
+        totalCash: '48.00',
+        cardPayments: 8,
+        cashPayments: 4,
+        adjustments: '0.00',
+        sig1: '',
+        sig2: '',
+        notes: ''
+        }
+    });
 });
 
 app.get('/manager/inventory', (req, res) => {
-  res.render('manager/inventory', {
-    statusMessage: '',
-    inventoryItems: [
-      { name: 'Boba Pearls', onHand: 25, parLevel: 20, reorder: 20 },
-      { name: 'Milk', onHand: 12, parLevel: 15, reorder: 15 },
-      { name: 'Brown Sugar Syrup', onHand: 18, parLevel: 10, reorder: 10 }
-    ]
-  });
+    res.render('manager/inventory', {
+        statusMessage: '',
+        inventoryItems: [
+        { name: 'Boba Pearls', onHand: 25, parLevel: 20, reorder: 20 },
+        { name: 'Milk', onHand: 12, parLevel: 15, reorder: 15 },
+        { name: 'Brown Sugar Syrup', onHand: 18, parLevel: 10, reorder: 10 }
+        ]
+    });
 });
 
 // TEST: Mock post to add inventory item
 app.post('/manager/inventory/add', (req, res) => {
-  const { itemName, onHand, reorder } = req.body;
+    const { itemName, onHand, reorder } = req.body;
 
-  res.render('manager/inventory', {
-    statusMessage: `Added item: ${itemName}`,
-    inventoryItems: [
-      { name: itemName, onHand, parLevel: reorder, reorder },
-      { name: 'Milk', onHand: 12, parLevel: 15, reorder: 15 }
-    ]
-  });
+    res.render('manager/inventory', {
+        statusMessage: `Added item: ${itemName}`,
+        inventoryItems: [
+        { name: itemName, onHand, parLevel: reorder, reorder },
+        { name: 'Milk', onHand: 12, parLevel: 15, reorder: 15 }
+        ]
+    });
 });
 
 // TEST: Mock post to update quantity of an item
 app.post('/manager/inventory/update-quantity', (req, res) => {
-  const { itemName, onHand } = req.body;
+    const { itemName, onHand } = req.body;
 
-  res.render('manager/inventory', {
-    statusMessage: `Updated quantity for ${itemName} to ${onHand}`,
-    inventoryItems: [
-      { name: itemName, onHand, parLevel: 20, reorder: 20 },
-      { name: 'Milk', onHand: 12, parLevel: 15, reorder: 15 }
-    ]
-  });
+    res.render('manager/inventory', {
+        statusMessage: `Updated quantity for ${itemName} to ${onHand}`,
+        inventoryItems: [
+        { name: itemName, onHand, parLevel: 20, reorder: 20 },
+        { name: 'Milk', onHand: 12, parLevel: 15, reorder: 15 }
+        ]
+    });
 });
 
 // TEST: Mock post to delete an inventory item
 app.post('/manager/inventory/delete', (req, res) => {
-  const { deleteName } = req.body;
+    const { deleteName } = req.body;
 
-  res.render('manager/inventory', {
-    statusMessage: `Deleted item: ${deleteName}`,
-    inventoryItems: [
-      { name: 'Milk', onHand: 12, parLevel: 15, reorder: 15 }
-    ]
-  });
+    res.render('manager/inventory', {
+        statusMessage: `Deleted item: ${deleteName}`,
+        inventoryItems: [
+        { name: 'Milk', onHand: 12, parLevel: 15, reorder: 15 }
+        ]
+    });
+});
+
+app.get('/manager/menu', (req, res) => {
+    // TEST: mock data
+    res.render('manager/menu', {
+        statusMessage: '',
+        selectedItem: {
+        menu_item_id: 1,
+        name: 'Classic Milk Tea'
+        },
+        categories: ['Milk Tea', 'Tea', 'Fruit Tea', 'Smoothie', 'Matcha', 'Energy', 'Sour', 'ADDON', 'SEASONAL'],
+        ingredients: [
+        { ingredient_id: 1, name: 'Milk' },
+        { ingredient_id: 2, name: 'Boba Pearls' },
+        { ingredient_id: 3, name: 'Brown Sugar Syrup' }
+        ],
+        recipeLines: ['Milk (200)', 'Boba Pearls (50)', 'Brown Sugar Syrup (20)'],
+        menuItems: [
+        { menu_item_id: 1, name: 'Classic Milk Tea', category: 'Milk Tea', base_price: '6.00', active: true },
+        { menu_item_id: 2, name: 'Taro Smoothie', category: 'Smoothie', base_price: '6.50', active: true },
+        { menu_item_id: 3, name: 'Sakura Seasonal Tea', category: 'SEASONAL', base_price: '6.75', active: false }
+        ]
+    });
 });
 
 
