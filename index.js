@@ -68,7 +68,7 @@ app.post('/loginManager', (req, res) => {
     const { username, password } = req.body;
     if (username === credentials.manager.username && password === credentials.manager.password) {
         req.session.role = 'manager';
-        res.redirect('/manager');
+        res.redirect('/manager/dashboard');
     } else {
         res.render('login', { error: 'Invalid credentials' });
     }
