@@ -120,6 +120,18 @@ app.get('/login', (req, res) => {
     res.render('login');
 });
 
+app.get('/cashiercheckout', (req, res) => {
+    res.render('cashiercheckout');
+});
+
+app.get('/cashierconfirm', (req, res) => {
+    res.render('cashierconfirm');
+});
+
+app.get('/cashiercustomize', (req, res) => {
+    res.render('cashiercustomize');
+});
+
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`);
 });
