@@ -68,7 +68,7 @@ app.post('/loginManager', (req, res) => {
     const { username, password } = req.body;
     if (username === credentials.manager.username && password === credentials.manager.password) {
         req.session.role = 'manager';
-        res.redirect('/manager');
+        res.redirect('/manager/dashboard');
     } else {
         res.render('login', { error: 'Invalid credentials' });
     }
@@ -133,14 +133,9 @@ app.get('/user', (req, res) => {
     res.render('user');
 });
 
-app.get('/manager', (req, res) => {
-    res.render('manager');
-});
-
 app.get('/login', (req, res) => {
     res.render('login');
 });
-
 
 app.get('/cashiercheckout', (req, res) => {
     res.render('cashiercheckout');
