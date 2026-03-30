@@ -1,17 +1,50 @@
 <!DOCTYPE html>
+<html>
 <head>
-    <title>Home Page</title>
+    <title>Boba POS</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 100px;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            margin-bottom: 40px;
+        }
+
+        .btn {
+            display: block;
+            width: 200px;
+            margin: 15px auto;
+            padding: 15px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .cashier { background-color: #4CAF50; color: white; }
+        .manager { background-color: #2196F3; color: white; }
+        .kiosk   { background-color: #ff9800; color: white; }
+
+        .btn:hover {
+            opacity: 0.85;
+        }
+    </style>
 </head>
+
 <body>
-<button onclick="window.location.href='/login'">
-  Cashier Login
-</button>
 
-<button onclick="window.location.href='/login'">
-  Manager Login
-</button>
 
-<button onclick="window.location.href='/kiosk'">
-  User Page
-</button>
+<h1>Boba Shop System</h1>
+</html>
+
+
+<button onclick="window.location.href='/loginCashier'">Cashier Login</button>
+
+<button onclick="window.location.href='/loginManager'">Manager Login</button>
+
+<button onclick="window.location.href='/kiosk'">Self-Serving Kiosk</button>
 </body>

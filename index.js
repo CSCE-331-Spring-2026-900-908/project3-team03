@@ -46,6 +46,28 @@ app.get('/', (req, res) => {
     res.render('index');
 });
 
+//separate cashier login handler
+app.post('/loginCashier', (req, res) => {
+    const { username, password } = req.body;
+    if (username === credentials.cashier.username && password === credentials.cashier.password) {
+        req.session.role = 'cashier';
+        res.redirect('/cashier');
+    } else {
+        res.render('login', { error: 'Invalid credentials' });
+    }
+});
+
+//separate manager login handler
+app.post('/loginManager', (req, res) => {
+    const { username, password } = req.body;
+    if (username === credentials.manager.username && password === credentials.manager.password) {
+        req.session.role = 'manager';
+        res.redirect('/manager');
+    } else {
+        res.render('login', { error: 'Invalid credentials' });
+    }
+});
+
 app.post('/login', (req, res) => {
     const { username, password } = req.body;
     if (username === credentials.cashier.username && password === credentials.cashier.password) {
@@ -128,6 +150,7 @@ app.get('/login', (req, res) => {
     res.render('login');
 });
 
+
 app.get('/cashiercheckout', (req, res) => {
     res.render('cashiercheckout');
 });
@@ -138,6 +161,15 @@ app.get('/cashierconfirm', (req, res) => {
 
 app.get('/cashiercustomize', (req, res) => {
     res.render('cashiercustomize');
+});
+
+app.get('/loginCashier', (req, res) => {
+    res.render('loginCashier');
+});
+
+app.get('/loginManager', (req, res) => {
+    res.render('loginManager');
+
 });
 
 app.listen(port, () => {
