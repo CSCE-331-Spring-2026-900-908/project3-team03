@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manager Employees</title>
+    <!-- TODO: CSS styles for later -->
+    <link rel="stylesheet" href="/css/manager_employees.css" />
+</head>
+<body>
+    <div class="layout">
+        <aside class="sidebar">
+        <h2 class="sidebar-title">Manager</h2>
+        <hr class="sidebar-divider" />
+
+        <a href="/manager/dashboard" class="sidebar-link">Dashboard</a>
+        <a href="/manager/reports" class="sidebar-link">Reports</a>
+        <a href="/manager/inventory" class="sidebar-link">Inventory</a>
+        <a href="/manager/menu" class="sidebar-link">Menu</a>
+        <a href="/manager/employees" class="sidebar-link active">Employees</a>
+
+        <hr class="sidebar-divider" />
+
+        <a href="/cashier" class="sidebar-link">Switch to Cashier</a>
+        </aside>
+
+        <main class="main">
+        <header class="topbar">
+            <div class="topbar-left">
+            <h1>Employees</h1>
+            </div>
+            <a href="/manager/employees" class="refresh-btn">Refresh</a>
+        </header>
+
+        <% if (statusMessage) { %>
+            <div class="status-message"><%= statusMessage %></div>
+        <% } %>
+
+        <div class="content">
+            <!-- CENTER SECTION -->
+            <section class="table-panel">
+            <table class="employee-table">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>First</th>
+                    <th>Last</th>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th>Wage</th>
+                    <th>Active</th>
+                    <th>Join Date</th>
+                </tr>
+                </thead>
+                <tbody>
+                <% if (employees && employees.length > 0) { %>
+                    <% employees.forEach(employee => { %>
+                    <tr class="<%= selectedEmployee && selectedEmployee.employee_id === employee.employee_id ? 'selected-row' : '' %>">
+                        <td><%= employee.employee_id %></td>
+                        <td><%= employee.first_name %></td>
+                        <td><%= employee.last_name %></td>
+                        <td><%= employee.username %></td>
+                        <td><%= employee.role %></td>
+                        <td>$<%= employee.hourly_wage %></td>
+                        <td><%= employee.active ? 'Yes' : 'No' %></td>
+                        <td><%= employee.join_date %></td>
+                    </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr>
+                    <td colspan="8" class="empty-cell">No employees found.</td>
+                    </tr>
+                <% } %>
+                </tbody>
+            </table>
+            </section>
+
+            <!-- RIGHT SECTION -->
+            <aside class="side-panel">
+            <div class="panel-scroll">
+                <section class="panel-block">
+                <h2>Edit / Add</h2>
+
+                <label>Selected employee:</label>
+                <div class="selected-item">
+                    <%= selectedEmployee ? `${selectedEmployee.employee_id} - ${selectedEmployee.first_name} ${selectedEmployee.last_name}` : '(none)' %>
+                </div>
+                </section>
+
+                <hr />
+
+                <section class="panel-block">
+                <label>Role</label>
+                <form method="POST" action="/manager/employees/update-role" class="stack-form">
+                    <input type="hidden" name="employeeId" value="<%= selectedEmployee ? selectedEmployee.employee_id : '' %>" />
+                    <select name="role">
+                    <option value="">Select role</option>
+                    <% if (roles && roles.length > 0) { %>
+                        <% roles.forEach(role => { %>
+                        <option value="<%= role %>"><%= role %></option>
+                        <% }) %>
+                    <% } %>
+                    </select>
+                    <button type="submit">Update Role</button>
+                </form>
+
+                <label>Hourly Wage</label>
+                <form method="POST" action="/manager/employees/update-wage" class="stack-form">
+                    <input type="hidden" name="employeeId" value="<%= selectedEmployee ? selectedEmployee.employee_id : '' %>" />
+                    <input type="text" name="hourlyWage" placeholder="e.g. 12.50" />
+                    <button type="submit">Update Wage</button>
+                </form>
+
+                <form method="POST" action="/manager/employees/toggle-active" class="stack-form">
+                    <input type="hidden" name="employeeId" value="<%= selectedEmployee ? selectedEmployee.employee_id : '' %>" />
+                    <button type="submit">Toggle Active</button>
+                </form>
+                </section>
+
+                <hr />
+
+                <section class="panel-block">
+                <h3>Add Employee</h3>
+                <form method="POST" action="/manager/employees/add" class="stack-form">
+                    <input type="text" name="firstName" placeholder="First name" required />
+                    <input type="text" name="lastName" placeholder="Last name" required />
+                    <input type="text" name="username" placeholder="Username" required />
+
+                    <select name="role" required>
+                    <option value="">Role</option>
+                    <% if (roles && roles.length > 0) { %>
+                        <% roles.forEach(role => { %>
+                        <option value="<%= role %>"><%= role %></option>
+                        <% }) %>
+                    <% } %>
+                    </select>
+
+                    <input type="date" name="joinDate" />
+                    <input type="text" name="hourlyWage" placeholder="Hourly wage (e.g. 12.00)" />
+
+                    <label class="checkbox-row">
+                    <input type="checkbox" name="active" checked />
+                    <span>Active</span>
+                    </label>
+
+                    <button type="submit">Add Employee</button>
+                </form>
+                </section>
+            </div>
+            </aside>
+        </div>
+        </main>
+    </div>
+</body>
+</html>
