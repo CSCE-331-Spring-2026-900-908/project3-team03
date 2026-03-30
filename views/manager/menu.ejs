@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manager Menu</title>
+    <!-- TODO: CSS styles for later -->
+    <link rel="stylesheet" href="/css/manager_menu.css" />
+</head>
+<body>
+    <div class="layout">
+        <aside class="sidebar">
+        <h2 class="sidebar-title">Manager</h2>
+        <hr class="sidebar-divider" />
+
+        <a href="/manager/dashboard" class="sidebar-link">Dashboard</a>
+        <a href="/manager/reports" class="sidebar-link">Reports</a>
+        <a href="/manager/inventory" class="sidebar-link">Inventory</a>
+        <a href="/manager/menu" class="sidebar-link active">Menu</a>
+        <a href="/manager/employees" class="sidebar-link">Employees</a>
+
+        <hr class="sidebar-divider" />
+
+        <a href="/cashier" class="sidebar-link">Switch to Cashier</a>
+        </aside>
+
+        <main class="main">
+        <!-- TOP SECTION -->
+        <header class="topbar">
+            <div class="topbar-left">
+            <h1>Menu Items</h1>
+            </div>
+            <a href="/manager/menu" class="refresh-btn">Refresh</a>
+        </header>
+
+        <!-- STATUS -->
+        <% if (statusMessage) { %>
+            <div class="status-message"><%= statusMessage %></div>
+        <% } %>
+
+        <!-- MAIN CONTENT -->
+        <div class="content">
+            <!-- CENTER SECTION -->
+            <section class="table-panel">
+            <table class="menu-table">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Base Price</th>
+                    <th>Active</th>
+                </tr>
+                </thead>
+                <tbody>
+                <% if (menuItems && menuItems.length > 0) { %>
+                    <% menuItems.forEach(item => { %>
+                    <tr class="<%= selectedItem && selectedItem.menu_item_id === item.menu_item_id ? 'selected-row' : '' %>">
+                        <td><%= item.menu_item_id %></td>
+                        <td><%= item.name %></td>
+                        <td><%= item.category %></td>
+                        <td>$<%= item.base_price %></td>
+                        <td><%= item.active ? 'Yes' : 'No' %></td>
+                    </tr>
+                    <% }) %>
+                <% } else { %>
+                    <tr>
+                    <td colspan="5" class="empty-cell">No menu items found.</td>
+                    </tr>
+                <% } %>
+                </tbody>
+            </table>
+            </section>
+        </div>
+        </main>
+    </div>
+</body>
+</html>
