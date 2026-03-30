@@ -276,6 +276,10 @@ app.get('/manager/menu', (req, res) => {
     });
 });
 
+// TODO: Add POST requests for every button on manager menu
+
+
+
 
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`);
