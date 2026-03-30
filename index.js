@@ -150,12 +150,26 @@ app.get('/login', (req, res) => {
     res.render('login');
 });
 
+
+app.get('/cashiercheckout', (req, res) => {
+    res.render('cashiercheckout');
+});
+
+app.get('/cashierconfirm', (req, res) => {
+    res.render('cashierconfirm');
+});
+
+app.get('/cashiercustomize', (req, res) => {
+    res.render('cashiercustomize');
+});
+
 app.get('/loginCashier', (req, res) => {
     res.render('loginCashier');
 });
 
 app.get('/loginManager', (req, res) => {
     res.render('loginManager');
+
 });
 
 app.listen(port, () => {
