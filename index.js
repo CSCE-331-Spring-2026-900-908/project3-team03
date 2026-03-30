@@ -203,6 +203,55 @@ app.get('/manager/reports', (req, res) => {
   });
 });
 
+app.get('/manager/inventory', (req, res) => {
+  res.render('manager/inventory', {
+    statusMessage: '',
+    inventoryItems: [
+      { name: 'Boba Pearls', onHand: 25, parLevel: 20, reorder: 20 },
+      { name: 'Milk', onHand: 12, parLevel: 15, reorder: 15 },
+      { name: 'Brown Sugar Syrup', onHand: 18, parLevel: 10, reorder: 10 }
+    ]
+  });
+});
+
+// TEST: Mock post to add inventory item
+app.post('/manager/inventory/add', (req, res) => {
+  const { itemName, onHand, reorder } = req.body;
+
+  res.render('manager/inventory', {
+    statusMessage: `Added item: ${itemName}`,
+    inventoryItems: [
+      { name: itemName, onHand, parLevel: reorder, reorder },
+      { name: 'Milk', onHand: 12, parLevel: 15, reorder: 15 }
+    ]
+  });
+});
+
+// TEST: Mock post to update quantity of an item
+app.post('/manager/inventory/update-quantity', (req, res) => {
+  const { itemName, onHand } = req.body;
+
+  res.render('manager/inventory', {
+    statusMessage: `Updated quantity for ${itemName} to ${onHand}`,
+    inventoryItems: [
+      { name: itemName, onHand, parLevel: 20, reorder: 20 },
+      { name: 'Milk', onHand: 12, parLevel: 15, reorder: 15 }
+    ]
+  });
+});
+
+// TEST: Mock post to delete an inventory item
+app.post('/manager/inventory/delete', (req, res) => {
+  const { deleteName } = req.body;
+
+  res.render('manager/inventory', {
+    statusMessage: `Deleted item: ${deleteName}`,
+    inventoryItems: [
+      { name: 'Milk', onHand: 12, parLevel: 15, reorder: 15 }
+    ]
+  });
+});
+
 
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`);
