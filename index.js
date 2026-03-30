@@ -7,7 +7,13 @@ const dotenv = require('dotenv').config();
 const app = express();
 const port = 3000;
 
+// Routes
+const managerRoutes = require('./routes/manager');
+
+app.use('/manager', managerRoutes);
+
 // Middleware
+app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(session({
@@ -62,7 +68,7 @@ app.post('/loginManager', (req, res) => {
     const { username, password } = req.body;
     if (username === credentials.manager.username && password === credentials.manager.password) {
         req.session.role = 'manager';
-        res.redirect('/manager');
+        res.redirect('/manager/dashboard');
     } else {
         res.render('login', { error: 'Invalid credentials' });
     }
@@ -75,7 +81,7 @@ app.post('/login', (req, res) => {
         res.redirect('/cashier');
     } else if (username === credentials.manager.username && password === credentials.manager.password) {
         req.session.role = 'manager';
-        res.redirect('/manager');
+        res.redirect('/manager/dashboard');
     } else {
         res.render('login', { error: 'Invalid credentials' });
     }
@@ -93,21 +99,6 @@ app.get('/cashier', (req, res) => {
             })
             .catch(err => {
                 console.error('Error fetching employees:', err);
-                res.status(500).send('Database error');
-            });
-    } else {
-        res.redirect('/');
-    }
-});
-
-app.get('/manager', (req, res) => {
-    if (req.session.role === 'manager') {
-        pool.query("SELECT * FROM employee WHERE role = 'MANAGER' ORDER BY employee_id;")
-            .then(query_res => {
-                res.render('manager', { managers: query_res.rows });
-            })
-            .catch(err => {
-                console.error('Error fetching managers:', err);
                 res.status(500).send('Database error');
             });
     } else {
@@ -142,14 +133,9 @@ app.get('/user', (req, res) => {
     res.render('user');
 });
 
-app.get('/manager', (req, res) => {
-    res.render('manager');
-});
-
 app.get('/login', (req, res) => {
     res.render('login');
 });
-
 
 app.get('/cashiercheckout', (req, res) => {
     res.render('cashiercheckout');

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Manager Reports</title>
+    <link rel="stylesheet" href="/css/manager_reports.css" />
+</head>
+<body>
+    <div class="layout">
+        <aside class="sidebar">
+        <h2 class="sidebar-title">Manager</h2>
+        <hr class="sidebar-divider" />
+
+        <a href="/manager/dashboard" class="sidebar-link">Dashboard</a>
+        <a href="/manager/reports" class="sidebar-link active">Reports</a>
+        <a href="/manager/inventory" class="sidebar-link">Inventory</a>
+        <a href="/manager/menu" class="sidebar-link">Menu</a>
+        <a href="/manager/employees" class="sidebar-link">Employees</a>
+
+        <hr class="sidebar-divider" />
+
+        <a href="/cashier" class="sidebar-link">Switch to Cashier</a>
+        </aside>
+
+        <main class="main">
+        <header class="page-header">
+            <h1>Reports</h1>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-button active" data-tab="x-report">X-Report</button>
+            <button class="tab-button" data-tab="sales-report">Sales Report</button>
+            <button class="tab-button" data-tab="usage-report">Product Usage</button>
+            <button class="tab-button" data-tab="z-report">Z-Report</button>
+        </div>
+
+        <!-- X-REPORT -->
+        <section class="tab-panel active" id="x-report">
+            <div class="report-grid">
+            <div class="panel">
+                <h2>X-Report Options</h2>
+
+                <form method="GET" action="/manager/reports/x" class="form-stack">
+                <input type="date" name="date" value="<%= xReport?.date || '' %>" />
+
+                <div class="form-row">
+                    <div class="form-group">
+                    <select name="beginHour">
+                        <% for (let i = 0; i < 24; i++) { %>
+                        <option value="<%= i %>" <%= xReport?.beginHour == i ? 'selected' : '' %>><%= i %>:00</option>
+                        <% } %>
+                    </select>
+                    <label>Begin Hour</label>
+                    </div>
+
+                    <div class="form-group">
+                    <select name="endHour">
+                        <% for (let i = 0; i < 24; i++) { %>
+                        <option value="<%= i %>" <%= xReport?.endHour == i ? 'selected' : '' %>><%= i %>:00</option>
+                        <% } %>
+                    </select>
+                    <label>End Hour</label>
+                    </div>
+                </div>
+
+                <button type="submit" class="primary-btn">Generate X-Report</button>
+                </form>
+
+                <p class="status-text"><%= xReport?.status || '' %></p>
+            </div>
+
+            <div class="panel">
+                <h2 class="section-title">Report Summary</h2>
+
+                <div class="metric-row">
+                <div class="metric-card">
+                    <span class="metric-label">Paid Orders</span>
+                    <span class="metric-value"><%= xReport?.orders ?? 0 %></span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">Discards</span>
+                    <span class="metric-value"><%= xReport?.discards ?? 0 %></span>
+                </div>
+                <div class="metric-card">
+                    <span class="metric-label">Total Sales</span>
+                    <span class="metric-value">$<%= xReport?.sales ?? '0.00' %></span>
+                </div>
+                </div>
+
+                <div class="summary-list">
+                <div class="summary-item"><span>Card Payments:</span><span><%= xReport?.cardPayments ?? 0 %></span></div>
+                <div class="summary-item"><span>Cash Payments:</span><span><%= xReport?.cashPayments ?? 0 %></span></div>
+                <div class="summary-item"><span>Avg. Revenue / Order:</span><span>$<%= xReport?.avgRevenue ?? '0.00' %></span></div>
+                </div>
+            </div>
+            </div>
+        </section>
+
+        <!-- SALES REPORT -->
+        <section class="tab-panel" id="sales-report">
+            <div class="report-grid">
+            <div class="panel">
+                <h2>Sales Report Options</h2>
+
+                <form method="GET" action="/manager/reports/sales" class="form-stack">
+                <input type="date" name="startDate" value="<%= salesReport?.startDate || '' %>" />
+                <input type="date" name="endDate" value="<%= salesReport?.endDate || '' %>" />
+                <button type="submit" class="primary-btn">Generate Sales Report</button>
+                </form>
+
+                <p class="status-text"><%= salesReport?.status || '' %></p>
+            </div>
+
+            <div class="panel">
+                <h2 class="section-title">Sales by Item</h2>
+
+                <% if (salesReport?.items?.length) { %>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Qty</th>
+                        <th>Revenue</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <% salesReport.items.forEach(item => { %>
+                        <tr>
+                        <td><%= item.name %></td>
+                        <td><%= item.qty %></td>
+                        <td>$<%= item.revenue %></td>
+                        </tr>
+                    <% }) %>
+                    </tbody>
+                </table>
+                <% } else { %>
+                <p class="empty-text">No sales data available.</p>
+                <% } %>
+
+                <div class="footer-total">
+                <span>Total Revenue (sans tax and addons):</span>
+                <strong>$<%= salesReport?.totalRevenue ?? '0.00' %></strong>
+                </div>
+            </div>
+            </div>
+        </section>
+
+        <!-- PRODUCT USAGE -->
+        <section class="tab-panel" id="usage-report">
+            <div class="report-grid">
+            <div class="panel">
+                <h2>Product Usage Options</h2>
+
+                <form method="GET" action="/manager/reports/usage" class="form-stack">
+                <input type="date" name="startDate" value="<%= usageReport?.startDate || '' %>" />
+                <input type="date" name="endDate" value="<%= usageReport?.endDate || '' %>" />
+                <button type="submit" class="primary-btn">Generate Usage Report</button>
+                </form>
+
+                <p class="status-text"><%= usageReport?.status || '' %></p>
+            </div>
+
+            <div class="panel">
+                <h2 class="section-title">Inventory Used (Time Window)</h2>
+
+                <% if (usageReport?.items?.length) { %>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Inventory Item</th>
+                        <th>Used</th>
+                        <th>Unit</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <% usageReport.items.forEach(item => { %>
+                        <tr>
+                        <td><%= item.name %></td>
+                        <td><%= item.used %></td>
+                        <td><%= item.unit %></td>
+                        </tr>
+                    <% }) %>
+                    </tbody>
+                </table>
+                <% } else { %>
+                <p class="empty-text">No usage data available.</p>
+                <% } %>
+
+                <div class="chart-placeholder">
+                Usage chart placeholder
+                </div>
+            </div>
+            </div>
+        </section>
+
+        <!-- Z-REPORT -->
+        <section class="tab-panel" id="z-report">
+            <div class="report-grid">
+            <div class="panel">
+                <h2>Z-Report (End of Day)</h2>
+
+                <p class="helper-text">
+                Z-report should run once per day and resets totals.
+                </p>
+
+                <p class="business-day">
+                Business day: <strong><%= zReport?.businessDay || 'today' %></strong>
+                </p>
+
+                <form method="POST" action="/manager/reports/z" class="form-stack">
+                <button type="submit" class="primary-btn" <%= zReport?.closed ? 'disabled' : '' %>>
+                    <%= zReport?.closed ? 'Z-Report Closed' : 'Generate Z-Report' %>
+                </button>
+
+                <p class="status-text"><%= zReport?.status || '' %></p>
+
+                <label>Employee Signatures (for close-out)</label>
+                <input type="text" name="sig1" placeholder="Employee signature #1" value="<%= zReport?.sig1 || '' %>" />
+                <input type="text" name="sig2" placeholder="Employee signature #2 (optional)" value="<%= zReport?.sig2 || '' %>" />
+
+                <label>Notes</label>
+                <textarea name="notes" rows="4" placeholder="Notes"><%= zReport?.notes || '' %></textarea>
+                </form>
+            </div>
+
+            <div class="panel">
+                <h2 class="section-title">Z-Report Summary</h2>
+
+                <div class="summary-list">
+                <div class="summary-item"><span>Sales:</span><span>$<%= zReport?.sales ?? '0.00' %></span></div>
+                <div class="summary-item"><span>Tax:</span><span>$<%= zReport?.tax ?? '0.00' %></span></div>
+                <div class="summary-item"><span>Total Cash:</span><span>$<%= zReport?.totalCash ?? '0.00' %></span></div>
+                <div class="summary-item"><span>Card Payments:</span><span><%= zReport?.cardPayments ?? 0 %></span></div>
+                <div class="summary-item"><span>Cash Payments:</span><span><%= zReport?.cashPayments ?? 0 %></span></div>
+                <div class="summary-item"><span>Discounts / Voids / Charges:</span><span>$<%= zReport?.adjustments ?? '0.00' %></span></div>
+                </div>
+            </div>
+            </div>
+        </section>
+
+        </main>
+    </div>
+
+    <!-- CHANGE TABS -->
+    <script>
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const tabPanels = document.querySelectorAll('.tab-panel');
+
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+            const tabId = button.dataset.tab;
+
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabPanels.forEach(panel => panel.classList.remove('active'));
+
+            button.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
