@@ -191,6 +191,51 @@
         </div>
       </section>
 
+      <!-- Z-REPORT -->
+      <section class="tab-panel" id="z-report">
+        <div class="report-grid">
+          <div class="panel">
+            <h2>Z-Report (End of Day)</h2>
+
+            <p class="helper-text">
+              Z-report should run once per day and resets totals.
+            </p>
+
+            <p class="business-day">
+              Business day: <strong><%= zReport?.businessDay || 'today' %></strong>
+            </p>
+
+            <form method="POST" action="/manager/reports/z" class="form-stack">
+              <button type="submit" class="primary-btn" <%= zReport?.closed ? 'disabled' : '' %>>
+                <%= zReport?.closed ? 'Z-Report Closed' : 'Generate Z-Report' %>
+              </button>
+
+              <p class="status-text"><%= zReport?.status || '' %></p>
+
+              <label>Employee Signatures (for close-out)</label>
+              <input type="text" name="sig1" placeholder="Employee signature #1" value="<%= zReport?.sig1 || '' %>" />
+              <input type="text" name="sig2" placeholder="Employee signature #2 (optional)" value="<%= zReport?.sig2 || '' %>" />
+
+              <label>Notes</label>
+              <textarea name="notes" rows="4" placeholder="Notes"><%= zReport?.notes || '' %></textarea>
+            </form>
+          </div>
+
+          <div class="panel">
+            <h2 class="section-title">Z-Report Summary</h2>
+
+            <div class="summary-list">
+              <div class="summary-item"><span>Sales:</span><span>$<%= zReport?.sales ?? '0.00' %></span></div>
+              <div class="summary-item"><span>Tax:</span><span>$<%= zReport?.tax ?? '0.00' %></span></div>
+              <div class="summary-item"><span>Total Cash:</span><span>$<%= zReport?.totalCash ?? '0.00' %></span></div>
+              <div class="summary-item"><span>Card Payments:</span><span><%= zReport?.cardPayments ?? 0 %></span></div>
+              <div class="summary-item"><span>Cash Payments:</span><span><%= zReport?.cashPayments ?? 0 %></span></div>
+              <div class="summary-item"><span>Discounts / Voids / Charges:</span><span>$<%= zReport?.adjustments ?? '0.00' %></span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+      
     </main>
   </div>
 </body>
