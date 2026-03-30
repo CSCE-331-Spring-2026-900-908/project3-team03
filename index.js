@@ -277,7 +277,76 @@ app.get('/manager/menu', (req, res) => {
 
 // TODO: Add POST requests for every button on manager menu
 
+app.get('/manager/employees', (req, res) => {
+    // TEST: mock data
+    res.render('manager/employees', {
+    statusMessage: '',
+    roles: ['CASHIER', 'MANAGER'],
+    selectedEmployee: {
+        employee_id: 1,
+        first_name: 'Ed',
+        last_name: 'D'
+    },
+    employees: [
+        {
+        employee_id: 1,
+        first_name: 'Ed',
+        last_name: 'D',
+        username: 'ed',
+        role: 'MANAGER',
+        hourly_wage: '13.00',
+        active: true,
+        join_date: '2026-02-25'
+        },
+        {
+        employee_id: 2,
+        first_name: 'kilroy',
+        last_name: 'kilroy',
+        username: 'kilroy',
+        role: 'MANAGER',
+        hourly_wage: '12.50',
+        active: true,
+        join_date: '2026-03-04'
+        }
+    ]
+  });
+});
 
+// TODO: Add update-role logic
+app.post('/manager/employees/update-role', (req, res) => {
+  const { employeeId, role } = req.body;
+
+  res.render('manager/employees', {
+    
+  });
+});
+
+// TODO: Add update-wage logic
+app.post('/manager/employees/update-wage', (req, res) => {
+  const { employeeId, hourlyWage } = req.body;
+
+  res.render('manager_employees', {
+
+  });
+});
+
+// TODO: Add toggle-active logic
+app.post('/manager/employees/toggle-active', (req, res) => {
+  const { employeeId } = req.body;
+
+  res.render('manager/employees', {
+
+  });
+});
+
+// TODO: Add add employee logic
+app.post('/manager/employees/add', (req, res) => {
+  const { firstName, lastName, username, role, joinDate, hourlyWage, active } = req.body;
+
+  res.render('manager/employees', {
+
+  });
+});
 
 
 app.listen(port, () => {
