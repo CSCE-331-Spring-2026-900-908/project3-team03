@@ -4,55 +4,350 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Self-Serving Kiosk</title>
+    <style>
+        body {
+            background: #f1f1f1;
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            box-sizing: border-box;
+
+        }
+
+        header {
+            background: #a2a2a2;
+            height: 3vh;
+            text-align: center;
+            width: 100vw;
+            margin: 0;
+            padding: 25px;
+            border-bottom: 2px solid black;
+        }
+
+        header h1 {
+            margin: 0;
+            padding: 0;
+        }
+
+        .centeredlayout {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .layout {
+            display: flex;
+            min-height: 75vh;
+            flex-direction: column;
+        }
+
+        .panel {
+            background: #eee;
+            flex-grow: 1;
+            width: 35vw;
+            border: 2px solid black;
+            border-radius: 50px; 
+            padding: 50px;
+            text-align: center;
+            margin: 50px 50px 0px 50px;
+        }
+
+        .sugar-amount-button {
+            height: 50px;
+            width: 100px;
+            background: #a2a2a2;
+            border-radius: 50px;
+            margin: 10px;
+        }
+
+        .sugar-amount-button:hover {
+            background: #bdbdbd;
+        }
+
+        .ice-amount-button {
+            height: 50px;
+            width: 100px;
+            background: #a2a2a2;
+            border-radius: 50px;
+            margin: 10px;
+        }
+
+        .ice-amount-button:hover {
+            background: #bdbdbd;
+        }
+
+        .addon-panel {
+            background: #eee;
+            flex-grow: 4;
+            width: 35vw;
+            border: 2px solid black;
+            border-radius: 50px; 
+            text-align: center;
+            padding: 50px;
+            margin: 50px;
+        }
+
+        .addon-customizer {
+            display: flex;
+            border: 2px solid black;
+            border-radius: 10px;
+            background: #a2a2a2;
+            padding: 10px;
+            margin: 10px;
+            justify-content: center;
+        }
+
+        .addon-customizer select {
+            margin-left: 5px;
+            background: #d6d6d6;
+        }
+
+        .button-row {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+        }
+        
+        .addon-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            
+        }
+
+        .bottom-buttons {
+            margin: 50px;
+            margin-top: 0px;
+            display: flex;
+            flex-direction: row-reverse;
+        }
+
+        .bottom-buttons a {
+            text-decoration: none;
+            font-size: large;
+            color: white;
+        }
+
+        .confirm-button {
+            height: 75px;
+            background: #585a65;
+            width: 150px;
+            border-radius: 100px;
+            margin-left: 20px;
+        }
+
+        .confirm-button:hover {
+            background: #7b7e8c;
+        }
+
+        .cancel-button {
+            height: 75px;
+            background: #c9c9c9;
+            width: 150px;
+            border-radius: 100px;
+        }
+
+        .cancel-button:hover {
+            background: #e0e0e0;
+        }
+
+        .cancel-button a {
+            color: black;
+        }
+
+
+
+        
+    </style>
 </head>
 <body>
-    <header></header>
+    <header> <h1>Customize Drink - Chard Shore</h1></header>
 
-    <aside>
-        <h1>Customize Drink - Chard Shore</h1>
-
-        <div>
+    
+    <div class="centeredlayout">
+    <div class="layout">
+        <div class="panel">
             <h2>Sugar Amount</h2>
-            <button>0%</button>
-            <button>25%</button>
-            <button>50%</button>
-            <button>75%</button>
-            <button>100%</button>
+
+            <div class="button-row">
+            <button class="sugar-amount-button">0%</button>
+            <button class="sugar-amount-button">25%</button>
+            <button class="sugar-amount-button">50%</button>
+            <button class="sugar-amount-button">75%</button>
+            <button class="sugar-amount-button">100%</button>
+            </div>
         </div>
         
-        <div>
+        <div class="panel">
             <h2>Ice Amount</h2>
-            <button>None</button>
-            <button>Less</button>
-            <button>Normal</button>
-            <button>Extra</button>
+            <div class="button-row">
+            <button class="ice-amount-button">None</button>
+            <button class="ice-amount-button">Less</button>
+            <button class="ice-amount-button">Normal</button>
+            <button class="ice-amount-button">Extra</button>
+            </div>
         </div>
 
-        <div>
-            <h2>Current Addons</h2>
-            <ul>
-                <li>Grass Jelly</li>
-            </ul>
-        </div>
-        
-    </aside>
+        <div class="addon-panel">
+            <h2>Addons</h2>
+            <div class="addon-grid">
+            <div class="addon-customizer">
+                <p>Placeholder</p>
+                <select>
+                    <option>0</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                </select>
+            </div>
 
-    <div>
-        <div class="addon_customizer">
-            <p>Placeholder</p>
-            <select>
-                <option>0</option>
-                <option>1</option>
-                <option>2</option>
-                <option>3</option>
-            </select>
+            <div class="addon-customizer">
+                <p>Placeholder</p>
+                <select>
+                    <option>0</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                </select>
+            </div>
+
+            <div class="addon-customizer">
+                <p>Placeholder</p>
+                <select>
+                    <option>0</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                </select>
+            </div>
+
+            <div class="addon-customizer">
+                <p>Placeholder</p>
+                <select>
+                    <option>0</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                </select>
+            </div>
+            <div class="addon-customizer">
+                <p>Placeholder</p>
+                <select>
+                    <option>0</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                </select>
+            </div>
+            <div class="addon-customizer">
+                <p>Placeholder</p>
+                <select>
+                    <option>0</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                </select>
+            </div>
+            <div class="addon-customizer">
+                <p>Placeholder</p>
+                <select>
+                    <option>0</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                </select>
+            </div>
+            <div class="addon-customizer">
+                <p>Placeholder</p>
+                <select>
+                    <option>0</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                </select>
+            </div>
+            <div class="addon-customizer">
+                <p>Placeholder</p>
+                <select>
+                    <option>0</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                </select>
+            </div>
+            <div class="addon-customizer">
+                <p>Placeholder</p>
+                <select>
+                    <option>0</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                </select>
+            </div>
+            <div class="addon-customizer">
+                <p>Placeholder</p>
+                <select>
+                    <option>0</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                </select>
+            </div>
+            <div class="addon-customizer">
+                <p>Placeholder</p>
+                <select>
+                    <option>0</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                </select>
+            </div>
+            <div class="addon-customizer">
+                <p>Placeholder</p>
+                <select>
+                    <option>0</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                </select>
+            </div>
+            <div class="addon-customizer">
+                <p>Placeholder</p>
+                <select>
+                    <option>0</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                </select>
+            </div>
+            <div class="addon-customizer">
+                <p>Placeholder</p>
+                <select>
+                    <option>0</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                </select>
+            </div>
+            <div class="addon-customizer">
+                <p>Placeholder</p>
+                <select>
+                    <option>0</option>
+                    <option>1</option>
+                    <option>2</option>
+                    <option>3</option>
+                </select>
+            </div>
+
+            </div>
+        </div>
+
+        <div class="bottom-buttons">
+            <button class="confirm-button"><a href="/cashier">Confirm</a></button>
+            <button class="cancel-button"><a href="/cashier">Cancel</a></button>
         </div>
     </div>
+    </div>
 
-    <footer>
-        <button><a href="/cashier">Cancel</a></button>
-        <button><a href="/cashier">Confirm</a></button>
-    </footer>
+
 
         
     
