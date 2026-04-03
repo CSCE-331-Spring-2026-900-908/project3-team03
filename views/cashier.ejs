@@ -5,94 +5,255 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cashier Interface</title>
     <style>
+        body {
+            background: #f1f1f1;
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif;
+
+        }
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .order-display {
+            width: 25vw;
+            background: #a2a2a2;
+            border-right: 1px solid rgb(0, 1, 67);
+            padding: 20px;
+        }
+
+        .order-item {
+            border-radius: 10px;
+            background-color: #e7e6e6;
+            padding: 10px;
+            margin-bottom: 20px;
+            list-style: none;
+        }
+
+        .order-item h2 {
+            margin-top: 10px;
+        }
+
+        .order-item ul {
+            list-style: none;
+        }
+
+        .order-item-buttons {
+            display: flex;
+            flex-direction: row-reverse;
+            gap: 10px;
+        }
+
+        .remove-item-button {
+            height: 30px;
+            background: #f1f1f1;
+            border-radius: 15px;
+        }
+        
+        .remove-item-button:hover{
+            background: #d0d0d0;
+        }
+
+        .modify-item-button {
+            background: #6e6e6e;
+            border-radius: 15px;
+        }
+
+        .modify-item-button:hover {
+            background: #959595;
+        }
+
+        .modify-item-button a {
+            text-decoration: none;
+            color: white;
+        }
+
+        .checkout-button {
+            height: 50px;
+            width: 100px;
+            border-radius: 50px;
+            background: rgb(62, 62, 113);
+            color: white;
+        }
+
+        .checkout-button:hover {
+            background: rgb(114, 122, 154);
+        }
+
+        .checkout-button a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .cancel-order-button {
+            height: 50px;
+            width: 100px;
+            border-radius: 50px;
+            background: rgb(238, 238, 238);
+            color: rgb(58, 58, 58);
+        }
+
+        .cancel-order-button:hover {
+            background: rgb(203, 203, 203);
+        }
+
+        
+
+        main {
+            padding: 20px;
+            width: 75vw;
+        }
+
+        .category-select {
+            display: flex;
+            min-width: 66vw;
+            align-items: center;
+            justify-content: space-evenly;
+        }
+
+        .category-button {
+            width: 150px;
+            height: 50px;
+            border-radius: 50px;
+            text-align: center;
+            background: rgb(58, 68, 116);
+            color: white;
+        }
+
+        .category-button:hover {
+            background: white;
+            color: black;
+        }
+
+        .add-drinks-menu {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            grid-template-rows: 1fr 1fr 1fr 1fr;
+            padding: 20px;
+        }
+
+        .customize-new-item-button {
+            margin: 10px;
+            height: 40px;
+            background: rgb(194, 194, 194);
+            border-radius: 10px;
+            text-align: left;
+        }
+
+        .customize-new-item-button:hover {
+            background: rgb(224, 224, 224);
+        }
+
+        .customize-new-item-button a {
+            text-decoration: none;
+            color: black;
+        }
+
+
+        
         table { border-collapse: collapse; width: 50%; margin: 16px auto; }
         th, td { border: 1px solid #aaa; padding: 8px; text-align: left; }
         th { background: #eee; }
     </style>
 </head>
 <body>
-    <header></header>
 
-    <nav>
-        <ul>
-            <li>Milk Teas</li>
-
-            <li>Matchas</li>
-
-            <li>Seasonal</li>
-        </ul>
-    </nav>
-
-    <aside>
+    <div class="layout">
+    <aside class="order-display">
         <h1>Current Order</h1>
 
-        <article class="order_item">
-            <h1>Chard Shore</h1>
+        <article class="order-item">
+            <h2>Chard Shore</h2>
 
-            <ul>
-                <li>Sugar: 75%</li>
+            
+            <p>$5.00</p>
 
-                <li>Ice: Extra</li>
+            <p>Sugar: 50%</p>
 
-                <li>Addons: extra boba, eye of newt</li>
-            </ul>
+            <p>Ice: extra</p>
 
-            <button>Remove</button>
-            <button><a href="/cashiercustomize">Modify</a></button>
+            <p>Addons: grass jelly</p>
+            
+
+            <div class="order-item-buttons">
+            <button class="modify-item-button"><a href="/cashiercustomize">Modify</a></button>
+            <button class="remove-item-button">Remove</button>
+            </div>
         </article>
 
-        <article class="order_item">
-            <h1>Chard Shore</h1>
+        <article class="order-item">
+            <h2>Chard Shore</h2>
 
-            <ul>
-                <li>Sugar: 50%</li>
+            <p>$5.00</p>
 
-                <li>Ice: Normal</li>
+            <p>Sugar: 50%</p>
 
-                <li>Addons: none</li>
-            </ul>
+            <p>Ice: extra</p>
 
-            <button>Remove</button>
-            <button><a href="/cashiercustomize">Modify</a></button>
+            <p>Addons: grass jelly</p>
+
+            <div class="order-item-buttons">
+            <button class="modify-item-button"><a href="/cashiercustomize">Modify</a></button>
+            <button class="remove-item-button">Remove</button>
+            </div>
         </article>
 
-        <article class="order_item">
-            <h1>Chard Shore</h1>
+        <article class="order-item">
+            <h2>Chard Shore</h2>
 
-            <ul>
-                <li>Sugar: 75%</li>
+            <p>$5.00</p>
 
-                <li>Ice: Less</li>
+            <p>Sugar: 50%</p>
 
-                <li>Addons: grass jelly</li>
-            </ul>
+            <p>Ice: extra</p>
 
-            <button>Remove</button>
-            <button><a href="/cashiercustomize">Modify</a></button>
+            <p>Addons: grass jelly</p>
+
+            <div class="order-item-buttons">
+            <button class="modify-item-button"><a href="/cashiercustomize">Modify</a></button>
+            <button class="remove-item-button">Remove</button>
+            </div>
         </article>
 
-        <button>Cancel Order</button>
-        <button><a href="/cashiercheckout">Checkout</a></button>
+        <button class="cancel-order-button">Cancel Order</button>
+        <button class="checkout-button"><a href="/cashiercheckout">Checkout</a></button>
     </aside>
+    
+    <main>
+        <header>
+            <h1>Cashier POS Interface</h1>
+        </header>
+        
+        <nav class="category-select">
+            <button class="category-button">Milk Teas</button>
+            <button class="category-button">Matchas</button>
+            <button class="category-button">Seafood</button>
+            <button class="category-button">Milk</button>
+            <button class="category-button">Seasonal</button>
+        </nav>
+        
+        
 
-    <div>
-        <button><a href="/cashiercustomize">Placeholder Drink</a></button>
-        <button><a href="/cashiercustomize">Placeholder Drink</a></button>
-        <button><a href="/cashiercustomize">Placeholder Drink</a></button>
-        <button><a href="/cashiercustomize">Placeholder Drink</a></button>
-        <button><a href="/cashiercustomize">Placeholder Drink</a></button>
-        <button><a href="/cashiercustomize">Placeholder Drink</a></button>
-        <button><a href="/cashiercustomize">Placeholder Drink</a></button>
-        <button><a href="/cashiercustomize">Placeholder Drink</a></button>
-        <button><a href="/cashiercustomize">Placeholder Drink</a></button>
-        <button><a href="/cashiercustomize">Placeholder Drink</a></button>
-        <button><a href="/cashiercustomize">Placeholder Drink</a></button>
-        <button><a href="/cashiercustomize">Placeholder Drink</a></button>
-        <button><a href="/cashiercustomize">Placeholder Drink</a></button>
-        <button><a href="/cashiercustomize">Placeholder Drink</a></button>
+        <div class="add-drinks-menu">
+            <button class="customize-new-item-button"><a href="/cashiercustomize">Placeholder Drink</a></button>
+            <button class="customize-new-item-button"><a href="/cashiercustomize">Placeholder Drink</a></button>
+            <button class="customize-new-item-button"><a href="/cashiercustomize">Placeholder Drink</a></button>
+            <button class="customize-new-item-button"><a href="/cashiercustomize">Placeholder Drink</a></button>
+            <button class="customize-new-item-button"><a href="/cashiercustomize">Placeholder Drink</a></button>
+            <button class="customize-new-item-button"><a href="/cashiercustomize">Placeholder Drink</a></button>
+            <button class="customize-new-item-button"><a href="/cashiercustomize">Placeholder Drink</a></button>
+            <button class="customize-new-item-button"><a href="/cashiercustomize">Placeholder Drink</a></button>
+            <button class="customize-new-item-button"><a href="/cashiercustomize">Placeholder Drink</a></button>
+            <button class="customize-new-item-button"><a href="/cashiercustomize">Placeholder Drink</a></button>
+            <button class="customize-new-item-button"><a href="/cashiercustomize">Placeholder Drink</a></button>
+            <button class="customize-new-item-button"><a href="/cashiercustomize">Placeholder Drink</a></button>
+            <button class="customize-new-item-button"><a href="/cashiercustomize">Placeholder Drink</a></button>
+            <button class="customize-new-item-button"><a href="/cashiercustomize">Placeholder Drink</a></button>
+        </div>
+    </main>
     </div>
-
-
+ <!--
     <h1>Cashier Interface</h1>
     <p>Welcome, Cashier! Manage orders here.</p>
     
@@ -119,8 +280,6 @@
         <% } %>
         </tbody>
     </table>
-    
-    <!-- Add cashier functionality here -->
-    <a href="/logout">Logout</a>
+    -->
 </body>
 </html>
