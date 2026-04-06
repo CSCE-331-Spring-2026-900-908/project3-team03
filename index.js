@@ -9,8 +9,10 @@ const port = 3000;
 
 // Routes
 const managerRoutes = require('./routes/manager');
+const cashierRoutes = require('./routes/cashier');
 
 app.use('/manager', managerRoutes);
+app.use('/cashier', cashierRoutes);
 
 // Middleware
 app.use(express.static('public'));
@@ -57,7 +59,7 @@ app.post('/loginCashier', (req, res) => {
     const { username, password } = req.body;
     if (username === credentials.cashier.username && password === credentials.cashier.password) {
         req.session.role = 'cashier';
-        res.redirect('/cashier');
+        res.redirect('/cashier/menu');
     } else {
         res.render('login', { error: 'Invalid credentials' });
     }
@@ -78,7 +80,7 @@ app.post('/login', (req, res) => {
     const { username, password } = req.body;
     if (username === credentials.cashier.username && password === credentials.cashier.password) {
         req.session.role = 'cashier';
-        res.redirect('/cashier');
+        res.redirect('/cashier/menu');
     } else if (username === credentials.manager.username && password === credentials.manager.password) {
         req.session.role = 'manager';
         res.redirect('/manager/dashboard');
@@ -91,6 +93,7 @@ app.get('/kiosk', (req, res) => {
     res.render('kiosk');
 });
 
+/*
 app.get('/cashier', (req, res) => {
     if (req.session.role === 'cashier') {
         pool.query("SELECT * FROM employee WHERE role = 'CASHIER' ORDER BY employee_id;")
@@ -105,6 +108,7 @@ app.get('/cashier', (req, res) => {
         res.redirect('/');
     }
 });
+*/
 
 app.get('/logout', (req, res) => {
     req.session.destroy();
@@ -137,6 +141,7 @@ app.get('/login', (req, res) => {
     res.render('login');
 });
 
+/*
 app.get('/cashiercheckout', (req, res) => {
     res.render('cashiercheckout');
 });
@@ -148,6 +153,7 @@ app.get('/cashierconfirm', (req, res) => {
 app.get('/cashiercustomize', (req, res) => {
     res.render('cashiercustomize');
 });
+*/
 
 app.get('/loginCashier', (req, res) => {
     res.render('loginCashier');
