@@ -107,7 +107,6 @@
 
         .category-select {
             display: flex;
-            min-width: 66vw;
             align-items: center;
             justify-content: space-evenly;
         }
@@ -177,7 +176,7 @@
             
 
             <div class="order-item-buttons">
-            <button class="modify-item-button"><a href="/cashiercustomize">Modify</a></button>
+            <button class="modify-item-button"><a href="/cashier/customize">Modify</a></button>
             <button class="remove-item-button">Remove</button>
             </div>
         </article>
@@ -194,7 +193,7 @@
             <p>Addons: grass jelly</p>
 
             <div class="order-item-buttons">
-            <button class="modify-item-button"><a href="/cashiercustomize">Modify</a></button>
+            <button class="modify-item-button"><a href="/cashier/customize">Modify</a></button>
             <button class="remove-item-button">Remove</button>
             </div>
         </article>
@@ -211,13 +210,13 @@
             <p>Addons: grass jelly</p>
 
             <div class="order-item-buttons">
-            <button class="modify-item-button"><a href="/cashiercustomize">Modify</a></button>
+            <button class="modify-item-button"><a href="/cashier/customize">Modify</a></button>
             <button class="remove-item-button">Remove</button>
             </div>
         </article>
 
         <button class="cancel-order-button">Cancel Order</button>
-        <button class="checkout-button"><a href="/cashiercheckout">Checkout</a></button>
+        <button class="checkout-button"><a href="/cashier/checkout">Checkout</a></button>
     </aside>
     
     <main>
@@ -236,50 +235,23 @@
         
 
         <div class="add-drinks-menu">
-            <button class="customize-new-item-button"><a href="/cashiercustomize">Placeholder Drink</a></button>
-            <button class="customize-new-item-button"><a href="/cashiercustomize">Placeholder Drink</a></button>
-            <button class="customize-new-item-button"><a href="/cashiercustomize">Placeholder Drink</a></button>
-            <button class="customize-new-item-button"><a href="/cashiercustomize">Placeholder Drink</a></button>
-            <button class="customize-new-item-button"><a href="/cashiercustomize">Placeholder Drink</a></button>
-            <button class="customize-new-item-button"><a href="/cashiercustomize">Placeholder Drink</a></button>
-            <button class="customize-new-item-button"><a href="/cashiercustomize">Placeholder Drink</a></button>
-            <button class="customize-new-item-button"><a href="/cashiercustomize">Placeholder Drink</a></button>
-            <button class="customize-new-item-button"><a href="/cashiercustomize">Placeholder Drink</a></button>
-            <button class="customize-new-item-button"><a href="/cashiercustomize">Placeholder Drink</a></button>
-            <button class="customize-new-item-button"><a href="/cashiercustomize">Placeholder Drink</a></button>
-            <button class="customize-new-item-button"><a href="/cashiercustomize">Placeholder Drink</a></button>
-            <button class="customize-new-item-button"><a href="/cashiercustomize">Placeholder Drink</a></button>
-            <button class="customize-new-item-button"><a href="/cashiercustomize">Placeholder Drink</a></button>
+            <button class="customize-new-item-button"><a href="/cashier/customize">Placeholder Drink</a></button>
+            <button class="customize-new-item-button"><a href="/cashier/customize">Placeholder Drink</a></button>
+            <button class="customize-new-item-button"><a href="/cashier/customize">Placeholder Drink</a></button>
+            <button class="customize-new-item-button"><a href="/cashier/customize">Placeholder Drink</a></button>
+            <button class="customize-new-item-button"><a href="/cashier/customize">Placeholder Drink</a></button>
+            <button class="customize-new-item-button"><a href="/cashier/customize">Placeholder Drink</a></button>
+            <button class="customize-new-item-button"><a href="/cashier/customize">Placeholder Drink</a></button>
+            <button class="customize-new-item-button"><a href="/cashier/customize">Placeholder Drink</a></button>
+            <button class="customize-new-item-button"><a href="/cashier/customize">Placeholder Drink</a></button>
+            <button class="customize-new-item-button"><a href="/cashier/customize">Placeholder Drink</a></button>
+            <button class="customize-new-item-button"><a href="/cashier/customize">Placeholder Drink</a></button>
+            <button class="customize-new-item-button"><a href="/cashier/customize">Placeholder Drink</a></button>
+            <button class="customize-new-item-button"><a href="/cashier/customize">Placeholder Drink</a></button>
+            <button class="customize-new-item-button"><a href="/cashier/customize">Placeholder Drink</a></button>
         </div>
     </main>
     </div>
- <!--
-    <h1>Cashier Interface</h1>
-    <p>Welcome, Cashier! Manage orders here.</p>
-    
-    <h2>All Cashiers</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Role</th>
-            </tr>
-        </thead>
-        <tbody>
-        <% if (employees && employees.length) { %>
-            <% employees.forEach(employee => { %>
-            <tr>
-                <td><%= employee.employee_id %></td>
-                <td><%= employee.first_name %> <%= employee.last_name %></td>
-                <td><%= employee.role %></td>
-            </tr>
-            <% }) %>
-        <% } else { %>
-            <tr><td colspan="3">No cashiers found</td></tr>
-        <% } %>
-        </tbody>
-    </table>
-    -->
+
 </body>
 </html>
