@@ -1,3 +1,5 @@
+const { Pool } = require('pg');
+
 class MenuItemDAO {
     constructor(pool){
         this.pool = pool;
@@ -40,6 +42,10 @@ class MenuItemDAO {
     }
 
     get_recipe_lines(menu_item_id) {
-        
+
     }
 }
+
+const menuDAO = new MenuDao(pool);
+
+module.exports menuDAO;
