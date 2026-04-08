@@ -1,4 +1,4 @@
-const { Pool } = require('pg');
+const pool = require('.db/pool.js');
 
 class MenuItemDAO {
     constructor(pool){
@@ -48,4 +48,4 @@ class MenuItemDAO {
 
 const menuDAO = new MenuDao(pool);
 
-module.exports menuDAO;
+module.exports = menuDAO;
