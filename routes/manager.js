@@ -1,38 +1,28 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../db/pool');
+const orderDao = require('../Dao/orderDao');
+const inventoryDao = require('../Dao/inventoryDao');
 
 // -------------------- DASHBOARD --------------------
-router.get('/dashboard', (req, res) => {
-    res.render('manager/dashboard', {
-        salesToday: '245.50',
-        ordersToday: 18,
-        avgOrderToday: '13.64',
-        
-        // TEST: mock data
-        recentOrders: [
-        {
-            order_id: 101,
-            created_at: '10:25 AM',
-            status: 'PAID',
-            payment_method: 'CARD',
-            total: '12.50'
-        },
-        {
-            order_id: 102,
-            created_at: '10:40 AM',
-            status: 'SERVED',
-            payment_method: 'CASH',
-            total: '9.75'
-        }
-        ],
+router.get('/dashboard', async (req, res) => {
+    try {
+        const [summary, recentOrders, lowStock] = await Promise.all([
+            orderDao.getTodaySummary(),
+            orderDao.getRecentOrders(),
+            inventoryDao.getLowStockItems()
+        ]);
 
-        // TEST: mock data
-        lowStock: [
-        { name: 'Boba Pearls', quantity: 5, reorder_point: 20 },
-        { name: 'Milk', quantity: 8, reorder_point: 15 }
-        ]
-    });
+        res.render('manager/dashboard', {
+            salesToday: Number(summary.sales_today ?? 0).toFixed(2),
+            ordersToday: Number(summary.orders_today ?? 0),
+            avgOrderToday: Number(summary.avg_order_today ?? 0).toFixed(2),
+            recentOrders,
+            lowStock
+        });
+    } catch (err) {
+        console.error('Error loading manager dashboard:', err);
+        res.status(500).send('Database error');
+    }
 });
 
 // -------------------- REPORTS --------------------
