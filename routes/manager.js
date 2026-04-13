@@ -665,51 +665,68 @@ router.post('/menu/create-ingredient', async (req, res) => {
 });
 
 // -------------------- EMPLOYEES --------------------
+// Load employees table
+async function renderEmployeesPage(res, {
+    statusMessage = '',
+    selectedEmployeeId = null
+} = {}) {
+    const employees = await employeeDao.getAllEmployees();
+    let selectedEmployee = null;
+
+    if (selectedEmployeeId) {
+        selectedEmployee = employees.find(
+            employee => Number(employee.employee_id) === Number(selectedEmployeeId)
+        ) || null;
+    }
+
+    if (!selectedEmployee && employees.length > 0) {
+        selectedEmployee = employees[0];
+    }
+
+    res.render('manager/employees', {
+        statusMessage,
+        roles: ['CASHIER', 'MANAGER'],
+        selectedEmployee,
+        employees: employees.map(employee => ({
+            ...employee,
+            hourly_wage: Number(employee.hourly_wage ?? 0).toFixed(2)
+        }))
+    });
+}
+
 router.get('/employees', async (req, res) => {
   try {
-    const employees = await employeeDao.getAllEmployees();
-    res.render('manager/employees', {
-      statusMessage: '',
-      roles: ['CASHIER', 'MANAGER'],
-      selectedEmployee: null,
-      employees
-    });
+    const selectedEmployeeId = req.query.employeeId ? Number(req.query.employeeId) : null;
+    await renderEmployeesPage(res, { selectedEmployeeId });
   } catch (err) {
     console.error('Error fetching employees:', err);
     res.status(500).send('Database error');
   }
 });
 
-// Select employee route
-router.post('/employees/select', async (req, res) => {
-  const { employeeId } = req.body;
-  try {
-    const employees = await employeeDao.getAllEmployees();
-    const selectedEmployee = employees.find(emp => emp.employee_id == employeeId) || null;
-    
-    res.render('manager/employees', {
-      statusMessage: selectedEmployee ? `Selected employee: ${selectedEmployee.first_name} ${selectedEmployee.last_name}` : 'Employee not found',
-      roles: ['CASHIER', 'MANAGER'],
-      selectedEmployee,
-      employees
-    });
-  } catch (err) {
-    console.error('Error selecting employee:', err);
-    res.status(500).send('Database error');
-  }
-});
-
-// Update employee role logic
+// Update employee role 
 router.post('/employees/update-role', async (req, res) => {
-  const { employeeId, role } = req.body;
+  const employeeId = Number(req.body.employeeId);
+  const role = req.body.role;
+
+  if (!employeeId || !role) {
+    try {
+      await renderEmployeesPage(res, {
+        selectedEmployeeId: employeeId || null,
+        statusMessage: 'Select an employee and a valid role.'
+      });
+    } catch (err) {
+      console.error('Error loading employees after role validation failure:', err);
+      res.status(500).send('Database error');
+    }
+    return;
+  }
+
   try {
     const updatedEmployee = await employeeDao.updateEmployee(employeeId, { role });
-    const employees = await employeeDao.getAllEmployees();
-    res.render('manager/employees', {
-      statusMessage: `Updated role for employee ID ${employeeId} to ${role}`,
-      roles: ['CASHIER', 'MANAGER'],
-      selectedEmployee: updatedEmployee,
-      employees
+    await renderEmployeesPage(res, {
+      selectedEmployeeId: updatedEmployee?.employee_id || employeeId,
+      statusMessage: `Updated role for employee ID ${employeeId} to ${role}`
     });
   } catch (err) {
     console.error('Error updating employee role:', err);
@@ -717,17 +734,29 @@ router.post('/employees/update-role', async (req, res) => {
   }
 });
 
-// Update employee wage logic
+// Update employee wage 
 router.post('/employees/update-wage', async (req, res) => {
-  const { employeeId, hourlyWage } = req.body;
+  const employeeId = Number(req.body.employeeId);
+  const hourlyWage = Number(req.body.hourlyWage);
+
+  if (!employeeId || Number.isNaN(hourlyWage) || hourlyWage < 0) {
+    try {
+      await renderEmployeesPage(res, {
+        selectedEmployeeId: employeeId || null,
+        statusMessage: 'Select an employee and enter a valid hourly wage.'
+      });
+    } catch (err) {
+      console.error('Error loading employees after wage validation failure:', err);
+      res.status(500).send('Database error');
+    }
+    return;
+  }
+
   try {
-    const updatedEmployee = await employeeDao.updateEmployee(employeeId, { hourly_wage: Number(hourlyWage) });
-    const employees = await employeeDao.getAllEmployees();
-    res.render('manager/employees', {
-      statusMessage: `Updated hourly wage for employee ID ${employeeId} to $${hourlyWage}`,
-      roles: ['CASHIER', 'MANAGER'],
-      selectedEmployee: updatedEmployee,
-      employees
+    const updatedEmployee = await employeeDao.updateEmployee(employeeId, { hourly_wage: hourlyWage });
+    await renderEmployeesPage(res, {
+      selectedEmployeeId: updatedEmployee?.employee_id || employeeId,
+      statusMessage: `Updated hourly wage for employee ID ${employeeId} to $${hourlyWage.toFixed(2)}`
     });
   } catch (err) {
     console.error('Error updating employee wage:', err);
@@ -735,24 +764,37 @@ router.post('/employees/update-wage', async (req, res) => {
   }
 });
 
-// Toggle employee active status logic
+// Toggle employee active status 
 router.post('/employees/toggle-active', async (req, res) => {
-  const { employeeId } = req.body;
+  const employeeId = Number(req.body.employeeId);
+
+  if (!employeeId) {
+    try {
+      await renderEmployeesPage(res, {
+        statusMessage: 'Select an employee to toggle.'
+      });
+    } catch (err) {
+      console.error('Error loading employees after toggle validation failure:', err);
+      res.status(500).send('Database error');
+    }
+    return;
+  }
+
   try {
     const employee = await employeeDao.getEmployeeById(employeeId);
     if (!employee) {
-      return res.status(404).send('Employee not found');
+      await renderEmployeesPage(res, {
+        statusMessage: `Employee ID ${employeeId} not found.`
+      });
+      return;
     }
     
     const newActiveStatus = !employee.active;
     const updatedEmployee = await employeeDao.setEmployeeActive(employeeId, newActiveStatus);
-    
-    const employees = await employeeDao.getAllEmployees();
-    res.render('manager/employees', {
-      statusMessage: `Employee ID ${employeeId} is now ${newActiveStatus ? 'active' : 'inactive'}`,
-      roles: ['CASHIER', 'MANAGER'],
-      selectedEmployee: updatedEmployee,
-      employees
+
+    await renderEmployeesPage(res, {
+      selectedEmployeeId: updatedEmployee?.employee_id || employeeId,
+      statusMessage: `Employee ID ${employeeId} is now ${newActiveStatus ? 'active' : 'inactive'}`
     });
   } catch (err) {
     console.error('Error toggling employee active status:', err);
@@ -760,53 +802,41 @@ router.post('/employees/toggle-active', async (req, res) => {
   }
 });
 
-// Add employee logic
+// Add employee 
 router.post('/employees/add', async (req, res) => {
   const { firstName, lastName, username, role, joinDate, hourlyWage, active } = req.body;
   try {
-    console.log('Adding employee:', { firstName, lastName, username, role, joinDate, hourlyWage, active });
-    
-    // Validate required fields
     if (!firstName || !lastName || !username || !role) {
-      console.error('Missing required fields');
-      const employees = await employeeDao.getAllEmployees();
-      return res.render('manager/employees', {
-        statusMessage: 'Error: Missing required fields (First name, Last name, Username, Role)',
-        roles: ['CASHIER', 'MANAGER'],
-        selectedEmployee: null,
-        employees
+      await renderEmployeesPage(res, {
+        statusMessage: 'Missing required fields: first name, last name, username, and role.'
       });
+      return;
     }
 
     const newEmployee = await employeeDao.createEmployee({
-      first_name: firstName,
-      last_name: lastName,
-      username,
-      role,
+      first_name: firstName.trim(),
+      last_name: lastName.trim(),
+      username: username.trim(),
+      role: role.trim(),
       join_date: joinDate || null,
       hourly_wage: Number(hourlyWage) || 0,
       active: active === 'on' || active === 'true' || active === '1'
     });
 
-    console.log('Employee created successfully:', newEmployee);
-
-    const employees = await employeeDao.getAllEmployees();
-    res.render('manager/employees', {
-      statusMessage: `Added employee ${firstName} ${lastName}`,
-      roles: ['CASHIER', 'MANAGER'],
-      selectedEmployee: null,
-      employees
+    await renderEmployeesPage(res, {
+      selectedEmployeeId: newEmployee.employee_id,
+      statusMessage: `Added employee ${newEmployee.first_name} ${newEmployee.last_name}`
     });
   } catch (err) {
     console.error('Error adding employee:', err.message);
-    console.error('Full error:', err);
-    const employees = await employeeDao.getAllEmployees().catch(() => []);
-    res.render('manager/employees', {
-      statusMessage: `Error adding employee: ${err.message}`,
-      roles: ['CASHIER', 'MANAGER'],
-      selectedEmployee: null,
-      employees
-    });
+    try {
+      await renderEmployeesPage(res, {
+        statusMessage: `Error adding employee: ${err.message}`
+      });
+    } catch (renderErr) {
+      console.error('Error reloading employees after add failure:', renderErr);
+      res.status(500).send('Database error');
+    }
   }
 });
 
