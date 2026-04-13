@@ -3,6 +3,7 @@ const session = require('express-session');
 const { pool } = require('./db');
 const dotenv = require('dotenv').config();
 const MenuItemDAO = require('./Dao/MenuItemDAO');
+const OrderDAO = require('./Dao/orderDao');
 
 
 // Create express app
@@ -114,6 +115,51 @@ app.get('/kiosk', async (req, res) => {
             categories: {},
             statusMessage: 'Error loading menu items'
         });
+    }
+});
+
+
+app.post('/submitOrder', async (req, res) => {
+    try {
+        console.log("ORDER RECEIVED");
+
+        const frontendOrder = req.body.order;
+
+        const order = {
+            created_at: new Date(),
+            status: "PAID",
+            payment_method: "CARD",
+            employee_id: 1,
+            notes: "",
+            subtotal: 0,
+            tax: 0,
+            total: 0,
+            drinks: frontendOrder.map(item => ({
+                menu_item_id: item.drinkId,
+                quantity: item.quantity,
+                ice_amount: 0,//will change to normal later but db is currently only taking ints
+                sugar_amount: 0,//will change to normal later but db is currently only taking ints
+                special_notes: "",
+                base_price: item.total / item.quantity,
+                addons: Object.fromEntries(
+                    item.addons.map(a => [a.id, 1])
+                )
+            }))
+        };
+
+        const result = await OrderDAO.submitOrder(order);
+
+        if (!result.success) {
+            return res.json({ success: false });
+        }
+
+        await OrderDAO.updateInventory(order, MenuItemDAO, null);
+
+        res.json({ success: true, orderId: result.orderId });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false });
     }
 });
 
