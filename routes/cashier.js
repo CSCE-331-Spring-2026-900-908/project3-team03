@@ -27,6 +27,16 @@ function getAddonList(idsToQuants) {
   return strings;
 }
 
+function objToMap(obj) {
+  newMap = new Map();
+  for (const item in obj) {
+    if (item.quantity > 0) {
+      newMap.set(item.id, item.quantity);
+    }
+  }
+  return newMap;
+}
+
 // -------------------- MENU --------------------
 router.get('/menu', async (req, res) => {
   try {
@@ -402,6 +412,29 @@ router.post('/confirm/finalize-order', async (req, res) => {
     
     // TODO: Save order to database using orderDao
     // For now, just clear the cart and return success
+
+    const order = {
+      created_at: new Date(),
+      status: "PAID",
+      payment_method: "CARD",
+      employee_id: 1,
+      notes: "",
+      subtotal: 0,
+      tax: 0,
+      total: 0,
+      drinks: req.session.cart.drinks.map(item => ({
+        menu_item_id: item.menuItemId,
+        quantity: 1,
+        ice_amount: item.iceAmount, 
+        sugar_amount: item.sugarAmount, 
+        special_notes: "",
+        base_price: item.basePrice,
+        addons: objToMap(item.addons)
+      }))
+    }
+
+    orderDao.submitOrder(order);
+
     req.session.cart = {
       orderId: null,
       drinks: []
