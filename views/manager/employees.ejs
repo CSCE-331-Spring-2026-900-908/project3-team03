@@ -38,9 +38,11 @@
         <div class="content">
             <!-- CENTER SECTION -->
             <section class="table-panel">
+            <form method="POST" action="/manager/employees/select" class="inline-form">
             <table class="employee-table">
                 <thead>
                 <tr>
+                    <th>Select</th>
                     <th>ID</th>
                     <th>First</th>
                     <th>Last</th>
@@ -55,6 +57,10 @@
                 <% if (employees && employees.length > 0) { %>
                     <% employees.forEach(employee => { %>
                     <tr class="<%= selectedEmployee && selectedEmployee.employee_id === employee.employee_id ? 'selected-row' : '' %>">
+                        <td>
+                            <input type="radio" name="employeeId" value="<%= employee.employee_id %>" 
+                                   <%= selectedEmployee && selectedEmployee.employee_id === employee.employee_id ? 'checked' : '' %> />
+                        </td>
                         <td><%= employee.employee_id %></td>
                         <td><%= employee.first_name %></td>
                         <td><%= employee.last_name %></td>
@@ -67,11 +73,15 @@
                     <% }) %>
                 <% } else { %>
                     <tr>
-                    <td colspan="8" class="empty-cell">No employees found.</td>
+                    <td colspan="9" class="empty-cell">No employees found.</td>
                     </tr>
                 <% } %>
                 </tbody>
             </table>
+            <div class="table-actions">
+                <button type="submit">Select Employee</button>
+            </div>
+            </form>
             </section>
 
             <!-- RIGHT SECTION -->

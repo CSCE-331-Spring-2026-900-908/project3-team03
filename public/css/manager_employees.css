@@ -130,10 +130,18 @@ body {
     background: #f7f8fc;
 }
 
-.empty-cell {
-    text-align: center;
-    color: #888;
-    font-style: italic;
+.inline-form {
+    display: contents;
+}
+
+.table-actions {
+    padding: 12px;
+    background: white;
+    border: 1px solid #eeeeee;
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    display: flex;
+    justify-content: center;
 }
 
 .side-panel {

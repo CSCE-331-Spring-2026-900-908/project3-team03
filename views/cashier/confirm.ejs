@@ -3,41 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Self-Serving Kiosk</title>
+    <title>Order Confirmation</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f1f1f1;
+            text-align: center;
+        }
+        header {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 30px;
+            color: rgb(62, 62, 113);
+        }
+        .success-icon {
+            font-size: 60px;
+            margin-bottom: 20px;
+        }
+        .order-summary {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .order-items {
+            margin: 20px 0;
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+        }
+        .order-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            background: white;
+            text-align: left;
+        }
+        .order-item h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        .order-item ul {
+            list-style: none;
+            padding: 0;
+            margin: 5px 0;
+        }
+        .order-item li {
+            padding: 3px 0;
+            color: #666;
+            font-size: 14px;
+        }
+        .order-item .price {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-top: 8px;
+        }
+        .order-total {
+            font-size: 20px;
+            font-weight: bold;
+            color: rgb(62, 62, 113);
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #ddd;
+        }
+        .confirmation-message {
+            font-size: 18px;
+            color: #28a745;
+            margin: 20px 0;
+        }
+        footer {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+        }
+        button {
+            height: 50px;
+            padding: 10px 40px;
+            border-radius: 25px;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .finish-btn {
+            background: rgb(62, 62, 113);
+            color: white;
+        }
+        .finish-btn:hover {
+            background: rgb(114, 122, 154);
+        }
+        .finish-btn a {
+            text-decoration: none;
+            color: white;
+        }
+        .status-message {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            color: #856404;
+        }
+        .empty-message {
+            color: #999;
+            padding: 20px;
+            font-size: 16px;
+        }
+    </style>
 </head>
 <body>
-    <header>
-        Order #144 Confirmed
-    </header>
-
-    <div>
-        <article class="order_item">
-            <h2>Chard Shore</h2>
-
-                <ul>
-                    <li>Sugar: 75%</li>
-
-                    <li>Ice: Extra</li>
-
-                    <li>Addons: extra boba, eye of newt</li>
-                </ul>
-        </article>
-
-        <article class="order_item">
-            <h2>Chard Shore</h2>
-
-                <ul>
-                    <li>Sugar: 100%</li>
-
-                    <li>Ice: None</li>
-
-                    <li>Addons: none</li>
-                </ul>
-        </article>
+    <% if (statusMessage) { %>
+        <div class="status-message"><%= statusMessage %></div>
+    <% } %>
+    
+    <div class="order-summary">
+        <div class="success-icon">✓</div>
+        <header>Order Confirmed!</header>
+        
+        <% if (drinks && drinks.length > 0) { %>
+            <div class="confirmation-message">Your order has been processed successfully.</div>
+            
+            <div class="order-items">
+                <% drinks.forEach((drink, idx) => { %>
+                    <article class="order-item">
+                        <h3><%= drink.menuItemName || 'Item ' + (idx+1) %></h3>
+                        <ul>
+                            <li><strong>Sugar:</strong> <%= drink.sugarAmount || 'N/A' %></li>
+                            <li><strong>Ice:</strong> <%= drink.iceAmount || 'N/A' %></li>
+                            <li><strong>Special Notes:</strong> <%= drink.specialNotes || 'None' %></li>
+                        </ul>
+                        <div class="price">$<%= drink.basePrice ? drink.basePrice.toFixed(2) : '0.00' %></div>
+                    </article>
+                <% }) %>
+            </div>
+            
+            <div class="order-total">
+                Total Items: <%= cartCount %><br>
+                Total: $<%= cartTotal %>
+            </div>
+        <% } else { %>
+            <div class="empty-message">No order to confirm.</div>
+        <% } %>
     </div>
-
+    
     <footer>
-        <button><a href="/cashier/menu">Finish</a></button>
+        <button class="finish-btn"><a href="/cashier/menu">Start New Order</a></button>
     </footer>
 </body>
 </html>

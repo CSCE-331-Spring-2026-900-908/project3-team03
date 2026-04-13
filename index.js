@@ -1,7 +1,9 @@
 const express = require('express');
 const session = require('express-session');
+const { pool } = require('./db');
 const dotenv = require('dotenv').config();
-const pool = require('./db/pool');
+const MenuItemDAO = require('./Dao/MenuItemDAO');
+
 
 // Create express app
 const app = express();
@@ -79,8 +81,40 @@ app.post('/login', (req, res) => {
     }
 });
 
-app.get('/kiosk', (req, res) => {
-    res.render('kiosk');
+app.get('/kiosk', async (req, res) => {
+    try {
+        console.log('Kiosk: Loading menu from database');
+        
+        // Fetch all active menu items
+        const menuItems = await MenuItemDAO.get_active_menu_items();
+        console.log('Kiosk: Retrieved', menuItems.length, 'menu items');
+        
+        // Group menu items by category
+        const categories = {};
+        menuItems.forEach(item => {
+            if (!categories[item.category]) {
+                categories[item.category] = [];
+            }
+            categories[item.category].push({
+                id: item.menu_item_id,
+                name: item.name,
+                price: parseFloat(item.base_price)
+            });
+        });
+        
+        console.log('Kiosk: Organized into', Object.keys(categories).length, 'categories');
+        
+        res.render('kiosk', {
+            categories,
+            statusMessage: ''
+        });
+    } catch (err) {
+        console.error('Kiosk: Error loading menu:', err.message);
+        res.render('kiosk', {
+            categories: {},
+            statusMessage: 'Error loading menu items'
+        });
+    }
 });
 
 /*

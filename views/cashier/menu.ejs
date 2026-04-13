@@ -162,60 +162,30 @@
     <aside class="order-display">
         <h1>Current Order</h1>
 
-        <article class="order-item">
-            <h2>Chard Shore</h2>
+        <% if (cartCount && cartCount > 0) { %>
+            <% for (let i = 0; i < cartCount; i++) { %>
+            <article class="order-item">
+                <h2><%= locals.drinks && locals.drinks[i]?.menuItemName || 'Item ' + (i+1) %></h2>
 
-            
-            <p>$5.00</p>
+                <p>$<%= locals.drinks && locals.drinks[i]?.basePrice ? locals.drinks[i].basePrice.toFixed(2) : '0.00' %></p>
 
-            <p>Sugar: 50%</p>
+                <p>Sugar: <%= locals.drinks && locals.drinks[i]?.sugarAmount || 'N/A' %></p>
 
-            <p>Ice: extra</p>
+                <p>Ice: <%= locals.drinks && locals.drinks[i]?.iceAmount || 'N/A' %></p>
 
-            <p>Addons: grass jelly</p>
-            
+                <p>Special Notes: <%= locals.drinks && locals.drinks[i]?.specialNotes || 'None' %></p>
 
-            <div class="order-item-buttons">
-            <button class="modify-item-button"><a href="/cashier/customize">Modify</a></button>
-            <button class="remove-item-button">Remove</button>
-            </div>
-        </article>
+                <div class="order-item-buttons">
+                <button class="modify-item-button"><a href="/cashier/customize">Modify</a></button>
+                <button class="remove-item-button" onclick="removeDrink(<%= i %>)">Remove</button>
+                </div>
+            </article>
+            <% } %>
+        <% } else { %>
+            <p style="text-align: center; color: #999;">No items in cart</p>
+        <% } %>
 
-        <article class="order-item">
-            <h2>Chard Shore</h2>
-
-            <p>$5.00</p>
-
-            <p>Sugar: 50%</p>
-
-            <p>Ice: extra</p>
-
-            <p>Addons: grass jelly</p>
-
-            <div class="order-item-buttons">
-            <button class="modify-item-button"><a href="/cashier/customize">Modify</a></button>
-            <button class="remove-item-button">Remove</button>
-            </div>
-        </article>
-
-        <article class="order-item">
-            <h2>Chard Shore</h2>
-
-            <p>$5.00</p>
-
-            <p>Sugar: 50%</p>
-
-            <p>Ice: extra</p>
-
-            <p>Addons: grass jelly</p>
-
-            <div class="order-item-buttons">
-            <button class="modify-item-button"><a href="/cashier/customize">Modify</a></button>
-            <button class="remove-item-button">Remove</button>
-            </div>
-        </article>
-
-        <button class="cancel-order-button">Cancel Order</button>
+        <button class="cancel-order-button" onclick="clearCart()">Cancel Order</button>
         <button class="checkout-button"><a href="/cashier/checkout">Checkout</a></button>
     </aside>
     
@@ -232,26 +202,54 @@
             <button class="category-button">Seasonal</button>
         </nav>
         
-        
+        <% if (statusMessage) { %>
+            <div class="status-message"><%= statusMessage %></div>
+        <% } %>
 
         <div class="add-drinks-menu">
-            <button class="customize-new-item-button"><a href="/cashier/customize">Placeholder Drink</a></button>
-            <button class="customize-new-item-button"><a href="/cashier/customize">Placeholder Drink</a></button>
-            <button class="customize-new-item-button"><a href="/cashier/customize">Placeholder Drink</a></button>
-            <button class="customize-new-item-button"><a href="/cashier/customize">Placeholder Drink</a></button>
-            <button class="customize-new-item-button"><a href="/cashier/customize">Placeholder Drink</a></button>
-            <button class="customize-new-item-button"><a href="/cashier/customize">Placeholder Drink</a></button>
-            <button class="customize-new-item-button"><a href="/cashier/customize">Placeholder Drink</a></button>
-            <button class="customize-new-item-button"><a href="/cashier/customize">Placeholder Drink</a></button>
-            <button class="customize-new-item-button"><a href="/cashier/customize">Placeholder Drink</a></button>
-            <button class="customize-new-item-button"><a href="/cashier/customize">Placeholder Drink</a></button>
-            <button class="customize-new-item-button"><a href="/cashier/customize">Placeholder Drink</a></button>
-            <button class="customize-new-item-button"><a href="/cashier/customize">Placeholder Drink</a></button>
-            <button class="customize-new-item-button"><a href="/cashier/customize">Placeholder Drink</a></button>
-            <button class="customize-new-item-button"><a href="/cashier/customize">Placeholder Drink</a></button>
+            <% if (menuItems && menuItems.length > 0) { %>
+                <% menuItems.forEach(item => { %>
+                <button class="customize-new-item-button"><a href="/cashier/customize?menuItemId=<%= item.menu_item_id %>"><%= item.name %> - $<%= item.base_price %></a></button>
+                <% }) %>
+            <% } else { %>
+                <p style="grid-column: 1/-1; text-align: center;">No menu items available</p>
+            <% } %>
         </div>
     </main>
     </div>
+
+    <script>
+        function clearCart() {
+            if (confirm('Are you sure you want to cancel this order?')) {
+                // Clear session cart
+                fetch('/cashier/menu', { method: 'GET' })
+                    .then(r => r.text())
+                    .then(() => location.reload());
+            }
+        }
+
+        function removeDrink(index) {
+            if (confirm('Remove this item from the order?')) {
+                fetch('/cashier/checkout/remove-drink', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ drinkIndex: index })
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error removing item');
+                    }
+                })
+                .catch(err => {
+                    console.error('Error:', err);
+                    alert('Error removing item');
+                });
+            }
+        }
+    </script>
 
 </body>
 </html>
