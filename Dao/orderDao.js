@@ -107,9 +107,57 @@ async function getSalesReport(startTime, endTime) {
     return result.rows;
 }
 
+// Z-report
+async function getZReportSummary(startTime, endTime) {
+    const [totalsResult, cashResult, cardResult, adjustmentsResult] = await Promise.all([
+        pool.query(`
+            SELECT
+                COALESCE(SUM(subtotal), 0)::numeric(10,2) AS sales,
+                COALESCE(SUM(tax), 0)::numeric(10,2) AS tax
+            FROM orders
+            WHERE created_at >= $1
+              AND created_at < $2
+              AND status = 'PAID'
+        `, [startTime, endTime]),
+        pool.query(`
+            SELECT
+                COALESCE(SUM(total), 0)::numeric(10,2) AS total_cash,
+                COUNT(*)::int AS cash_payments
+            FROM orders
+            WHERE created_at >= $1
+              AND created_at < $2
+              AND status = 'PAID'
+              AND payment_method = 'CASH'
+        `, [startTime, endTime]),
+        pool.query(`
+            SELECT COUNT(*)::int AS card_payments
+            FROM orders
+            WHERE created_at >= $1
+              AND created_at < $2
+              AND status = 'PAID'
+              AND payment_method = 'CARD'
+        `, [startTime, endTime]),
+        pool.query(`
+            SELECT COALESCE(SUM(total), 0)::numeric(10,2) AS adjustments
+            FROM orders
+            WHERE created_at >= $1
+              AND created_at < $2
+              AND status = 'CANCELED'
+        `, [startTime, endTime])
+    ]);
+
+    return {
+        ...totalsResult.rows[0],
+        ...cashResult.rows[0],
+        ...cardResult.rows[0],
+        ...adjustmentsResult.rows[0]
+    };
+}
+
 module.exports = {
     getTodaySummary,
     getRecentOrders,
     getXReportSummary,
-    getSalesReport
+    getSalesReport,
+    getZReportSummary
 };

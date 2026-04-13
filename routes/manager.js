@@ -84,6 +84,22 @@ function buildXReportRange(dateString, beginHour, endHour) {
     return { startTime, endTime };
 }
 
+function buildDateRange(dateString) {
+    const startTime = new Date(`${dateString}T00:00:00`);
+    const endTime = new Date(`${dateString}T00:00:00`);
+    endTime.setDate(endTime.getDate() + 1);
+
+    return { startTime, endTime };
+}
+
+function getLocalDateString() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
 router.get('/reports', (req, res) => {
     res.render('manager/reports', buildDefaultReportsViewData());
 });
@@ -91,7 +107,7 @@ router.get('/reports', (req, res) => {
 // X-report
 router.get('/reports/x', async (req, res) => {
     const reportsViewData = buildDefaultReportsViewData('x-report');
-    const date = req.query.date || new Date().toISOString().slice(0, 10);
+    const date = req.query.date || getLocalDateString();
     const beginHour = Number.parseInt(req.query.beginHour, 10);
     const endHour = Number.parseInt(req.query.endHour, 10);
 
@@ -245,6 +261,51 @@ router.get('/reports/usage', async (req, res) => {
     } catch (err) {
         console.error('Error loading usage report:', err);
         reportsViewData.usageReport.status = 'Could not generate the usage report.';
+        res.status(500).render('manager/reports', reportsViewData);
+    }
+});
+
+// Z-report
+router.post('/reports/z', async (req, res) => {
+    const reportsViewData = buildDefaultReportsViewData('z-report');
+    const businessDay = getLocalDateString();
+    const sig1 = (req.body.sig1 || '').trim();
+    const sig2 = (req.body.sig2 || '').trim();
+    const notes = (req.body.notes || '').trim();
+
+    reportsViewData.zReport.businessDay = businessDay;
+    reportsViewData.zReport.sig1 = sig1;
+    reportsViewData.zReport.sig2 = sig2;
+    reportsViewData.zReport.notes = notes;
+
+    if (!sig1) {
+        reportsViewData.zReport.status = 'Employee signature #1 is required to generate the Z-report.';
+        return res.render('manager/reports', reportsViewData);
+    }
+
+    try {
+        const { startTime, endTime } = buildDateRange(businessDay);
+        const summary = await orderDao.getZReportSummary(startTime, endTime);
+
+        reportsViewData.zReport = {
+            businessDay,
+            closed: true,
+            status: `Generated Z-report for ${businessDay}.`,
+            sales: Number(summary.sales ?? 0).toFixed(2),
+            tax: Number(summary.tax ?? 0).toFixed(2),
+            totalCash: Number(summary.total_cash ?? 0).toFixed(2),
+            cardPayments: Number(summary.card_payments ?? 0),
+            cashPayments: Number(summary.cash_payments ?? 0),
+            adjustments: Number(summary.adjustments ?? 0).toFixed(2),
+            sig1,
+            sig2,
+            notes
+        };
+
+        res.render('manager/reports', reportsViewData);
+    } catch (err) {
+        console.error('Error loading Z-report:', err);
+        reportsViewData.zReport.status = 'Could not generate the Z-report.';
         res.status(500).render('manager/reports', reportsViewData);
     }
 });
