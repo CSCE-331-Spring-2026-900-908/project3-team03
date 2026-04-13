@@ -29,14 +29,14 @@
         </header>
 
         <div class="tabs">
-            <button class="tab-button active" data-tab="x-report">X-Report</button>
-            <button class="tab-button" data-tab="sales-report">Sales Report</button>
-            <button class="tab-button" data-tab="usage-report">Product Usage</button>
-            <button class="tab-button" data-tab="z-report">Z-Report</button>
+            <button class="tab-button <%= activeTab === 'x-report' ? 'active' : '' %>" data-tab="x-report">X-Report</button>
+            <button class="tab-button <%= activeTab === 'sales-report' ? 'active' : '' %>" data-tab="sales-report">Sales Report</button>
+            <button class="tab-button <%= activeTab === 'usage-report' ? 'active' : '' %>" data-tab="usage-report">Product Usage</button>
+            <button class="tab-button <%= activeTab === 'z-report' ? 'active' : '' %>" data-tab="z-report">Z-Report</button>
         </div>
 
         <!-- X-REPORT -->
-        <section class="tab-panel active" id="x-report">
+        <section class="tab-panel <%= activeTab === 'x-report' ? 'active' : '' %>" id="x-report">
             <div class="report-grid">
             <div class="panel">
                 <h2>X-Report Options</h2>
@@ -98,7 +98,7 @@
         </section>
 
         <!-- SALES REPORT -->
-        <section class="tab-panel" id="sales-report">
+        <section class="tab-panel <%= activeTab === 'sales-report' ? 'active' : '' %>" id="sales-report">
             <div class="report-grid">
             <div class="panel">
                 <h2>Sales Report Options</h2>
@@ -147,7 +147,7 @@
         </section>
 
         <!-- PRODUCT USAGE -->
-        <section class="tab-panel" id="usage-report">
+        <section class="tab-panel <%= activeTab === 'usage-report' ? 'active' : '' %>" id="usage-report">
             <div class="report-grid">
             <div class="panel">
                 <h2>Product Usage Options</h2>
@@ -187,15 +187,27 @@
                 <p class="empty-text">No usage data available.</p>
                 <% } %>
 
-                <div class="chart-placeholder">
-                Usage chart placeholder
+                <% if (usageReport?.chartData?.length) { %>
+                <div class="usage-chart">
+                    <% usageReport.chartData.forEach(item => { %>
+                    <div class="usage-chart-row">
+                        <div class="usage-chart-label"><%= item.name %></div>
+                        <div class="usage-chart-bar-wrap">
+                            <div class="usage-chart-bar" style="--bar-width: <%= item.widthPercent %>%;"></div>
+                        </div>
+                        <div class="usage-chart-value"><%= item.used %> <%= item.unit %></div>
+                    </div>
+                    <% }) %>
                 </div>
+                <% } else { %>
+                <p class="empty-text">No usage chart data available.</p>
+                <% } %>
             </div>
             </div>
         </section>
 
         <!-- Z-REPORT -->
-        <section class="tab-panel" id="z-report">
+        <section class="tab-panel <%= activeTab === 'z-report' ? 'active' : '' %>" id="z-report">
             <div class="report-grid">
             <div class="panel">
                 <h2>Z-Report (End of Day)</h2>

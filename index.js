@@ -1,11 +1,10 @@
 const express = require('express');
 const session = require('express-session');
-const { pool } = require('./db');
 const dotenv = require('dotenv').config();
-const MenuItemDAO = require('./Dao/MenuItemDAO');
-const OrderDAO = require('./Dao/orderDao');
-const InventoryItemDAO = require('./Dao/inventoryItemDao');
-
+const pool = require('./db/pool');
+const MenuItemDao = require('./dao/MenuItemDao');
+const orderDao = require('./dao/orderDao');
+const inventoryDao = require('./dao/inventoryDao');
 
 // Create express app
 const app = express();
@@ -88,7 +87,7 @@ app.get('/kiosk', async (req, res) => {
         console.log('Kiosk: Loading menu from database');
         
         // Fetch all active menu items
-        const menuItems = await MenuItemDAO.get_active_menu_items();
+        const menuItems = await MenuItemDao.get_active_menu_items();
         console.log('Kiosk: Retrieved', menuItems.length, 'menu items');
         
         // Group menu items by category
@@ -154,7 +153,7 @@ app.post('/submitOrder', async (req, res) => {
             return res.json({ success: false });
         }
 
-        await OrderDAO.updateInventory(order, MenuItemDAO, null);
+        await OrderDAO.updateInventory(order, MenuItemDao, null);
 
         res.json({ success: true, orderId: result.orderId });
 
@@ -193,8 +192,12 @@ app.post('/updateQuantityName', async (req, res) => {
 app.post('/deleteInventoryItem', async (req, res) => {
     try {
         const { name } = req.body;
+console.log("Deleting:", name);
+        const count = await InventoryItemDAO.deleteInventoryItem(name);
 
-        await InventoryItemDAO.delete_inventory_item(name);
+        if (count === 0) {
+            return res.json({ success: false, message: "Item not found" });
+        }
 
         res.json({ success: true });
     } catch (err) {

@@ -11,3 +11,5 @@ coverage/
 *.swo
 *~
 
+db/data
+db/sql/
