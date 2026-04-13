@@ -57,6 +57,7 @@ async function getRecentOrders(limit = 10) {
 }
 
 // ------------------------ REPORTS QUERIES ------------------------
+// X-report
 async function getXReportSummary(startTime, endTime) {
     const [salesResult, discardsResult] = await Promise.all([
         pool.query(`
@@ -86,8 +87,29 @@ async function getXReportSummary(startTime, endTime) {
     };
 }
 
+// Sales report
+async function getSalesReport(startTime, endTime) {
+    const result = await pool.query(`
+        SELECT
+            m.name,
+            SUM(d.quantity)::int AS total_quantity,
+            COALESCE(SUM(d.quantity * m.base_price), 0)::numeric(10,2) AS total_revenue
+        FROM orders o
+        JOIN drink d ON o.order_id = d.order_id
+        JOIN menu_item m ON d.menu_item_id = m.menu_item_id
+        WHERE o.created_at >= $1
+          AND o.created_at < $2
+          AND o.status = 'PAID'
+        GROUP BY m.name
+        ORDER BY total_quantity DESC, m.name ASC
+    `, [startTime, endTime]);
+
+    return result.rows;
+}
+
 module.exports = {
     getTodaySummary,
     getRecentOrders,
-    getXReportSummary
+    getXReportSummary,
+    getSalesReport
 };

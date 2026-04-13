@@ -27,8 +27,9 @@ router.get('/dashboard', async (req, res) => {
 
 // -------------------- REPORTS --------------------
 // Data holders for all report tabs
-function buildDefaultReportsViewData() {
+function buildDefaultReportsViewData(activeTab = 'x-report') {
     return {
+        activeTab,
         xReport: {
             date: '',
             beginHour: 8,
@@ -86,8 +87,9 @@ router.get('/reports', (req, res) => {
     res.render('manager/reports', buildDefaultReportsViewData());
 });
 
+// X-report
 router.get('/reports/x', async (req, res) => {
-    const reportsViewData = buildDefaultReportsViewData();
+    const reportsViewData = buildDefaultReportsViewData('x-report');
     const date = req.query.date || new Date().toISOString().slice(0, 10);
     const beginHour = Number.parseInt(req.query.beginHour, 10);
     const endHour = Number.parseInt(req.query.endHour, 10);
@@ -140,6 +142,53 @@ router.get('/reports/x', async (req, res) => {
         res.status(500).render('manager/reports', reportsViewData);
     }
 });
+
+// Sales report
+router.get('/reports/sales', async (req, res) => {
+    const reportsViewData = buildDefaultReportsViewData('sales-report');
+    const { startDate, endDate } = req.query;
+
+    reportsViewData.salesReport.startDate = startDate || '';
+    reportsViewData.salesReport.endDate = endDate || '';
+
+    if (!startDate || !endDate) {
+        reportsViewData.salesReport.status = 'Select both a start date and end date.';
+        return res.render('manager/reports', reportsViewData);
+    }
+
+    if (startDate > endDate) {
+        reportsViewData.salesReport.status = 'Start date must be earlier than or equal to end date.';
+        return res.render('manager/reports', reportsViewData);
+    }
+
+    try {
+        const startTime = new Date(`${startDate}T00:00:00`);
+        const endTime = new Date(`${endDate}T00:00:00`);
+        endTime.setDate(endTime.getDate() + 1);
+
+        const rows = await orderDao.getSalesReport(startTime, endTime);
+
+        reportsViewData.salesReport.items = rows.map(row => ({
+            name: row.name,
+            qty: Number(row.total_quantity ?? 0),
+            revenue: Number(row.total_revenue ?? 0).toFixed(2)
+        }));
+
+        reportsViewData.salesReport.totalRevenue = rows
+            .reduce((sum, row) => sum + Number(row.total_revenue ?? 0), 0)
+            .toFixed(2);
+
+        reportsViewData.salesReport.status =
+            `Generated sales report for ${startDate} through ${endDate}.`;
+
+        res.render('manager/reports', reportsViewData);
+    } catch (err) {
+        console.error('Error loading sales report:', err);
+        reportsViewData.salesReport.status = 'Could not generate the sales report.';
+        res.status(500).render('manager/reports', reportsViewData);
+    }
+});
+
 
 // -------------------- INVENTORY --------------------
 router.get('/inventory', (req, res) => {
