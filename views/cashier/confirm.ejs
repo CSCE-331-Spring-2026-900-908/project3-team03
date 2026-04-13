@@ -151,7 +151,30 @@
     </div>
     
     <footer>
-        <button class="finish-btn"><a href="/cashier/menu">Start New Order</a></button>
+        <button class="finish-btn"><a href="/cashier/menu" onclick="finalizeOrder()">Start New Order</a></button>
     </footer>
 </body>
+
+<script>
+    async function finalizeOrder() {
+            
+            try {
+                const response = await fetch("/cashier/confirm/finalize-order", {
+                    method: "POST",
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Response status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                console.log("Response: ", result);
+        
+
+            } catch (error) {
+                console.error(error.message);
+            }
+
+        }
+</script>
 </html>

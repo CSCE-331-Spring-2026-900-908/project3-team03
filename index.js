@@ -147,13 +147,13 @@ app.post('/submitOrder', async (req, res) => {
             }))
         };
 
-        const result = await OrderDAO.submitOrder(order);
+        const result = await orderDao.submitOrder(order);
 
         if (!result.success) {
             return res.json({ success: false });
         }
 
-        await OrderDAO.updateInventory(order, MenuItemDao, null);
+        await orderDao.updateInventory(order, MenuItemDao, null);
 
         res.json({ success: true, orderId: result.orderId });
 
