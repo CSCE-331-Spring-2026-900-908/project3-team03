@@ -20,11 +20,24 @@ router.get('/menu', async (req, res) => {
     initializeCart(req);
     console.log('Cashier: Loading menu page');
     
-    const menuItems = await MenuItemDAO.get_active_menu_items();
-    console.log('Cashier: Retrieved', menuItems.length, 'active menu items');
+    const menuItems = await MenuItemDAO.get_active_drink_items();
+    console.log('Cashier: Retrieved', menuItems.length, 'active drink items');
+
+    const categories = {};
+    menuItems.forEach(item => {
+        if (!categories[item.category]) {
+            categories[item.category] = [];
+        }
+        categories[item.category].push({
+            id: item.menu_item_id,
+            name: item.name,
+            price: parseFloat(item.base_price)
+        });
+    });
     
     res.render('cashier/menu', {
       menuItems: menuItems || [],
+      categories: categories,
       cartCount: req.session.cart.drinks.length,
       statusMessage: ''
     });
@@ -33,6 +46,7 @@ router.get('/menu', async (req, res) => {
     res.render('cashier/menu', {
       menuItems: [],
       cartCount: 0,
+      categories: {},
       statusMessage: 'Error loading menu items'
     });
   }
@@ -45,6 +59,18 @@ router.get('/customize', async (req, res) => {
     const { menuItemId } = req.query;
     
     console.log('Cashier: Customize page for menu item:', menuItemId);
+
+    const addon_list = await MenuItemDAO.get_active_addons();
+    console.log('Cashier: Retrieved', addon_list.length, 'active addons');
+
+    const temp = [];
+    addon_list.forEach((item) => {
+      temp.push({
+        id: item.menu_item_id,
+        name: item.name,
+        price: parseFloat(item.base_price)
+      })
+    });
     
     let selectedItem = null;
     if (menuItemId) {
@@ -56,6 +82,7 @@ router.get('/customize', async (req, res) => {
       menuItemId: menuItemId || null,
       selectedItem: selectedItem || null,
       cartCount: req.session.cart.drinks.length,
+      addons: temp,
       statusMessage: ''
     });
   } catch (err) {
@@ -64,6 +91,7 @@ router.get('/customize', async (req, res) => {
       menuItemId: null,
       selectedItem: null,
       cartCount: 0,
+      addons: null,
       statusMessage: 'Error loading item details'
     });
   }
@@ -71,11 +99,12 @@ router.get('/customize', async (req, res) => {
 
 // Add drink to cart
 router.post('/customize/add-to-cart', async (req, res) => {
+  console.log("post request received!");
   try {
     initializeCart(req);
-    const { menuItemId, iceAmount, sugarAmount, specialNotes, basePrice } = req.body;
+    const { menuItemId, iceAmount, sugarAmount, specialNotes, basePrice, idsToQuants } = req.body;
     
-    console.log('Cashier: Adding to cart:', { menuItemId, iceAmount, sugarAmount, specialNotes, basePrice });
+    console.log('Cashier: Adding to cart:', { menuItemId, iceAmount, sugarAmount, specialNotes, basePrice, idsToQuants });
     
     if (!menuItemId || !basePrice) {
       console.error('Cashier: Missing required fields for add-to-cart');
@@ -89,8 +118,8 @@ router.post('/customize/add-to-cart', async (req, res) => {
     const newDrink = {
       drinkId: req.session.cart.drinks.length + 1, // Temp ID for UI
       menuItemId,
-      iceAmount: iceAmount || 'medium',
-      sugarAmount: sugarAmount || '50%',
+      iceAmount: iceAmount || 60,
+      sugarAmount: sugarAmount || 50,
       specialNotes: specialNotes || '',
       basePrice: Number(basePrice)
     };

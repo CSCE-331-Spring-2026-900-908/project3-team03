@@ -51,6 +51,56 @@ async function get_active_menu_items() {
 
 }
 
+async function get_active_drink_items() {
+    const res = await pool.query(`
+        SELECT 
+            menu_item_id, 
+            name, 
+            category, 
+            base_price, 
+            active     
+        FROM menu_item
+        WHERE category != 'ADDON'
+        ORDER BY menu_item_id   
+    `);
+    
+    return res.rows.filter(menu_item => menu_item.active == true);
+}
+
+async function get_active_addons() {
+    const res = await pool.query(`
+        SELECT 
+            menu_item_id, 
+            name, 
+            category, 
+            base_price, 
+            active     
+        FROM menu_item
+        WHERE category = 'ADDON'
+        ORDER BY menu_item_id   
+    `);
+    
+    return res.rows.filter(menu_item => menu_item.active == true);
+}
+
+async function get_active_drink_items_by_category(category) {
+    const res = await pool.query(`
+        SELECT 
+            menu_item_id, 
+            name, 
+            category, 
+            base_price, 
+            active     
+        FROM menu_item
+        WHERE category = $1
+        ORDER BY menu_item_id   
+    `, [category]);
+
+    console.log('ROWS', res.rows);
+    
+    return res.rows.filter(menu_item => menu_item.active == true);
+}
+
 async function get_ingredients(menu_item_id) {
     const res = await pool.query(`
         SELECT 
@@ -146,6 +196,9 @@ async function get_recipe_lines(menu_item_id) {
 module.exports = {
     get_active_menu_items,
     get_all_menu_items,
+    get_active_drink_items,
+    get_active_drink_items_by_category,
+    get_active_addons,
     get_ingredients,
     get_price,
     is_addon,

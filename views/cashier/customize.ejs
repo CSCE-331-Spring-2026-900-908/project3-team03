@@ -43,7 +43,7 @@
         .panel {
             background: #eee;
             flex-grow: 1;
-            width: 35vw;
+            width: 60vw;
             border: 2px solid black;
             border-radius: 50px; 
             padding: 50px;
@@ -51,7 +51,7 @@
             margin: 50px 50px 0px 50px;
         }
 
-        .sugar-amount-button {
+        .sugar-amount-button, .sugar-amount-button-active {
             height: 50px;
             width: 100px;
             background: #a2a2a2;
@@ -59,11 +59,11 @@
             margin: 10px;
         }
 
-        .sugar-amount-button:hover {
-            background: #bdbdbd;
+        .sugar-amount-button:hover, .sugar-amount-button-active {
+            background: #f1f1f1;
         }
 
-        .ice-amount-button {
+        .ice-amount-button, .ice-amount-button-active {
             height: 50px;
             width: 100px;
             background: #a2a2a2;
@@ -71,14 +71,14 @@
             margin: 10px;
         }
 
-        .ice-amount-button:hover {
-            background: #bdbdbd;
+        .ice-amount-button:hover, .ice-amount-button-active{
+            background: #f1f1f1;
         }
 
         .addon-panel {
             background: #eee;
             flex-grow: 4;
-            width: 35vw;
+            width: 60vw;
             border: 2px solid black;
             border-radius: 50px; 
             text-align: center;
@@ -93,7 +93,7 @@
             background: #a2a2a2;
             padding: 10px;
             margin: 10px;
-            justify-content: center;
+            justify-content: right;
         }
 
         .addon-customizer select {
@@ -159,7 +159,7 @@
     </style>
 </head>
 <body>
-    <header> <h1>Customize Drink - Chard Shore</h1></header>
+    <header> <h1 id="page-header">Customize Drink - Chard Shore</h1></header>
 
     
     <div class="centeredlayout">
@@ -168,27 +168,27 @@
             <h2>Sugar Amount</h2>
 
             <div class="button-row">
-            <button class="sugar-amount-button">0%</button>
-            <button class="sugar-amount-button">25%</button>
-            <button class="sugar-amount-button">50%</button>
-            <button class="sugar-amount-button">75%</button>
-            <button class="sugar-amount-button">100%</button>
+            <button class="sugar-amount-button" id="sugar-button-0" onclick="setSugarAmount(0, 'sugar-button-0')">0%</button>
+            <button class="sugar-amount-button" id="sugar-button-25" onclick="setSugarAmount(0, 'sugar-button-25')">25%</button>
+            <button class="sugar-amount-button-active" id="sugar-button-50" onclick="setSugarAmount(0, 'sugar-button-50')">50%</button>
+            <button class="sugar-amount-button" id="sugar-button-75" onclick="setSugarAmount(0, 'sugar-button-75')">75%</button>
+            <button class="sugar-amount-button" id="sugar-button-100" onclick="setSugarAmount(0, 'sugar-button-100')">100%</button>
             </div>
         </div>
         
         <div class="panel">
             <h2>Ice Amount</h2>
             <div class="button-row">
-            <button class="ice-amount-button">None</button>
-            <button class="ice-amount-button">Less</button>
-            <button class="ice-amount-button">Normal</button>
-            <button class="ice-amount-button">Extra</button>
+            <button class="ice-amount-button" id="ice-button-none" onclick="setIceAmount(0, 'ice-button-none')">None</button>
+            <button class="ice-amount-button" id="ice-button-less" onclick="setIceAmount(30, 'ice-button-less')">Less</button>
+            <button class="ice-amount-button-active" id="ice-button-normal" onclick="setIceAmount(60, 'ice-button-normal')">Normal</button>
+            <button class="ice-amount-button" id="ice-button-extra" onclick="setIceAmount(90, 'ice-button-extra')">Extra</button>
             </div>
         </div>
 
         <div class="addon-panel">
             <h2>Addons</h2>
-            <div class="addon-grid">
+            <div class="addon-grid" id="addon-grid">
             <div class="addon-customizer">
                 <p>Placeholder</p>
                 <select>
@@ -199,156 +199,164 @@
                 </select>
             </div>
 
-            <div class="addon-customizer">
-                <p>Placeholder</p>
-                <select>
-                    <option>0</option>
-                    <option>1</option>
-                    <option>2</option>
-                    <option>3</option>
-                </select>
-            </div>
-
-            <div class="addon-customizer">
-                <p>Placeholder</p>
-                <select>
-                    <option>0</option>
-                    <option>1</option>
-                    <option>2</option>
-                    <option>3</option>
-                </select>
-            </div>
-
-            <div class="addon-customizer">
-                <p>Placeholder</p>
-                <select>
-                    <option>0</option>
-                    <option>1</option>
-                    <option>2</option>
-                    <option>3</option>
-                </select>
-            </div>
-            <div class="addon-customizer">
-                <p>Placeholder</p>
-                <select>
-                    <option>0</option>
-                    <option>1</option>
-                    <option>2</option>
-                    <option>3</option>
-                </select>
-            </div>
-            <div class="addon-customizer">
-                <p>Placeholder</p>
-                <select>
-                    <option>0</option>
-                    <option>1</option>
-                    <option>2</option>
-                    <option>3</option>
-                </select>
-            </div>
-            <div class="addon-customizer">
-                <p>Placeholder</p>
-                <select>
-                    <option>0</option>
-                    <option>1</option>
-                    <option>2</option>
-                    <option>3</option>
-                </select>
-            </div>
-            <div class="addon-customizer">
-                <p>Placeholder</p>
-                <select>
-                    <option>0</option>
-                    <option>1</option>
-                    <option>2</option>
-                    <option>3</option>
-                </select>
-            </div>
-            <div class="addon-customizer">
-                <p>Placeholder</p>
-                <select>
-                    <option>0</option>
-                    <option>1</option>
-                    <option>2</option>
-                    <option>3</option>
-                </select>
-            </div>
-            <div class="addon-customizer">
-                <p>Placeholder</p>
-                <select>
-                    <option>0</option>
-                    <option>1</option>
-                    <option>2</option>
-                    <option>3</option>
-                </select>
-            </div>
-            <div class="addon-customizer">
-                <p>Placeholder</p>
-                <select>
-                    <option>0</option>
-                    <option>1</option>
-                    <option>2</option>
-                    <option>3</option>
-                </select>
-            </div>
-            <div class="addon-customizer">
-                <p>Placeholder</p>
-                <select>
-                    <option>0</option>
-                    <option>1</option>
-                    <option>2</option>
-                    <option>3</option>
-                </select>
-            </div>
-            <div class="addon-customizer">
-                <p>Placeholder</p>
-                <select>
-                    <option>0</option>
-                    <option>1</option>
-                    <option>2</option>
-                    <option>3</option>
-                </select>
-            </div>
-            <div class="addon-customizer">
-                <p>Placeholder</p>
-                <select>
-                    <option>0</option>
-                    <option>1</option>
-                    <option>2</option>
-                    <option>3</option>
-                </select>
-            </div>
-            <div class="addon-customizer">
-                <p>Placeholder</p>
-                <select>
-                    <option>0</option>
-                    <option>1</option>
-                    <option>2</option>
-                    <option>3</option>
-                </select>
-            </div>
-            <div class="addon-customizer">
-                <p>Placeholder</p>
-                <select>
-                    <option>0</option>
-                    <option>1</option>
-                    <option>2</option>
-                    <option>3</option>
-                </select>
-            </div>
+            
 
             </div>
         </div>
 
         <div class="bottom-buttons">
-            <button class="confirm-button"><a href="/cashier/menu">Confirm</a></button>
+            <button class="confirm-button"><a href="/cashier/menu" onclick="submitCustomization()">Confirm</a></button>
             <button class="cancel-button"><a href="/cashier/menu">Cancel</a></button>
         </div>
     </div>
     </div>
 
 
+    <script>
+        let sugarAmount = 50;
+        let iceAmount = 60;
 
+        const addonGrid = document.getElementById('addon-grid');
+        const pageHeader = document.getElementById('page-header');
+
+
+
+        const addons = <%- JSON.stringify(addons) %>;
+        
+        const menuItemId = <%- JSON.stringify(menuItemId) %>;
+        const price = <%- JSON.stringify(selectedItem) %>;
+
+
+
+        const addonCustomizers = [];
+
+        const iceAmountButtons = [
+            document.getElementById("ice-button-none"),
+            document.getElementById("ice-button-less"),
+            document.getElementById("ice-button-normal"),
+            document.getElementById("ice-button-extra")
+        ];
+
+        const sugarAmountButtons = [
+            document.getElementById("sugar-button-0"),
+            document.getElementById("sugar-button-25"),
+            document.getElementById("sugar-button-50"),
+            document.getElementById("sugar-button-75"),
+            document.getElementById("sugar-button-100")
+        ];
+
+        function setSugarAmount(newAmount, source) {
+            const sourceButton = document.getElementById(source);
+            sugarAmount = newAmount;
+            sugarAmountButtons.forEach(button => {
+                button.className='sugar-amount-button';
+            });
+            sourceButton.className = 'sugar-amount-button-active';
+        }
+
+        function setIceAmount(newAmount, source) {
+            const sourceButton = document.getElementById(source);
+            iceAmount = newAmount;
+            iceAmountButtons.forEach(button => {
+                button.className='ice-amount-button';
+            });
+            sourceButton.className = 'ice-amount-button-active';
+        }
+
+        function renderAddons() {
+            addonGrid.innerHTML = '';
+
+            addons.forEach((addon) => {
+                const customizer = document.createElement('customizer');
+                customizer.className = 'addon-customizer';
+                customizer.innerHTML = `<p>${addon.name}</p>`;                
+                
+                const selector = document.createElement('select');
+                selector.type = 'select';
+                selector.innerHTML = `
+                <option>0</option>
+                <option>1</option>
+                <option>2</option>
+                <option>3</option>`;
+
+                customizer.appendChild(selector);
+
+
+                const obj = {
+                    customizer: customizer,
+                    data: {
+                        name: addon.name,
+                        id: addon.id,
+                        select: selector
+                    }
+                };
+
+                addonCustomizers.push(obj);
+                addonGrid.appendChild(customizer);
+            });
+        }
+
+        renderAddons();
+        
+        function getAddonQuantities() {
+            idsToQuants = [];
+            
+            addonCustomizers.forEach((item) => {
+                let curCustomizer = item.customizer;
+                let id = item.data.id;
+                let quant = item.data.select.value;
+                const obj = {
+                    id: id,
+                    quantity: quant
+                };
+                idsToQuants.push(obj);
+            });
+
+            return idsToQuants;
+        }
+
+        
+        async function submitCustomization() {
+            
+            try {
+                const response = await fetch("/cashier/customize/add-to-cart", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        menuItemId: menuItemId,
+                        iceAmount: iceAmount,
+                        sugarAmount: sugarAmount,
+                        specialNotes: '',
+                        basePrice: price,
+                        idsToQuants: getAddonQuantities()
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Response status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                console.log("Response: ", result);
+        
+
+            } catch (error) {
+                console.error(error.message);
+            }
+
+        }
+
+
+        
+        
+            
+        
+
+        
+
+    </script>
         
     
 </body>
