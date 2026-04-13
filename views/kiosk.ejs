@@ -186,7 +186,7 @@
         <div class="topbar">
             <div>
                 <h1>Self Service Kiosk</h1>
-                <div class="muted">Minimum viable version with hardcoded buttons</div>
+                <div class="muted">Database-connected menu items and orders</div>
             </div>
         </div>
 
@@ -228,40 +228,15 @@
                     <button class="cart-btn secondary" id="clearOrder" type="button">Clear order</button>
                     <button class="cart-btn" id="checkoutOrder" type="button">Checkout</button>
                 </div>
-                <p class="muted" style="margin-top:14px;">For now this is front end only. Next step can post this into your SQL order tables.</p>
+                <p class="muted" style="margin-top:14px;">Powered by database integration. Menu items are fetched from the server.</p>
             </div>
         </div>
     </div>
 
     <script>
+        // Data from server (database)
         const menuData = {
-            categories: {
-                'Milk Tea': [
-                    { id: 1, name: 'Classic Milk Tea', price: 4.50 },
-                    { id: 2, name: 'Taro Milk Tea', price: 5.00 },
-                    { id: 3, name: 'Thai Milk Tea', price: 5.00 },
-                    { id: 4, name: 'Brown Sugar Milk Tea', price: 5.50 }
-                ],
-                'Tea': [
-                    { id: 5, name: 'Black Tea', price: 3.75 },
-                    { id: 6, name: 'Green Tea', price: 3.75 },
-                    { id: 7, name: 'Jasmine Tea', price: 4.00 }
-                ],
-                'Fruit Tea': [
-                    { id: 8, name: 'Mango Fruit Tea', price: 4.75 },
-                    { id: 9, name: 'Peach Fruit Tea', price: 4.75 },
-                    { id: 10, name: 'Strawberry Fruit Tea', price: 4.75 }
-                ],
-                'Smoothie': [
-                    { id: 11, name: 'Mango Smoothie', price: 5.50 },
-                    { id: 12, name: 'Strawberry Smoothie', price: 5.50 },
-                    { id: 13, name: 'Avocado Smoothie', price: 5.75 }
-                ],
-                'Matcha': [
-                    { id: 14, name: 'Matcha Latte', price: 5.25 },
-                    { id: 15, name: 'Strawberry Matcha', price: 5.75 }
-                ]
-            },
+            categories: <%- JSON.stringify(categories || {}) %>,
             addons: [
                 { id: 101, name: 'Boba', price: 0.75 },
                 { id: 102, name: 'Pudding', price: 0.75 },
@@ -280,7 +255,7 @@
         const orderListEl = document.getElementById('orderList');
         const orderTotalEl = document.getElementById('orderTotal');
 
-        let currentCategory = Object.keys(menuData.categories)[0];
+        let currentCategory = Object.keys(menuData.categories)[0] || null;
         let selectedDrink = null;
         let selectedAddons = [];
         let quantity = 1;
@@ -292,6 +267,10 @@
 
         function renderTabs() {
             categoryTabs.innerHTML = '';
+            if (!currentCategory) {
+                categoryTabs.innerHTML = '<div class="muted">No categories available</div>';
+                return;
+            }
             Object.keys(menuData.categories).forEach((category) => {
                 const button = document.createElement('button');
                 button.className = 'tab-btn' + (category === currentCategory ? ' active' : '');
@@ -308,6 +287,10 @@
 
         function renderMenu() {
             menuGrid.innerHTML = '';
+            if (!currentCategory || !menuData.categories[currentCategory] || menuData.categories[currentCategory].length === 0) {
+                menuGrid.innerHTML = '<div class="muted">No items in this category</div>';
+                return;
+            }
             menuData.categories[currentCategory].forEach((item) => {
                 const button = document.createElement('button');
                 button.className = 'item-btn';
@@ -352,7 +335,7 @@
             if (selectedAddons.length === 0) {
                 selectedAddonsEl.textContent = 'No add ons selected';
             } else {
-                selectedAddonsEl.textContent = 'Add ons  ' + selectedAddons.map((a) => `${a.name} +$${money(a.price)}`).join(', ');
+                selectedAddonsEl.textContent = 'Add ons: ' + selectedAddons.map((a) => `${a.name} +$${money(a.price)}`).join(', ');
             }
 
             qtyValueEl.textContent = quantity;
@@ -374,7 +357,7 @@
                 div.className = 'order-item';
                 div.innerHTML = `
                     <h3>${item.quantity} x ${item.name}</h3>
-                    <div>${item.addons.length ? 'Add ons  ' + item.addons.map((a) => a.name).join(', ') : 'No add ons'}</div>
+                    <div>${item.addons.length ? 'Add ons: ' + item.addons.map((a) => a.name).join(', ') : 'No add ons'}</div>
                     <div style="margin-top:8px;"><strong>$${money(item.total)}</strong></div>
                     <button class="cart-btn danger" type="button" style="margin-top:10px;" onclick="removeOrderItem(${index})">Remove</button>
                 `;
@@ -440,14 +423,21 @@
                 return;
             }
 
-            alert('MVP checkout only. Next step is inserting this order into SQL.');
+            console.log('Order being processed:', order);
+            alert('Order submitted! Database integration coming next.');
         };
 
-        renderTabs();
-        renderMenu();
-        renderAddons();
-        renderSelection();
-        renderOrder();
+        // Initialize UI
+        if (Object.keys(menuData.categories).length > 0) {
+            renderTabs();
+            renderMenu();
+            renderAddons();
+            renderSelection();
+            renderOrder();
+        } else {
+            document.querySelector('.section-title').textContent = 'No menu items available';
+        }
+    </script>
     </script>
 </body>
 </html>

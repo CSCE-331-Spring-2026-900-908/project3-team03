@@ -21,13 +21,23 @@ const findEmployeeByUsername = async (username) => {
 };
 
 const createEmployee = async ({ first_name, last_name, username, role, join_date, hourly_wage, active }) => {
-  const result = await pool.query(
-    `INSERT INTO employee (first_name, last_name, username, role, join_date, hourly_wage, active)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
-     RETURNING *`,
-    [first_name, last_name, username, role, join_date || null, hourly_wage || 0, active ?? true]
-  );
-  return result.rows[0];
+  try {
+    console.log('DAO: Creating employee with params:', { first_name, last_name, username, role, join_date, hourly_wage, active });
+    
+    const result = await pool.query(
+      `INSERT INTO employee (first_name, last_name, username, role, join_date, hourly_wage, active)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING *`,
+      [first_name, last_name, username, role, join_date || null, hourly_wage || 0, active ?? true]
+    );
+    
+    console.log('DAO: Employee created, result:', result.rows[0]);
+    return result.rows[0];
+  } catch (err) {
+    console.error('DAO: Error creating employee:', err.message);
+    console.error('DAO: Full error:', err);
+    throw err;
+  }
 };
 
 const updateEmployee = async (employeeId, updates = {}) => {

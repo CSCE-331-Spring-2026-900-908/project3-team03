@@ -338,7 +338,21 @@ router.post('/employees/toggle-active', async (req, res) => {
 router.post('/employees/add', async (req, res) => {
   const { firstName, lastName, username, role, joinDate, hourlyWage, active } = req.body;
   try {
-    await employeeDao.createEmployee({
+    console.log('Adding employee:', { firstName, lastName, username, role, joinDate, hourlyWage, active });
+    
+    // Validate required fields
+    if (!firstName || !lastName || !username || !role) {
+      console.error('Missing required fields');
+      const employees = await employeeDao.getAllEmployees();
+      return res.render('manager/employees', {
+        statusMessage: 'Error: Missing required fields (First name, Last name, Username, Role)',
+        roles: ['CASHIER', 'MANAGER'],
+        selectedEmployee: null,
+        employees
+      });
+    }
+
+    const newEmployee = await employeeDao.createEmployee({
       first_name: firstName,
       last_name: lastName,
       username,
@@ -348,6 +362,8 @@ router.post('/employees/add', async (req, res) => {
       active: active === 'on' || active === 'true' || active === '1'
     });
 
+    console.log('Employee created successfully:', newEmployee);
+
     const employees = await employeeDao.getAllEmployees();
     res.render('manager/employees', {
       statusMessage: `Added employee ${firstName} ${lastName}`,
@@ -356,8 +372,15 @@ router.post('/employees/add', async (req, res) => {
       employees
     });
   } catch (err) {
-    console.error('Error adding employee:', err);
-    res.status(500).send('Database error');
+    console.error('Error adding employee:', err.message);
+    console.error('Full error:', err);
+    const employees = await employeeDao.getAllEmployees().catch(() => []);
+    res.render('manager/employees', {
+      statusMessage: `Error adding employee: ${err.message}`,
+      roles: ['CASHIER', 'MANAGER'],
+      selectedEmployee: null,
+      employees
+    });
   }
 });
 
