@@ -1,5 +1,6 @@
 const pool = require('../db/pool');
 
+// ------------------------ DASHBOARD QUERIES ------------------------
 function getTodayBounds() {
     const start = new Date();
     start.setHours(0, 0, 0, 0);
@@ -55,7 +56,38 @@ async function getRecentOrders(limit = 10) {
     }));
 }
 
+// ------------------------ REPORTS QUERIES ------------------------
+async function getXReportSummary(startTime, endTime) {
+    const [salesResult, discardsResult] = await Promise.all([
+        pool.query(`
+            SELECT
+                COUNT(*)::int AS orders,
+                COALESCE(SUM(total), 0)::numeric(10,2) AS sales,
+                COUNT(*) FILTER (WHERE payment_method = 'CARD')::int AS card_payments,
+                COUNT(*) FILTER (WHERE payment_method = 'CASH')::int AS cash_payments,
+                COALESCE(AVG(total), 0)::numeric(10,2) AS avg_revenue
+            FROM orders
+            WHERE status = 'PAID'
+              AND created_at >= $1
+              AND created_at < $2
+        `, [startTime, endTime]),
+        pool.query(`
+            SELECT COUNT(*)::int AS discards
+            FROM orders
+            WHERE status = 'CANCELED'
+              AND created_at >= $1
+              AND created_at < $2
+        `, [startTime, endTime])
+    ]);
+
+    return {
+        ...salesResult.rows[0],
+        discards: discardsResult.rows[0].discards
+    };
+}
+
 module.exports = {
     getTodaySummary,
-    getRecentOrders
+    getRecentOrders,
+    getXReportSummary
 };

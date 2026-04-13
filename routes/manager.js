@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const orderDao = require('../Dao/orderDao');
-const inventoryDao = require('../Dao/inventoryDao');
+const orderDao = require('../dao/orderDao');
+const inventoryDao = require('../dao/inventoryDao');
 
 // -------------------- DASHBOARD --------------------
 router.get('/dashboard', async (req, res) => {
@@ -26,61 +26,119 @@ router.get('/dashboard', async (req, res) => {
 });
 
 // -------------------- REPORTS --------------------
-router.get('/reports', (req, res) => {
-    res.render('manager/reports', {
-        // TEST: mock data
+// Data holders for all report tabs
+function buildDefaultReportsViewData() {
+    return {
         xReport: {
-        date: '',
-        beginHour: 8,
-        endHour: 17,
-        status: '',
-        orders: 12,
-        discards: 1,
-        sales: '142.50',
-        cardPayments: 8,
-        cashPayments: 4,
-        avgRevenue: '11.88'
+            date: '',
+            beginHour: 8,
+            endHour: 17,
+            status: '',
+            orders: 0,
+            discards: 0,
+            sales: '0.00',
+            cardPayments: 0,
+            cashPayments: 0,
+            avgRevenue: '0.00'
         },
-
-        // TEST: mock data
         salesReport: {
-        startDate: '',
-        endDate: '',
-        status: '',
-        items: [
-            { name: 'Classic Milk Tea', qty: 8, revenue: '48.00' },
-            { name: 'Taro Smoothie', qty: 4, revenue: '28.00' }
-        ],
-        totalRevenue: '76.00'
+            startDate: '',
+            endDate: '',
+            status: '',
+            items: [],
+            totalRevenue: '0.00'
         },
-
-        // TEST: mock data
         usageReport: {
-        startDate: '',
-        endDate: '',
-        status: '',
-        items: [
-            { name: 'Milk', used: 12, unit: 'cups' },
-            { name: 'Boba Pearls', used: 7, unit: 'scoops' }
-        ]
+            startDate: '',
+            endDate: '',
+            status: '',
+            items: []
         },
-
-        // TEST: mock data
         zReport: {
-        businessDay: 'today',
-        closed: false,
-        status: '',
-        sales: '142.50',
-        tax: '11.76',
-        totalCash: '48.00',
-        cardPayments: 8,
-        cashPayments: 4,
-        adjustments: '0.00',
-        sig1: '',
-        sig2: '',
-        notes: ''
+            businessDay: 'today',
+            closed: false,
+            status: '',
+            sales: '0.00',
+            tax: '0.00',
+            totalCash: '0.00',
+            cardPayments: 0,
+            cashPayments: 0,
+            adjustments: '0.00',
+            sig1: '',
+            sig2: '',
+            notes: ''
         }
-    });
+    };
+}
+
+// Initialize X-report 
+function buildXReportRange(dateString, beginHour, endHour) {
+    const startTime = new Date(`${dateString}T00:00:00`);
+    startTime.setHours(beginHour, 0, 0, 0);
+
+    const endTime = new Date(`${dateString}T00:00:00`);
+    endTime.setHours(endHour + 1, 0, 0, 0);
+
+    return { startTime, endTime };
+}
+
+router.get('/reports', (req, res) => {
+    res.render('manager/reports', buildDefaultReportsViewData());
+});
+
+router.get('/reports/x', async (req, res) => {
+    const reportsViewData = buildDefaultReportsViewData();
+    const date = req.query.date || new Date().toISOString().slice(0, 10);
+    const beginHour = Number.parseInt(req.query.beginHour, 10);
+    const endHour = Number.parseInt(req.query.endHour, 10);
+
+    reportsViewData.xReport.date = date;
+    reportsViewData.xReport.beginHour = Number.isNaN(beginHour) ? 8 : beginHour;
+    reportsViewData.xReport.endHour = Number.isNaN(endHour) ? 17 : endHour;
+
+    if (Number.isNaN(beginHour) || Number.isNaN(endHour)) {
+        reportsViewData.xReport.status = 'Select a valid begin hour and end hour.';
+        return res.render('manager/reports', reportsViewData);
+    }
+
+    if (!date) {
+        reportsViewData.xReport.status = 'Select a date for the X-report.';
+        return res.render('manager/reports', reportsViewData);
+    }
+
+    if (beginHour < 0 || beginHour > 23 || endHour < 0 || endHour > 23) {
+        reportsViewData.xReport.status = 'Hours must be between 0 and 23.';
+        return res.render('manager/reports', reportsViewData);
+    }
+
+    if (beginHour > endHour) {
+        reportsViewData.xReport.status = 'Begin hour must be earlier than or equal to end hour.';
+        return res.render('manager/reports', reportsViewData);
+    }
+
+    try {
+        const { startTime, endTime } = buildXReportRange(date, beginHour, endHour);
+        const summary = await orderDao.getXReportSummary(startTime, endTime);
+
+        reportsViewData.xReport = {
+            date,
+            beginHour,
+            endHour,
+            status: `Generated X-report for ${date}, ${beginHour}:00-${endHour}:59.`,
+            orders: Number(summary.orders ?? 0),
+            discards: Number(summary.discards ?? 0),
+            sales: Number(summary.sales ?? 0).toFixed(2),
+            cardPayments: Number(summary.card_payments ?? 0),
+            cashPayments: Number(summary.cash_payments ?? 0),
+            avgRevenue: Number(summary.avg_revenue ?? 0).toFixed(2)
+        };
+
+        res.render('manager/reports', reportsViewData);
+    } catch (err) {
+        console.error('Error loading X-report:', err);
+        reportsViewData.xReport.status = 'Could not generate the X-report.';
+        res.status(500).render('manager/reports', reportsViewData);
+    }
 });
 
 // -------------------- INVENTORY --------------------
