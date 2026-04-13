@@ -2,7 +2,9 @@ const express = require('express');
 const session = require('express-session');
 const dotenv = require('dotenv').config();
 const pool = require('./db/pool');
-const MenuItemDAO = require('./dao/MenuItemDao');
+const MenuItemDao = require('./dao/MenuItemDao');
+const orderDao = require('./dao/orderDao');
+const inventoryDao = require('./dao/inventoryDao');
 
 // Create express app
 const app = express();
@@ -85,7 +87,7 @@ app.get('/kiosk', async (req, res) => {
         console.log('Kiosk: Loading menu from database');
         
         // Fetch all active menu items
-        const menuItems = await MenuItemDAO.get_active_menu_items();
+        const menuItems = await MenuItemDao.get_active_menu_items();
         console.log('Kiosk: Retrieved', menuItems.length, 'menu items');
         
         // Group menu items by category
@@ -115,6 +117,112 @@ app.get('/kiosk', async (req, res) => {
         });
     }
 });
+
+
+app.post('/submitOrder', async (req, res) => {
+    try {
+        console.log("ORDER RECEIVED");
+
+        const frontendOrder = req.body.order;
+
+        const order = {
+            created_at: new Date(),
+            status: "PAID",
+            payment_method: "CARD",
+            employee_id: 1,
+            notes: "",
+            subtotal: 0,
+            tax: 0,
+            total: 0,
+            drinks: frontendOrder.map(item => ({
+                menu_item_id: item.drinkId,
+                quantity: item.quantity,
+                ice_amount: 0,//will change to normal later but db is currently only taking ints
+                sugar_amount: 0,//will change to normal later but db is currently only taking ints
+                special_notes: "",
+                base_price: item.total / item.quantity,
+                addons: Object.fromEntries(
+                    item.addons.map(a => [a.id, 1])
+                )
+            }))
+        };
+
+        const result = await OrderDAO.submitOrder(order);
+
+        if (!result.success) {
+            return res.json({ success: false });
+        }
+
+        await OrderDAO.updateInventory(order, MenuItemDao, null);
+
+        res.json({ success: true, orderId: result.orderId });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false });
+    }
+});
+
+app.post('/inventoryAdd', async (req, res) => {
+    try {
+        const item = req.body;
+
+        await InventoryItemDAO.insertInventoryItem(item);
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false });
+    }
+});
+
+app.post('/updateQuantityName', async (req, res) => {
+    try {
+        const { name, quantity } = req.body;
+
+        await InventoryItemDAO.updateQuantityByName(name, quantity);
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false });
+    }
+});
+
+app.post('/deleteInventoryItem', async (req, res) => {
+    try {
+        const { name } = req.body;
+console.log("Deleting:", name);
+        const count = await InventoryItemDAO.deleteInventoryItem(name);
+
+        if (count === 0) {
+            return res.json({ success: false, message: "Item not found" });
+        }
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false });
+    }
+});
+
+app.post('/insertIngredientReturningId', async (req, res) => {
+    try {
+        const { name } = req.body;
+
+        const id = await InventoryItemDAO.insert_ingredient_returning_id(name);
+
+        res.json({
+            success: true,
+            ingredient_id: id
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false });
+    }
+});
+
 
 /*
 app.get('/cashier', (req, res) => {

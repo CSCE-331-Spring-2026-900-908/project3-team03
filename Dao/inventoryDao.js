@@ -19,6 +19,7 @@ async function getLowStockItems(limit = 10) {
 }
 
 // ------------------------ INVENTORY QUERIES ------------------------
+// Loads inventory table
 async function getInventoryItems() {
     const result = await pool.query(`
         SELECT
@@ -38,6 +39,7 @@ async function getInventoryItems() {
     return result.rows;
 }
 
+// Inserts inv item
 async function createInventoryItem({ name, unit, category, quantity, reorderPoint }) {
     const result = await pool.query(`
         INSERT INTO ingredient (
@@ -55,6 +57,7 @@ async function createInventoryItem({ name, unit, category, quantity, reorderPoin
     return result.rows[0];
 }
 
+// Updates quantity given a name
 async function updateInventoryQuantityByName(name, quantity) {
     const result = await pool.query(`
         UPDATE ingredient
@@ -67,6 +70,7 @@ async function updateInventoryQuantityByName(name, quantity) {
     return result.rows[0] || null;
 }
 
+// sets inv item inactive
 async function deactivateInventoryItemByName(name) {
     const result = await pool.query(`
         UPDATE ingredient

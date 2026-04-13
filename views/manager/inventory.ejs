@@ -9,18 +9,18 @@
 <body>
     <div class="layout">
         <aside class="sidebar">
-        <h2 class="sidebar-title">Manager</h2>
-        <hr class="sidebar-divider" />
+            <h2 class="sidebar-title">Manager</h2>
+            <hr class="sidebar-divider" />
 
-        <a href="/manager/dashboard" class="sidebar-link">Dashboard</a>
-        <a href="/manager/reports" class="sidebar-link">Reports</a>
-        <a href="/manager/inventory" class="sidebar-link active">Inventory</a>
-        <a href="/manager/menu" class="sidebar-link">Menu</a>
-        <a href="/manager/employees" class="sidebar-link">Employees</a>
+            <a href="/manager/dashboard" class="sidebar-link">Dashboard</a>
+            <a href="/manager/reports" class="sidebar-link">Reports</a>
+            <a href="/manager/inventory" class="sidebar-link active">Inventory</a>
+            <a href="/manager/menu" class="sidebar-link">Menu</a>
+            <a href="/manager/employees" class="sidebar-link">Employees</a>
 
-        <hr class="sidebar-divider" />
+            <hr class="sidebar-divider" />
 
-        <a href="/cashier/manu" class="sidebar-link">Switch to Cashier</a>
+            <a href="/cashier/menu" class="sidebar-link">Switch to Cashier</a>
         </aside>
 
         <main class="main">
@@ -114,5 +114,54 @@
         </section>
         </main>
     </div>
+
+<script>
+async function post(url, data, form) {
+    const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+    });
+
+    const result = await res.json();
+
+    if (result.success) {
+        form.reset();
+    } else {
+        alert("Operation failed");
+    }
+}
+
+document.getElementById("addForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = e.target;
+
+    await post("/inventoryAdd", {
+        name: form.name.value,
+        onHand: form.onHand.value,
+        reorder: form.reorder.value
+    }, form);
+});
+
+document.getElementById("updateForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = e.target;
+
+    await post("/updateQuantityName", {
+        name: form.name.value,
+        quantity: form.quantity.value
+    }, form);
+});
+
+document.getElementById("deleteForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const form = e.target;
+
+    await post("/deleteInventoryItem", {
+        name: form.name.value
+    }, form);
+});
+</script>
+
 </body>
 </html>
