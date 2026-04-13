@@ -312,53 +312,118 @@ router.post('/reports/z', async (req, res) => {
 
 
 // -------------------- INVENTORY --------------------
-router.get('/inventory', (req, res) => {
-    res.render('manager/inventory', {
-        statusMessage: '',
-        inventoryItems: [
-        { name: 'Boba Pearls', onHand: 25, parLevel: 20, reorder: 20 },
-        { name: 'Milk', onHand: 12, parLevel: 15, reorder: 15 },
-        { name: 'Brown Sugar Syrup', onHand: 18, parLevel: 10, reorder: 10 }
-        ]
-    });
-});
-
-// TEST: Mock post to add inventory item
-router.post('/inventory/add', (req, res) => {
-    const { itemName, onHand, reorder } = req.body;
+// Load inventory items
+async function renderInventoryPage(res, statusMessage = '') {
+    const inventoryRows = await inventoryDao.getInventoryItems();
 
     res.render('manager/inventory', {
-        statusMessage: `Added item: ${itemName}`,
-        inventoryItems: [
-        { name: itemName, onHand, parLevel: reorder, reorder },
-        { name: 'Milk', onHand: 12, parLevel: 15, reorder: 15 }
-        ]
+        statusMessage,
+        inventoryItems: inventoryRows.map(item => ({
+            name: item.name,
+            unit: item.unit,
+            category: item.category,
+            onHand: Number(item.quantity ?? 0).toFixed(2),
+            parLevel: Number(item.reorder_point ?? 0).toFixed(2),
+            reorder: Number(item.reorder_point ?? 0).toFixed(2)
+        }))
     });
+}
+
+router.get('/inventory', async (req, res) => {
+    try {
+        await renderInventoryPage(res);
+    } catch (err) {
+        console.error('Error loading inventory:', err);
+        res.status(500).send('Database error');
+    }
 });
 
-// TEST: Mock post to update quantity of an item
-router.post('/inventory/update-quantity', (req, res) => {
+// Add inventory item
+router.post('/inventory/add', async (req, res) => {
+    const { itemName, unit, category, onHand, reorder } = req.body;
+
+    if (!itemName || !unit || !category || onHand === '' || reorder === '') {
+        try {
+            await renderInventoryPage(res, 'Name, unit, category, quantity, and reorder point are required.');
+        } catch (err) {
+            console.error('Error loading inventory after validation failure:', err);
+            res.status(500).send('Database error');
+        }
+        return;
+    }
+
+    try {
+        const createdItem = await inventoryDao.createInventoryItem({
+            name: itemName.trim(),
+            unit: unit.trim(),
+            category: category.trim(),
+            quantity: Number(onHand),
+            reorderPoint: Number(reorder)
+        });
+
+        await renderInventoryPage(res, `Added item: ${createdItem.name}`);
+    } catch (err) {
+        console.error('Error adding inventory item:', err);
+        await renderInventoryPage(res, 'Could not add inventory item.');
+    }
+});
+
+// Update quantity for an inventory item
+router.post('/inventory/update-quantity', async (req, res) => {
     const { itemName, onHand } = req.body;
 
-    res.render('manager/inventory', {
-        statusMessage: `Updated quantity for ${itemName} to ${onHand}`,
-        inventoryItems: [
-        { name: itemName, onHand, parLevel: 20, reorder: 20 },
-        { name: 'Milk', onHand: 12, parLevel: 15, reorder: 15 }
-        ]
-    });
+    if (!itemName || onHand === '') {
+        try {
+            await renderInventoryPage(res, 'Item name and quantity are required.');
+        } catch (err) {
+            console.error('Error loading inventory after validation failure:', err);
+            res.status(500).send('Database error');
+        }
+        return;
+    }
+
+    try {
+        const updatedItem = await inventoryDao.updateInventoryQuantityByName(itemName.trim(), Number(onHand));
+
+        if (!updatedItem) {
+            await renderInventoryPage(res, `No active inventory item found with name: ${itemName}`);
+            return;
+        }
+
+        await renderInventoryPage(res, `Updated quantity for ${updatedItem.name} to ${Number(updatedItem.quantity).toFixed(2)}`);
+    } catch (err) {
+        console.error('Error updating inventory quantity:', err);
+        await renderInventoryPage(res, 'Could not update inventory quantity.');
+    }
 });
 
-// TEST: Mock post to delete an inventory item
-router.post('/inventory/delete', (req, res) => {
+// Delete inventory item by name
+router.post('/inventory/delete', async (req, res) => {
     const { deleteName } = req.body;
 
-    res.render('manager/inventory', {
-        statusMessage: `Deleted item: ${deleteName}`,
-        inventoryItems: [
-        { name: 'Milk', onHand: 12, parLevel: 15, reorder: 15 }
-        ]
-    });
+    if (!deleteName) {
+        try {
+            await renderInventoryPage(res, 'Ingredient name is required.');
+        } catch (err) {
+            console.error('Error loading inventory after validation failure:', err);
+            res.status(500).send('Database error');
+        }
+        return;
+    }
+
+    try {
+        const deactivatedItem = await inventoryDao.deactivateInventoryItemByName(deleteName.trim());
+
+        if (!deactivatedItem) {
+            await renderInventoryPage(res, `No active inventory item found with name: ${deleteName}`);
+            return;
+        }
+
+        await renderInventoryPage(res, `Deleted item: ${deactivatedItem.name}`);
+    } catch (err) {
+        console.error('Error deleting inventory item:', err);
+        await renderInventoryPage(res, 'Could not delete inventory item.');
+    }
 });
 
 // -------------------- MENU --------------------

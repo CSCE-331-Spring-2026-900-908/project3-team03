@@ -18,6 +18,67 @@ async function getLowStockItems(limit = 10) {
     return result.rows;
 }
 
+// ------------------------ INVENTORY QUERIES ------------------------
+async function getInventoryItems() {
+    const result = await pool.query(`
+        SELECT
+            ingredient_id,
+            name,
+            unit,
+            category,
+            quantity::numeric(10,2) AS quantity,
+            reorder_point::numeric(10,2) AS reorder_point,
+            expiration_date,
+            location
+        FROM ingredient
+        WHERE active = TRUE
+        ORDER BY name ASC
+    `);
+
+    return result.rows;
+}
+
+async function createInventoryItem({ name, unit, category, quantity, reorderPoint }) {
+    const result = await pool.query(`
+        INSERT INTO ingredient (
+            name,
+            unit,
+            category,
+            quantity,
+            reorder_point,
+            active
+        )
+        VALUES ($1, $2, $3, $4, $5, TRUE)
+        RETURNING ingredient_id, name
+    `, [name, unit, category, quantity, reorderPoint]);
+
+    return result.rows[0];
+}
+
+async function updateInventoryQuantityByName(name, quantity) {
+    const result = await pool.query(`
+        UPDATE ingredient
+        SET quantity = $2
+        WHERE LOWER(name) = LOWER($1)
+          AND active = TRUE
+        RETURNING ingredient_id, name, quantity::numeric(10,2) AS quantity
+    `, [name, quantity]);
+
+    return result.rows[0] || null;
+}
+
+async function deactivateInventoryItemByName(name) {
+    const result = await pool.query(`
+        UPDATE ingredient
+        SET active = FALSE
+        WHERE LOWER(name) = LOWER($1)
+          AND active = TRUE
+        RETURNING ingredient_id, name
+    `, [name]);
+
+    return result.rows[0] || null;
+}
+
 // ------------------------ REPORTS QUERIES ------------------------
 // Usage report
 async function getUsageReport(startTime, endTime) {
@@ -59,6 +120,10 @@ async function getUsageReport(startTime, endTime) {
 }
 
 module.exports = {
+    getInventoryItems,
+    createInventoryItem,
+    updateInventoryQuantityByName,
+    deactivateInventoryItemByName,
     getLowStockItems,
     getUsageReport
 };
