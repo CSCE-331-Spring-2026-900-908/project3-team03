@@ -24,64 +24,94 @@
         </aside>
 
         <main class="main">
-            <div class="page-header">
-                <h1>Inventory</h1>
+        <div class="page-header">
+            <h1>Inventory</h1>
+        </div>
+
+        <section class="panel">
+            <form class="action-row action-card" method="POST" action="/manager/inventory/add">
+            <div class="action-copy">
+                <h3>Add Inventory Item</h3>
+                <p>Create a new ingredient with its unit, category, quantity, and reorder point.</p>
+            </div>
+            <div class="field-grid field-grid-add">
+                <input type="text" name="itemName" placeholder="Item Name" required />
+                <input type="text" name="unit" placeholder="Unit (cups, scoops, oz)" required />
+                <input type="text" name="category" placeholder="Category (Tea, Dairy, Topping)" required />
+                <input type="number" name="onHand" placeholder="On Hand" min="0" required />
+                <input type="number" step="0.01" name="reorder" placeholder="Reorder" min="0" required />
+            </div>
+            <div class="action-button-wrap">
+                <button type="submit" class="primary-btn">Add Item</button>
+            </div>
+            </form>
+
+            <form class="action-row action-card" method="POST" action="/manager/inventory/update-quantity">
+            <div class="action-copy">
+                <h3>Update Quantity</h3>
+                <p>Adjust the on-hand quantity for an existing active ingredient.</p>
+            </div>
+            <div class="field-grid field-grid-compact">
+                <input type="text" name="itemName" placeholder="Item Name" required />
+                <input type="number" step="0.01" name="onHand" placeholder="New Quantity" min="0" required />
+            </div>
+            <div class="action-button-wrap">
+                <button type="submit" class="secondary-btn">Update Quantity</button>
+            </div>
+            </form>
+
+            <form class="action-row action-card" method="POST" action="/manager/inventory/delete">
+            <div class="action-copy">
+                <h3>Delete Item</h3>
+                <p>Deactivate an ingredient so it no longer appears in active inventory.</p>
+            </div>
+            <div class="field-grid field-grid-compact">
+                <input type="text" name="deleteName" placeholder="Ingredient name" required />
+            </div>
+            <div class="action-button-wrap">
+                <button type="submit" class="danger-btn">Delete by Name</button>
+            </div>
+            </form>
+
+            <% if (statusMessage) { %>
+            <p class="status-message"><%= statusMessage %></p>
+            <% } %>
+        </section>
+
+        <section class="panel">
+            <div class="panel-header">
+            <h2>Inventory Items</h2>
             </div>
 
-            <section class="panel">
-                <form id="addForm" class="action-row">
-                    <input type="text" name="name" placeholder="Item Name" required />
-                    <input type="number" name="onHand" placeholder="On Hand" min="0" required />
-                    <input type="number" name="reorder" placeholder="Reorder" min="0" required />
-                    <button type="submit" class="primary-btn">Add Item</button>
-                </form>
-
-                <form id="updateForm" class="action-row">
-                    <input type="text" name="name" placeholder="Item Name" required />
-                    <input type="number" name="quantity" placeholder="New Quantity" min="0" required />
-                    <button type="submit" class="secondary-btn">Update Quantity</button>
-                </form>
-
-                <form id="deleteForm" class="action-row">
-                    <input type="text" name="name" placeholder="Ingredient name" required />
-                    <button type="submit" class="danger-btn">Delete by name</button>
-                </form>
-
-                <% if (statusMessage) { %>
-                    <p class="status-message"><%= statusMessage %></p>
-                <% } %>
-            </section>
-
-            <section class="panel">
-                <div class="panel-header">
-                    <h2>Inventory Items</h2>
-                </div>
-
-                <% if (inventoryItems && inventoryItems.length > 0) { %>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Item Name</th>
-                            <th>On Hand</th>
-                            <th>Level</th>
-                            <th>Reorder</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <% inventoryItems.forEach(item => { %>
-                            <tr>
-                                <td><%= item.name %></td>
-                                <td><%= item.onHand %></td>
-                                <td><%= item.parLevel %></td>
-                                <td><%= item.reorder %></td>
-                            </tr>
-                        <% }) %>
-                    </tbody>
-                </table>
-                <% } else { %>
-                    <p class="empty-text">No inventory items found.</p>
-                <% } %>
-            </section>
+            <% if (inventoryItems && inventoryItems.length > 0) { %>
+            <table>
+                <thead>
+                <tr>
+                    <th>Item Name</th>
+                    <th>Unit</th>
+                    <th>Category</th>
+                    <th>On Hand</th>
+                    <th>Level</th>
+                    <th>Reorder</th>
+                </tr>
+                </thead>
+                <tbody>
+                <% inventoryItems.forEach(item => { %>
+                    <tr>
+                    <td><%= item.name %></td>
+                    <td><%= item.unit %></td>
+                    <td><%= item.category %></td>
+                    <td><%= item.onHand %></td>
+                    <td><%= item.parLevel %></td>
+                    <td><%= item.reorder %></td>
+                    </tr>
+                <% }) %>
+                </tbody>
+            </table>
+            <% } else { %>
+            <p class="empty-text">No inventory items found.</p>
+            <% } %>
+        </section>
         </main>
     </div>
 

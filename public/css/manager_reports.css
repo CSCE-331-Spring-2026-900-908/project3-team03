@@ -159,6 +159,7 @@ textarea {
     padding: 12px 16px;
     border-radius: 8px;
     cursor: pointer;
+    margin-bottom: 10px
 }
 
 .primary-btn:hover {
@@ -173,6 +174,7 @@ textarea {
 .status-text {
     min-height: 20px;
     color: #666;
+    text-align: center;
     margin: 0;
 }
 
@@ -247,16 +249,51 @@ th {
     font-weight: 600;
 }
 
-.chart-placeholder {
+.usage-chart {
     margin-top: 18px;
-    height: 150px;
-    border: 2px dashed #cccccc;
-    border-radius: 10px;
     display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.usage-chart-row {
+    display: grid;
+    grid-template-columns: 160px minmax(0, 1fr) 120px;
+    gap: 12px;
     align-items: center;
-    justify-content: center;
-    color: #888;
-    background: #fafafa;
+}
+
+.usage-chart-bar {
+    width: var(--bar-width, 0%);
+}
+
+.usage-chart-label,
+.usage-chart-value {
+    font-size: 14px;
+}
+
+.usage-chart-label {
+    color: #333;
+}
+
+.usage-chart-value {
+    text-align: right;
+    color: #555;
+    font-variant-numeric: tabular-nums;
+}
+
+.usage-chart-bar-wrap {
+    height: 14px;
+    border-radius: 999px;
+    background: #ececf1;
+    overflow: hidden;
+}
+
+.usage-chart-bar {
+    height: 100%;
+    min-width: 2px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #222 0%, #666 100%);
 }
 
 @media (max-width: 1000px) {
@@ -266,6 +303,15 @@ th {
 
     .metric-row {
         grid-template-columns: 1fr;
+    }
+
+    .usage-chart-row {
+        grid-template-columns: 1fr;
+        gap: 6px;
+    }
+
+    .usage-chart-value {
+        text-align: left;
     }
 }
 

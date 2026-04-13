@@ -96,8 +96,9 @@ body {
 
 .content {
     display: grid;
-    grid-template-columns: 1fr 340px;
+    grid-template-columns: 1.25fr 380px;
     gap: 16px;
+    align-items: start;
 }
 
 .table-panel {
@@ -130,57 +131,48 @@ body {
     background: #f7f8fc;
 }
 
-.inline-form {
-    display: contents;
-}
-
-.table-actions {
-    padding: 12px;
-    background: white;
-    border: 1px solid #eeeeee;
-    border-top: none;
-    border-radius: 0 0 10px 10px;
+.employee-actions-grid {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    gap: 16px;
 }
 
-.side-panel {
+.action-card {
     background: white;
     border: 1px solid #eeeeee;
-    border-radius: 10px;
-    max-height: calc(100vh - 110px);
-    overflow: hidden;
-}
-
-.panel-scroll {
-    overflow-y: auto;
-    padding: 12px;
-    height: 100%;
+    border-radius: 14px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
     box-sizing: border-box;
 }
 
-.panel-block {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+.action-card-highlight {
+    background: linear-gradient(180deg, #ffffff 0%, #f7f8fc 100%);
 }
 
-.panel-block h2,
-.panel-block h3 {
+.action-card h2,
+.action-card h3 {
     margin: 0;
 }
 
-.panel-block h2 {
+.action-card h2 {
     font-size: 16px;
 }
 
-.panel-block h3 {
+.action-card h3 {
     font-size: 15px;
 }
 
 .selected-item {
     color: #555;
     font-size: 14px;
+    background: #f7f7f9;
+    border: 1px solid #eeeeee;
+    border-radius: 8px;
+    padding: 10px 12px;
 }
 
 .stack-form {
@@ -228,19 +220,9 @@ button:hover {
     width: auto;
 }
 
-hr {
-    border: none;
-    border-top: 1px solid #eeeeee;
-    margin: 14px 0;
-}
-
 @media (max-width: 1000px) {
     .content {
         grid-template-columns: 1fr;
-    }
-
-    .side-panel {
-        max-height: none;
     }
 }
 

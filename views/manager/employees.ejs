@@ -36,13 +36,10 @@
         <% } %>
 
         <div class="content">
-            <!-- CENTER SECTION -->
             <section class="table-panel">
-            <form method="POST" action="/manager/employees/select" class="inline-form">
             <table class="employee-table">
                 <thead>
                 <tr>
-                    <th>Select</th>
                     <th>ID</th>
                     <th>First</th>
                     <th>Last</th>
@@ -56,11 +53,11 @@
                 <tbody>
                 <% if (employees && employees.length > 0) { %>
                     <% employees.forEach(employee => { %>
-                    <tr class="<%= selectedEmployee && selectedEmployee.employee_id === employee.employee_id ? 'selected-row' : '' %>">
-                        <td>
-                            <input type="radio" name="employeeId" value="<%= employee.employee_id %>" 
-                                   <%= selectedEmployee && selectedEmployee.employee_id === employee.employee_id ? 'checked' : '' %> />
-                        </td>
+                    <tr
+                        class="<%= selectedEmployee && selectedEmployee.employee_id === employee.employee_id ? 'selected-row' : '' %>"
+                        onclick="window.location.href='/manager/employees?employeeId=<%= employee.employee_id %>'"
+                        style="cursor: pointer;"
+                    >
                         <td><%= employee.employee_id %></td>
                         <td><%= employee.first_name %></td>
                         <td><%= employee.last_name %></td>
@@ -73,21 +70,15 @@
                     <% }) %>
                 <% } else { %>
                     <tr>
-                    <td colspan="9" class="empty-cell">No employees found.</td>
+                    <td colspan="8" class="empty-cell">No employees found.</td>
                     </tr>
                 <% } %>
                 </tbody>
             </table>
-            <div class="table-actions">
-                <button type="submit">Select Employee</button>
-            </div>
-            </form>
             </section>
 
-            <!-- RIGHT SECTION -->
-            <aside class="side-panel">
-            <div class="panel-scroll">
-                <section class="panel-block">
+            <section class="employee-actions-grid">
+                <section class="action-card action-card-highlight">
                 <h2>Edit / Add</h2>
 
                 <label>Selected employee:</label>
@@ -96,9 +87,8 @@
                 </div>
                 </section>
 
-                <hr />
-
-                <section class="panel-block">
+                <section class="action-card">
+                <h3>Role & Wage</h3>
                 <label>Role</label>
                 <form method="POST" action="/manager/employees/update-role" class="stack-form">
                     <input type="hidden" name="employeeId" value="<%= selectedEmployee ? selectedEmployee.employee_id : '' %>" />
@@ -126,9 +116,7 @@
                 </form>
                 </section>
 
-                <hr />
-
-                <section class="panel-block">
+                <section class="action-card">
                 <h3>Add Employee</h3>
                 <form method="POST" action="/manager/employees/add" class="stack-form">
                     <input type="text" name="firstName" placeholder="First name" required />
@@ -155,8 +143,7 @@
                     <button type="submit">Add Employee</button>
                 </form>
                 </section>
-            </div>
-            </aside>
+            </section>
         </div>
         </main>
     </div>

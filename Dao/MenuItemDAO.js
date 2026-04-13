@@ -1,4 +1,4 @@
-const pool = require('../db/pool.js');
+const pool = require('../db/pool');
 
 
 async function get_all_menu_items() {
@@ -35,6 +35,22 @@ async function get_all_menu_items() {
     */
 }
 
+async function get_menu_item_by_id(menu_item_id) {
+    const res = await pool.query(`
+        SELECT
+            menu_item_id,
+            name,
+            category,
+            base_price,
+            description,
+            active
+        FROM menu_item
+        WHERE menu_item_id = $1
+    `, [menu_item_id]);
+
+    return res.rows[0] || null;
+}
+
 async function get_active_menu_items() {
     const res = await pool.query(`
         SELECT 
@@ -62,6 +78,22 @@ async function get_ingredients(menu_item_id) {
 
     return res.rows;
 
+}
+
+async function get_all_ingredients() {
+    const res = await pool.query(`
+        SELECT
+            ingredient_id,
+            name,
+            unit,
+            category,
+            active
+        FROM ingredient
+        WHERE active = TRUE
+        ORDER BY name ASC
+    `);
+
+    return res.rows;
 }
 
 async function get_price(menu_item_id) {
@@ -108,7 +140,10 @@ async function insert_menu_item(name, category, base_price, description, active)
     const res = await pool.query(`
         INSERT INTO menu_item (name, category, base_price, description, active)
         VALUES ($1, $2, $3, $4, $5)
+        RETURNING menu_item_id, name
     `, [name, category, base_price, description, active]);
+
+    return res.rows[0];
 }
 
 async function add_recipe_ingredient(menu_item_id, ingredient_id, qty_required) {
@@ -141,17 +176,30 @@ async function get_recipe_lines(menu_item_id) {
     return lines;
 }
 
+async function create_ingredient(name, unit, category) {
+    const res = await pool.query(`
+        INSERT INTO ingredient (name, unit, category, active)
+        VALUES ($1, $2, $3, TRUE)
+        RETURNING ingredient_id, name
+    `, [name, unit, category]);
+
+    return res.rows[0];
+}
+
 
 
 module.exports = {
     get_active_menu_items,
     get_all_menu_items,
+    get_menu_item_by_id,
     get_ingredients,
+    get_all_ingredients,
     get_price,
     is_addon,
     toggle_active,
     update_price,
     insert_menu_item,
     add_recipe_ingredient,
-    get_recipe_lines
+    get_recipe_lines,
+    create_ingredient
 };
