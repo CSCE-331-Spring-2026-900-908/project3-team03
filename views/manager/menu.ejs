@@ -54,7 +54,11 @@
                 <tbody>
                 <% if (menuItems && menuItems.length > 0) { %>
                     <% menuItems.forEach(item => { %>
-                    <tr class="<%= selectedItem && selectedItem.menu_item_id === item.menu_item_id ? 'selected-row' : '' %>">
+                    <tr
+                        class="<%= selectedItem && selectedItem.menu_item_id === item.menu_item_id ? 'selected-row' : '' %>"
+                        onclick="window.location.href='/manager/menu?menuItemId=<%= item.menu_item_id %>'"
+                        style="cursor: pointer;"
+                    >
                         <td><%= item.menu_item_id %></td>
                         <td><%= item.name %></td>
                         <td><%= item.category %></td>
@@ -170,7 +174,10 @@
                 <section class="panel-block">
                 <h3>Create New Ingredient (if missing)</h3>
                 <form method="POST" action="/manager/menu/create-ingredient" class="stack-form">
+                    <input type="hidden" name="menuItemId" value="<%= selectedItem ? selectedItem.menu_item_id : '' %>" />
                     <input type="text" name="ingredientName" placeholder="Ingredient name (e.g. Sakura syrup)" required />
+                    <input type="text" name="ingredientUnit" placeholder="Unit (cups, scoops, oz)" required />
+                    <input type="text" name="ingredientCategory" placeholder="Category (Tea, Dairy, Topping)" required />
                     <button type="submit">Create Ingredient</button>
                 </form>
                 </section>

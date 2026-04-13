@@ -2,6 +2,21 @@ const express = require('express');
 const router = express.Router();
 const orderDao = require('../dao/orderDao');
 const inventoryDao = require('../dao/inventoryDao');
+const menuItemDao = require('../dao/MenuItemDao');
+const employeeDao = require('../dao/employeeDao');
+
+// Hard-coded category example just for user convenience
+const MENU_CATEGORIES = [
+    'Milk Tea',
+    'Tea',
+    'Fruit Tea',
+    'Smoothie',
+    'Matcha',
+    'Energy',
+    'Sour',
+    'ADDON',
+    'SEASONAL'
+];
 
 // -------------------- DASHBOARD --------------------
 router.get('/dashboard', async (req, res) => {
@@ -427,97 +442,226 @@ router.post('/inventory/delete', async (req, res) => {
 });
 
 // -------------------- MENU --------------------
-router.get('/menu', (req, res) => {
-    // TEST: mock data
+// Load menu items
+async function renderMenuPage(res, {
+    statusMessage = '',
+    selectedItemId = null
+} = {}) {
+    const menuItems = await menuItemDao.get_all_menu_items();
+    const ingredients = await menuItemDao.get_all_ingredients();
+
+    let selectedItem = null;
+    let recipeLines = [];
+
+    if (selectedItemId) {
+        selectedItem = await menuItemDao.get_menu_item_by_id(selectedItemId);
+
+        if (selectedItem) {
+            recipeLines = await menuItemDao.get_recipe_lines(selectedItem.menu_item_id);
+        }
+    }
+
+    if (!selectedItem && menuItems.length > 0) {
+        selectedItem = menuItems[0];
+        recipeLines = await menuItemDao.get_recipe_lines(selectedItem.menu_item_id);
+    }
+
     res.render('manager/menu', {
-        statusMessage: '',
-        selectedItem: {
-        menu_item_id: 1,
-        name: 'Classic Milk Tea'
-        },
-        categories: ['Milk Tea', 'Tea', 'Fruit Tea', 'Smoothie', 'Matcha', 'Energy', 'Sour', 'ADDON', 'SEASONAL'],
-        ingredients: [
-        { ingredient_id: 1, name: 'Milk' },
-        { ingredient_id: 2, name: 'Boba Pearls' },
-        { ingredient_id: 3, name: 'Brown Sugar Syrup' }
-        ],
-        recipeLines: ['Milk (200)', 'Boba Pearls (50)', 'Brown Sugar Syrup (20)'],
-        menuItems: [
-        { menu_item_id: 1, name: 'Classic Milk Tea', category: 'Milk Tea', base_price: '6.00', active: true },
-        { menu_item_id: 2, name: 'Taro Smoothie', category: 'Smoothie', base_price: '6.50', active: true },
-        { menu_item_id: 3, name: 'Sakura Seasonal Tea', category: 'SEASONAL', base_price: '6.75', active: false }
-        ]
+        statusMessage,
+        selectedItem,
+        categories: MENU_CATEGORIES,
+        ingredients,
+        recipeLines,
+        menuItems: menuItems.map(item => ({
+            ...item,
+            base_price: Number(item.base_price ?? 0).toFixed(2)
+        }))
     });
+}
 
-    // let menu = []
-    // pool
-    //     .query('SELECT * FROM menu_items;')
-    //     .then(query_res => {
-    //         for (let i = 0; i < query_res.rowCount; i++) {
-    //             menu.push(query_res.rows[i]);
-    //         }
-    //         const data = {menu: menu};
-    //         console.log(manu);
-    //         res.render('name', menu);
-    //     })
-    //     .catch(err => {
-    //         console.error('Error fetching teammembers:', err);
-    //         res.status(500).send('Database error');
-    //     });
+router.get('/menu', async (req, res) => {
+    try {
+        const selectedItemId = req.query.menuItemId ? Number(req.query.menuItemId) : null;
+        await renderMenuPage(res, { selectedItemId });
+    } catch (err) {
+        console.error('Error loading manager menu:', err);
+        res.status(500).send('Database error');
+    }
 });
 
-// TODO: Add update price logic
-router.post('/menu/update-price', (req, res) => {
-  const { menuItemId, newPrice } = req.body;
+// Update price of a menu item
+router.post('/menu/update-price', async (req, res) => {
+  const menuItemId = Number(req.body.menuItemId);
+  const newPrice = Number(req.body.newPrice);
 
-  res.render('manager/menu', {
+  if (!menuItemId || Number.isNaN(newPrice) || newPrice < 0) {
+    try {
+      await renderMenuPage(res, {
+        selectedItemId: menuItemId || null,
+        statusMessage: 'Select a valid menu item and enter a valid price.'
+      });
+    } catch (err) {
+      console.error('Error loading menu after update-price validation failure:', err);
+      res.status(500).send('Database error');
+    }
+    return;
+  }
 
-  });
+  try {
+    await menuItemDao.update_price(menuItemId, newPrice);
+    await renderMenuPage(res, {
+      selectedItemId: menuItemId,
+      statusMessage: `Updated price for menu item #${menuItemId}.`
+    });
+  } catch (err) {
+    console.error('Error updating menu item price:', err);
+    res.status(500).send('Database error');
+  }
 });
 
-// TODO: Add toggle active logic
-router.post('/menu/toggle-active', (req, res) => {
-  const { menuItemId } = req.body;
+// Change manu item status
+router.post('/menu/toggle-active', async (req, res) => {
+  const menuItemId = Number(req.body.menuItemId);
 
-  res.render('manager/menu', {
+  if (!menuItemId) {
+    try {
+      await renderMenuPage(res, {
+        statusMessage: 'Select a menu item to toggle.'
+      });
+    } catch (err) {
+      console.error('Error loading menu after toggle validation failure:', err);
+      res.status(500).send('Database error');
+    }
+    return;
+  }
 
-  });
+  try {
+    await menuItemDao.toggle_active(menuItemId);
+    await renderMenuPage(res, {
+      selectedItemId: menuItemId,
+      statusMessage: `Toggled active status for menu item #${menuItemId}.`
+    });
+  } catch (err) {
+    console.error('Error toggling menu item active status:', err);
+    res.status(500).send('Database error');
+  }
 });
 
-// TODO: Add menu item logic
-router.post('/menu/add', (req, res) => {
+// Add menu item by name
+router.post('/menu/add', async (req, res) => {
   const { name, category, basePrice, description, active } = req.body;
+  const parsedBasePrice = Number(basePrice);
 
-  res.render('manager/menu', {
+  if (!name || !category || Number.isNaN(parsedBasePrice) || parsedBasePrice < 0) {
+    try {
+      await renderMenuPage(res, {
+        statusMessage: 'Name, category, and a valid base price are required.'
+      });
+    } catch (err) {
+      console.error('Error loading menu after add validation failure:', err);
+      res.status(500).send('Database error');
+    }
+    return;
+  }
 
-  });
+  try {
+    const createdItem = await menuItemDao.insert_menu_item(
+      name.trim(),
+      category.trim(),
+      parsedBasePrice,
+      description?.trim() || null,
+      active === 'on'
+    );
+
+    await renderMenuPage(res, {
+      selectedItemId: createdItem.menu_item_id,
+      statusMessage: `Added menu item: ${createdItem.name}`
+    });
+  } catch (err) {
+    console.error('Error adding menu item:', err);
+    res.status(500).send('Database error');
+  }
 });
 
-// TODO: Add add recipe ingredient logic
-router.post('/menu/add-recipe-ingredient', (req, res) => {
-  const { menuItemId, ingredientId, qtyRequired } = req.body;
+// Add ingredients to a single menu item
+router.post('/menu/add-recipe-ingredient', async (req, res) => {
+  const menuItemId = Number(req.body.menuItemId);
+  const ingredientId = Number(req.body.ingredientId);
+  const qtyRequired = Number(req.body.qtyRequired);
 
-  res.render('manager/menu', {
+  if (!menuItemId || !ingredientId || Number.isNaN(qtyRequired) || qtyRequired <= 0) {
+    try {
+      await renderMenuPage(res, {
+        selectedItemId: menuItemId || null,
+        statusMessage: 'Select an ingredient and enter a valid recipe quantity.'
+      });
+    } catch (err) {
+      console.error('Error loading menu after recipe validation failure:', err);
+      res.status(500).send('Database error');
+    }
+    return;
+  }
 
-  });
+  try {
+    await menuItemDao.add_recipe_ingredient(menuItemId, ingredientId, qtyRequired);
+    await renderMenuPage(res, {
+      selectedItemId: menuItemId,
+      statusMessage: 'Recipe ingredient saved.'
+    });
+  } catch (err) {
+    console.error('Error adding recipe ingredient:', err);
+    res.status(500).send('Database error');
+  }
 });
 
-// TODO: Add show menu recipe logic
-router.get('/menu/recipe', (req, res) => {
-  const { menuItemId } = req.query;
+// Get the ingredent count of a single menu item
+router.get('/menu/recipe', async (req, res) => {
+  const selectedItemId = req.query.menuItemId ? Number(req.query.menuItemId) : null;
 
-  res.render('manager/menu', {
-
-  });
+  try {
+    await renderMenuPage(res, {
+      selectedItemId,
+      statusMessage: selectedItemId ? `Viewing recipe for menu item #${selectedItemId}.` : ''
+    });
+  } catch (err) {
+    console.error('Error loading menu recipe:', err);
+    res.status(500).send('Database error');
+  }
 });
 
-// TODO: Add manager create ingredient logic
-router.post('/menu/create-ingredient', (req, res) => {
-  const { ingredientName } = req.body;
+// Create ingredient with all of its fields
+router.post('/menu/create-ingredient', async (req, res) => {
+  const { ingredientName, ingredientUnit, ingredientCategory, menuItemId } = req.body;
+  const selectedItemId = menuItemId ? Number(menuItemId) : null;
 
-  res.render('manager/menu', {
+  if (!ingredientName || !ingredientUnit || !ingredientCategory) {
+    try {
+      await renderMenuPage(res, {
+        selectedItemId,
+        statusMessage: 'Ingredient name, unit, and category are required.'
+      });
+    } catch (err) {
+      console.error('Error loading menu after ingredient validation failure:', err);
+      res.status(500).send('Database error');
+    }
+    return;
+  }
 
-  });
+  try {
+    const createdIngredient = await menuItemDao.create_ingredient(
+      ingredientName.trim(),
+      ingredientUnit.trim(),
+      ingredientCategory.trim()
+    );
+
+    await renderMenuPage(res, {
+      selectedItemId,
+      statusMessage: `Created ingredient: ${createdIngredient.name}`
+    });
+  } catch (err) {
+    console.error('Error creating ingredient:', err);
+    res.status(500).send('Database error');
+  }
 });
 
 // -------------------- EMPLOYEES --------------------
