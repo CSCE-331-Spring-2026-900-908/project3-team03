@@ -1,4 +1,4 @@
-const pool = require('../db/pool.js');
+const pool = require('../db/pool');
 
 
 async function get_all_menu_items() {

@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const drinkDao = require('../Dao/drinkDao');
-const MenuItemDAO = require('../Dao/MenuItemDAO');
-const orderDao = require('../Dao/orderDao');
+const drinkDao = require('../dao/drinkDao');
+const MenuItemDAO = require('../dao/MenuItemDAO');
+const orderDao = require('../dao/orderDao');
 
 // Initialize session cart if it doesn't exist
 const initializeCart = (req) => {

@@ -1,4 +1,4 @@
-const { pool } = require('../db');
+const pool = require('../db/pool');
 
 const getAllEmployees = async () => {
   const result = await pool.query('SELECT * FROM employee ORDER BY employee_id');

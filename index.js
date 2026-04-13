@@ -1,9 +1,8 @@
 const express = require('express');
 const session = require('express-session');
-const { pool } = require('./db');
 const dotenv = require('dotenv').config();
-const MenuItemDAO = require('./Dao/MenuItemDAO');
-
+const pool = require('./db/pool');
+const MenuItemDAO = require('./dao/MenuItemDAO');
 
 // Create express app
 const app = express();
