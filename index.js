@@ -190,6 +190,37 @@ app.post('/updateQuantityName', async (req, res) => {
     }
 });
 
+app.post('/deleteInventoryItem', async (req, res) => {
+    try {
+        const { name } = req.body;
+
+        await InventoryItemDAO.delete_inventory_item(name);
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false });
+    }
+});
+
+app.post('/insertIngredientReturningId', async (req, res) => {
+    try {
+        const { name } = req.body;
+
+        const id = await InventoryItemDAO.insert_ingredient_returning_id(name);
+
+        res.json({
+            success: true,
+            ingredient_id: id
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false });
+    }
+});
+
+
 /*
 app.get('/cashier', (req, res) => {
     if (req.session.role === 'cashier') {
