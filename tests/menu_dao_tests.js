@@ -23,3 +23,6 @@ menuItemDAO.update_price(1, 6.37).then(() => {
     console.log("LAVA FLOW PRICE UPDATED");
 });
 
+menuItemDAO.get_active_drink_items_by_category('Milk Tea').then((value) => {
+    console.log("Milk TEAS: ", value);
+});

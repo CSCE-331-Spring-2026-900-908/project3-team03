@@ -205,7 +205,7 @@
         </div>
 
         <div class="bottom-buttons">
-            <button class="confirm-button"><a href="/cashier/menu" onclick="submitCustomization()">Add to Cart</a></button>
+            <button class="confirm-button"><a href="/cashier/menu" onclick="submitModification()">Update</a></button>
             <button class="cancel-button"><a href="/cashier/menu">Cancel</a></button>
         </div>
     </div>
@@ -222,9 +222,9 @@
 
 
         const addons = <%- JSON.stringify(addons) %>;
-        
         const menuItemId = <%- JSON.stringify(menuItemId) %>;
         const price = <%- JSON.stringify(selectedItem) %>;
+        const drinkid = <%- JSON.stringify(drinkId) %>;
 
 
 
@@ -263,6 +263,8 @@
             sourceButton.className = 'ice-amount-button-active';
         }
 
+        console.log("HELLO");
+
         function renderAddons() {
             addonGrid.innerHTML = '';
 
@@ -297,6 +299,7 @@
         }
 
         renderAddons();
+        console.log("HI1");
         
         function getAddonQuantities() {
             idsToQuants = [];
@@ -315,16 +318,19 @@
             return idsToQuants;
         }
 
-        
-        async function submitCustomization() {
+        console.log("HI");
+
+        async function submitModification() {
+            console.log("in submitModification");
             
             try {
-                const response = await fetch("/cashier/customize/add-to-cart", {
+                const response = await fetch("/cashier/modify/update-in-cart", {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
+                        drinkId: drinkid,
                         menuItemId: menuItemId,
                         iceAmount: iceAmount,
                         sugarAmount: sugarAmount,
@@ -347,6 +353,8 @@
             }
 
         }
+
+        console.log("GOODBYE");
 
 
         

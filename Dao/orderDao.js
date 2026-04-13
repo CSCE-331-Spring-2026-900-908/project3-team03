@@ -243,7 +243,7 @@ async function updateInventory(order, menuItemDAO, inventoryItemDAO) {
         for (const drink of order.drinks) {
 
           
-            const baseIngredients = await menuItemDAO.getIngredients(drink.menu_item_id);
+            const baseIngredients = await menuItemDAO.get_ingredients(drink.menu_item_id);
 
             for (const id in baseIngredients) {
                 if (!ingredients[id]) ingredients[id] = 0;
@@ -253,7 +253,7 @@ async function updateInventory(order, menuItemDAO, inventoryItemDAO) {
             
             for (const addonId in drink.addons) {
                 const addonQty = drink.addons[addonId];
-                const addonIngredients = await menuItemDAO.getIngredients(addonId);
+                const addonIngredients = await menuItemDAO.get_ingredients(addonId);
 
                 for (const id in addonIngredients) {
                     if (!ingredients[id]) ingredients[id] = 0;
@@ -269,6 +269,8 @@ async function updateInventory(order, menuItemDAO, inventoryItemDAO) {
             const qtyRes = await client.query(`
                 SELECT quantity FROM ingredient WHERE ingredient_id = $1
             `, [id]);
+
+            console.log(qtyRes);
 
             let current = qtyRes.rows[0].quantity;
             let newQty = current - used;

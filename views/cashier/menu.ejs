@@ -111,8 +111,8 @@
             justify-content: space-evenly;
         }
 
-        .category-button {
-            width: 150px;
+        .category-button, .category-button-active {
+            width: 100px;
             height: 50px;
             border-radius: 50px;
             text-align: center;
@@ -120,7 +120,7 @@
             color: white;
         }
 
-        .category-button:hover {
+        .category-button-active, .category-button:hover {
             background: white;
             color: black;
         }
@@ -169,20 +169,35 @@
 
                 <p>$<%= locals.drinks && locals.drinks[i]?.basePrice ? locals.drinks[i].basePrice.toFixed(2) : '0.00' %></p>
 
-                <p>Sugar: <%= locals.drinks && locals.drinks[i]?.sugarAmount || 'N/A' %></p>
+                <p>Sugar: <%= locals.drinks && locals.drinks[i]?.sugarAmount%></p>
 
-                <p>Ice: <%= locals.drinks && locals.drinks[i]?.iceAmount || 'N/A' %></p>
+                <p>Ice: <%= locals.drinks && locals.drinks[i]?.iceAmount%></p>
 
+                <p>Addons:</p>
+                <% if (locals.drinks && locals.drinks[i].addonStrings && locals.drinks[i].addonStrings.length > 0) { %>
+                    <ul> 
+                    <% for (let j = 0; j < locals.drinks[i].addonStrings.length; j++) { %>
+                    <li><%= locals.drinks[i].addonStrings[j] %></li>
+                    <% } %>
+                    </ul>
+                <% } else {%>
+                    <ul>
+                        <li>None</li>
+                    </ul>
+                <% } %>
+                
+                
                 <p>Special Notes: <%= locals.drinks && locals.drinks[i]?.specialNotes || 'None' %></p>
 
+
                 <div class="order-item-buttons">
-                <button class="modify-item-button"><a href="/cashier/customize">Modify</a></button>
+                <button class="modify-item-button"><a href="/cashier/modify?drinkid=<%= i+1 %>">Modify</a></button>
                 <button class="remove-item-button" onclick="removeDrink(<%= i %>)">Remove</button>
                 </div>
             </article>
             <% } %>
         <% } else { %>
-            <p style="text-align: center; color: #999;">No items in cart</p>
+            <p style="text-align: center; color: #111111;">No items in cart</p>
         <% } %>
 
         <button class="cancel-order-button" onclick="clearCart()">Cancel Order</button>
@@ -191,22 +206,24 @@
     
     <main>
         <header>
-            <h1>Cashier POS Interface</h1>
+            <h1 id="category-header">Cashier POS Interface</h1>
         </header>
         
-        <nav class="category-select">
-            <button class="category-button">Milk Teas</button>
-            <button class="category-button">Matchas</button>
-            <button class="category-button">Seafood</button>
-            <button class="category-button">Milk</button>
-            <button class="category-button">Seasonal</button>
+        <nav class="category-select" id="category-select">
+            <button class="category-button" id="all-button" onclick="setCategory('All', 'all-button')">All</button>
+            <button class="category-button" id="milk-tea-button" onclick="setCategory('Milk Tea', 'milk-tea-button')">Milk Teas</button>
+            <button class="category-button" id="tea-button" onclick="setCategory('Tea', 'tea-button')">Teas</button>
+            <button class="category-button" id="fruit-tea-button" onclick="setCategory('Fruit Tea', 'fruit-tea-button')">Fruit Teas</button>
+            <button class="category-button" id="smoothie-button" onclick="setCategory('Smoothie', 'smoothie-button')">Smoothies</button>
+            <button class="category-button" id="energy-button" onclick="setCategory('Energy', 'energy-button')">Energy</button>
+            <button class="category-button" id="seasonal-button" onclick="setCategory('SEASONAL', 'seasonal-button')">Seasonal</button>
         </nav>
         
         <% if (statusMessage) { %>
             <div class="status-message"><%= statusMessage %></div>
         <% } %>
 
-        <div class="add-drinks-menu">
+        <div class="add-drinks-menu" id="add-drinks-menu">
             <% if (menuItems && menuItems.length > 0) { %>
                 <% menuItems.forEach(item => { %>
                 <button class="customize-new-item-button"><a href="/cashier/customize?menuItemId=<%= item.menu_item_id %>"><%= item.name %> - $<%= item.base_price %></a></button>
@@ -219,6 +236,76 @@
     </div>
 
     <script>
+        const menuData = {
+            categories: <%- JSON.stringify(categories || {}) %>,
+        };
+        let currentCategory = 'All';
+        const categorySelect = document.getElementById("category-select");
+        const categorySelectButtons = [
+            document.getElementById("all-button"),
+            document.getElementById("milk-tea-button"),
+            document.getElementById("tea-button"),
+            document.getElementById("fruit-tea-button"),
+            document.getElementById("smoothie-button"),
+            document.getElementById("energy-button"),
+            document.getElementById("seasonal-button")
+        ];
+
+        const addDrinksMenu = document.getElementById("add-drinks-menu");
+       
+        /*
+        function initialize() {
+            //categorySelect.innerHTML = '';
+            categorySelectButtons = document.getElementsByClassName("category-button");
+            categorySelectButtons.forEach((button) => {
+                button.addEventListner("click", renderCategory);
+            });
+            allButton = document.getElementById("all-button");
+            allButton.className = "category-button-active";
+
+        }
+        */
+
+        function setCategory(newCategory, buttonName) {
+            categorySelectButtons.forEach((button) => {
+                button.className = 'category-button';
+            });
+            currentCategoryButton = document.getElementById(buttonName);
+            currentCategoryButton.className = 'category-button-active';
+            currentCategory = newCategory;
+            renderMenu();
+        }
+
+        function renderMenu() {
+            addDrinksMenu.innerHTML = '';
+            
+            if (currentCategory.localeCompare("All") == 0) {
+                ['Milk Tea', 'Tea', 'Fruit Tea', 'Smoothie', 'Energy', 'SEASONAL'].forEach((category) => {
+                    menuData.categories[category].forEach((item) => {
+                        const button = document.createElement('button');
+                        button.className = 'customize-new-item-button';
+                        button.type = 'button';
+                        button.innerHTML = `<a href="/cashier/customize?menuItemId=${item.id}">${item.name} - $${item.price.toFixed(2)}</a>`;
+                        addDrinksMenu.appendChild(button);
+                    });
+                });
+            }
+            
+            else if (!currentCategory || !menuData.categories[currentCategory] || menuData.categories[currentCategory].length === 0) {
+                addDrinksMenu.innerHTML = '<div class="muted">No items in this category</div>';
+                return;
+            }
+
+            menuData.categories[currentCategory].forEach((item) => {
+                const button = document.createElement('button');
+                button.className = 'customize-new-item-button';
+                button.type = 'button';
+                button.innerHTML = `<a href="/cashier/customize?menuItemId=${item.id}">${item.name} - $${item.price.toFixed(2)}</a>`;
+                addDrinksMenu.appendChild(button);
+            });
+
+        }
+
         function clearCart() {
             if (confirm('Are you sure you want to cancel this order?')) {
                 // Clear session cart
@@ -249,6 +336,8 @@
                 });
             }
         }
+
+
     </script>
 
 </body>
