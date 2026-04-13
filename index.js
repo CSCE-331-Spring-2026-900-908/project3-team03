@@ -193,8 +193,12 @@ app.post('/updateQuantityName', async (req, res) => {
 app.post('/deleteInventoryItem', async (req, res) => {
     try {
         const { name } = req.body;
+console.log("Deleting:", name);
+        const count = await InventoryItemDAO.deleteInventoryItem(name);
 
-        await InventoryItemDAO.delete_inventory_item(name);
+        if (count === 0) {
+            return res.json({ success: false, message: "Item not found" });
+        }
 
         res.json({ success: true });
     } catch (err) {

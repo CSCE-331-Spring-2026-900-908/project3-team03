@@ -23,7 +23,11 @@ async function insertInventoryItem(item) {
 //Gets all active inv items
 async function getAllInventoryItems() {
     const res = await pool.query(`
-        SELECT name, quantity, reorder_point
+        SELECT 
+            name,
+            quantity AS "onHand",
+            reorder_point AS "parLevel",
+            reorder_point AS "reorder"
         FROM ingredient
         WHERE active = true
         ORDER BY name
@@ -68,11 +72,14 @@ async function updateQuantityByName(name, newQuantity) {
 
 //sets inv item inactive
 async function deleteInventoryItem(name) {
-    await pool.query(`
+    const res = await pool.query(`
         UPDATE ingredient
         SET active = false
         WHERE name = $1
+        RETURNING *
     `, [name]);
+
+    return res.rowCount;
 }
 
 //Inserts inv item and returns ID
