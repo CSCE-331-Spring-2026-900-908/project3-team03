@@ -53,7 +53,8 @@ function buildDefaultReportsViewData(activeTab = 'x-report') {
             startDate: '',
             endDate: '',
             status: '',
-            items: []
+            items: [],
+            chartData: []
         },
         zReport: {
             businessDay: 'today',
@@ -185,6 +186,65 @@ router.get('/reports/sales', async (req, res) => {
     } catch (err) {
         console.error('Error loading sales report:', err);
         reportsViewData.salesReport.status = 'Could not generate the sales report.';
+        res.status(500).render('manager/reports', reportsViewData);
+    }
+});
+
+// Usage report
+router.get('/reports/usage', async (req, res) => {
+    const reportsViewData = buildDefaultReportsViewData('usage-report');
+    const { startDate, endDate } = req.query;
+
+    reportsViewData.usageReport.startDate = startDate || '';
+    reportsViewData.usageReport.endDate = endDate || '';
+
+    if (!startDate || !endDate) {
+        reportsViewData.usageReport.status = 'Select both a start date and end date.';
+        return res.render('manager/reports', reportsViewData);
+    }
+
+    if (startDate > endDate) {
+        reportsViewData.usageReport.status = 'Start date must be earlier than or equal to end date.';
+        return res.render('manager/reports', reportsViewData);
+    }
+
+    try {
+        const startTime = new Date(`${startDate}T00:00:00`);
+        const endTime = new Date(`${endDate}T00:00:00`);
+        endTime.setDate(endTime.getDate() + 1);
+
+        const rows = await inventoryDao.getUsageReport(startTime, endTime);
+
+        reportsViewData.usageReport.items = rows.map(row => ({
+            name: row.ingredient_name,
+            used: Number(row.used_amount ?? 0).toFixed(3),
+            unit: row.unit
+        }));
+
+        const maxUsedAmount = rows.reduce(
+            (max, row) => Math.max(max, Number(row.used_amount ?? 0)),
+            0
+        );
+
+        reportsViewData.usageReport.chartData = rows.map(row => {
+            const usedAmount = Number(row.used_amount ?? 0);
+            return {
+                name: row.ingredient_name,
+                unit: row.unit,
+                used: usedAmount.toFixed(3),
+                widthPercent: maxUsedAmount > 0
+                    ? ((usedAmount / maxUsedAmount) * 100).toFixed(1)
+                    : '0.0'
+            };
+        });
+
+        reportsViewData.usageReport.status =
+            `Generated usage report for ${startDate} through ${endDate}.`;
+
+        res.render('manager/reports', reportsViewData);
+    } catch (err) {
+        console.error('Error loading usage report:', err);
+        reportsViewData.usageReport.status = 'Could not generate the usage report.';
         res.status(500).render('manager/reports', reportsViewData);
     }
 });

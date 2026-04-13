@@ -187,9 +187,21 @@
                 <p class="empty-text">No usage data available.</p>
                 <% } %>
 
-                <div class="chart-placeholder">
-                Usage chart placeholder
+                <% if (usageReport?.chartData?.length) { %>
+                <div class="usage-chart">
+                    <% usageReport.chartData.forEach(item => { %>
+                    <div class="usage-chart-row">
+                        <div class="usage-chart-label"><%= item.name %></div>
+                        <div class="usage-chart-bar-wrap">
+                            <div class="usage-chart-bar" style="--bar-width: <%= item.widthPercent %>%;"></div>
+                        </div>
+                        <div class="usage-chart-value"><%= item.used %> <%= item.unit %></div>
+                    </div>
+                    <% }) %>
                 </div>
+                <% } else { %>
+                <p class="empty-text">No usage chart data available.</p>
+                <% } %>
             </div>
             </div>
         </section>
