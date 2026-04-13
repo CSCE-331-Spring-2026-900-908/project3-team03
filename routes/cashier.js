@@ -14,6 +14,19 @@ const initializeCart = (req) => {
   }
 };
 
+function getAddonList(idsToQuants) {
+  strings = [];
+  idsToQuants.forEach(item => {
+    //console.log(item);
+    let quant = item.quantity;
+    if (quant > 0) {
+      //console.log(quant);
+      strings.push("".concat(item.id, " (", quant, ")"));
+    }
+  });
+  return strings;
+}
+
 // -------------------- MENU --------------------
 router.get('/menu', async (req, res) => {
   try {
@@ -34,11 +47,23 @@ router.get('/menu', async (req, res) => {
             price: parseFloat(item.base_price)
         });
     });
+
+    const drinksWithDetails = await Promise.all(
+      req.session.cart.drinks.map(async (drink) => {
+        const menuItem = await MenuItemDAO.get_all_menu_items()
+          .then(items => items.find(item => item.menu_item_id == drink.menuItemId));
+        return {
+          ...drink,
+          menuItemName: menuItem ? menuItem.name : 'Unknown Item'
+        };
+      })
+    );
     
     res.render('cashier/menu', {
       menuItems: menuItems || [],
       categories: categories,
       cartCount: req.session.cart.drinks.length,
+      drinks: drinksWithDetails,
       statusMessage: ''
     });
   } catch (err) {
@@ -99,7 +124,6 @@ router.get('/customize', async (req, res) => {
 
 // Add drink to cart
 router.post('/customize/add-to-cart', async (req, res) => {
-  console.log("post request received!");
   try {
     initializeCart(req);
     const { menuItemId, iceAmount, sugarAmount, specialNotes, basePrice, idsToQuants } = req.body;
@@ -114,15 +138,21 @@ router.post('/customize/add-to-cart', async (req, res) => {
       });
     }
     
+    addonStrings = getAddonList(idsToQuants);
+
     // Create drink object and add to session cart
     const newDrink = {
       drinkId: req.session.cart.drinks.length + 1, // Temp ID for UI
       menuItemId,
-      iceAmount: iceAmount || 60,
-      sugarAmount: sugarAmount || 50,
+      iceAmount: iceAmount,
+      sugarAmount: sugarAmount,
       specialNotes: specialNotes || '',
-      basePrice: Number(basePrice)
+      basePrice: Number(basePrice),
+      addons: idsToQuants,
+      addonStrings: addonStrings
     };
+
+    
     
     req.session.cart.drinks.push(newDrink);
     console.log('Cashier: Drink added to cart. Cart size:', req.session.cart.drinks.length);
@@ -140,6 +170,127 @@ router.post('/customize/add-to-cart', async (req, res) => {
     });
   }
 });
+
+// -------------------- MODIFY --------------------
+router.get('/modify', async (req, res) => {
+  try {
+    initializeCart(req);
+    const { drinkid } = req.query;
+
+    console.log(drinkid);
+
+    //console.log("first drink: ", req.session.cart.drinks[0]);
+
+    //console.log("first drink id: ",req.session.cart.drinks[0].menuItemId);
+
+    let menuItemId = req.session.cart.drinks[drinkid-1].menuItemId;
+    const sugarAmount = req.session.cart.drinks[drinkid-1].sugarAmount;
+    const iceAmount = req.session.cart.drinks[drinkid-1].iceAmount;
+    const drinkAddons = req.session.cart.drinks[drinkid-1].addons;
+
+
+    //console.log("first drink id: ",req.session.cart.drinks[0].menuItemId);
+
+
+    console.log('Cashier: Modify page for drink id:', drinkid);
+
+    const addon_list = await MenuItemDAO.get_active_addons();
+    console.log('Cashier: Retrieved', addon_list.length, 'active addons');
+
+    const temp = [];
+    addon_list.forEach((item) => {
+      temp.push({
+        id: item.menu_item_id,
+        name: item.name,
+        price: parseFloat(item.base_price)
+      })
+    });
+    
+    let selectedItem = null;
+    if (menuItemId) {
+      selectedItem = await MenuItemDAO.get_price(menuItemId);
+      console.log('Cashier: Selected item price:', selectedItem);
+    }
+
+    //console.log("hi");
+    
+    res.render('cashier/modify', {
+      drinkId: drinkid,
+      menuItemId: menuItemId,
+      drinkSugarAmount: sugarAmount,
+      drinkIceAmount: iceAmount,
+      drinkAddons: drinkAddons,
+      selectedItem: selectedItem || null,
+      cartCount: req.session.cart.drinks.length,
+      addons: temp,
+      statusMessage: ''
+    });
+  } catch (err) {
+    console.error('Cashier: Error in modify:', err.message);
+    res.render('cashier/modify', {
+      menuItemId: null,
+      selectedItem: null,
+      cartCount: 0,
+      addons: null,
+      statusMessage: 'Error loading item details'
+    });
+  }
+});
+
+// Add drink to cart TODO
+router.post('/modify/update-in-cart', async (req, res) => {
+  try {
+    initializeCart(req);
+    const { drinkId, menuItemId, iceAmount, sugarAmount, specialNotes, basePrice, idsToQuants } = req.body;
+    
+    console.log('Cashier: updating in cart:', { drinkId, menuItemId, iceAmount, sugarAmount, specialNotes, basePrice, idsToQuants });
+    
+    if (!menuItemId || !basePrice) {
+      console.error('Cashier: Missing required fields for add-to-cart');
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Missing required fields' 
+      });
+    }
+
+    console.log("Old drink: ", req.session.cart.drinks[0]);
+    
+    addonStrings = getAddonList(idsToQuants);
+
+    // Create drink object and add to session cart
+    const updatedDrink = {
+      drinkId: drinkId,
+      menuItemId,
+      iceAmount: iceAmount,
+      sugarAmount: sugarAmount,
+      specialNotes: specialNotes || '',
+      basePrice: Number(basePrice),
+      addons: idsToQuants,
+      addonStrings: addonStrings
+    };
+
+    //console.log("Cashier: updated drink: ", updatedDrink);
+
+    //console.log("about to set ice amount");
+    req.session.cart.drinks[drinkId-1] = updatedDrink;
+    
+    //req.session.cart.drinks.push(newDrink);
+    console.log('Cashier: Drink updated in cart. Cart size:', req.session.cart.drinks.length);
+    
+    res.json({ 
+      success: true, 
+      message: 'Item updated in cart',
+      cartCount: req.session.cart.drinks.length
+    });
+  } catch (err) {
+    console.error('Cashier: Error updating cart item:', err.message);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error updating cart item' 
+    });
+  }
+});
+
 
 // -------------------- CHECKOUT --------------------
 router.get('/checkout', async (req, res) => {

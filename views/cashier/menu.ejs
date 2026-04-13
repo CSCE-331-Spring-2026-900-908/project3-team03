@@ -169,14 +169,29 @@
 
                 <p>$<%= locals.drinks && locals.drinks[i]?.basePrice ? locals.drinks[i].basePrice.toFixed(2) : '0.00' %></p>
 
-                <p>Sugar: <%= locals.drinks && locals.drinks[i]?.sugarAmount || 'N/A' %></p>
+                <p>Sugar: <%= locals.drinks && locals.drinks[i]?.sugarAmount%></p>
 
-                <p>Ice: <%= locals.drinks && locals.drinks[i]?.iceAmount || 'N/A' %></p>
+                <p>Ice: <%= locals.drinks && locals.drinks[i]?.iceAmount%></p>
 
+                <p>Addons:</p>
+                <% if (locals.drinks && locals.drinks[i].addonStrings && locals.drinks[i].addonStrings.length > 0) { %>
+                    <ul> 
+                    <% for (let j = 0; j < locals.drinks[i].addonStrings.length; j++) { %>
+                    <li><%= locals.drinks[i].addonStrings[j] %></li>
+                    <% } %>
+                    </ul>
+                <% } else {%>
+                    <ul>
+                        <li>None</li>
+                    </ul>
+                <% } %>
+                
+                
                 <p>Special Notes: <%= locals.drinks && locals.drinks[i]?.specialNotes || 'None' %></p>
 
+
                 <div class="order-item-buttons">
-                <button class="modify-item-button"><a href="/cashier/customize">Modify</a></button>
+                <button class="modify-item-button"><a href="/cashier/modify?drinkid=<%= i+1 %>">Modify</a></button>
                 <button class="remove-item-button" onclick="removeDrink(<%= i %>)">Remove</button>
                 </div>
             </article>
