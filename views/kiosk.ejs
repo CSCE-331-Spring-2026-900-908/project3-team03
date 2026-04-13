@@ -424,7 +424,40 @@
             }
 
             console.log('Order being processed:', order);
-            alert('Order submitted! Database integration coming next.');
+            document.getElementById('checkoutOrder').onclick = async () => {
+    if (order.length === 0) {
+        alert('Order is empty');
+        return;
+    }
+
+    console.log('Order being processed:', order);
+
+    const payload = { order };
+
+    try {
+        const res = await fetch('/submitOrder', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        if (data.success) {
+            alert('Order submitted successfully!');
+            order = [];
+            renderOrder();
+        } else {
+            alert('Order failed');
+        }
+
+    } catch (err) {
+        console.error(err);
+        alert('Server error');
+    }
+};
         };
 
         // Initialize UI
