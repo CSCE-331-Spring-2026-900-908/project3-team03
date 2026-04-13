@@ -4,6 +4,7 @@ const { pool } = require('./db');
 const dotenv = require('dotenv').config();
 const MenuItemDAO = require('./Dao/MenuItemDAO');
 const OrderDAO = require('./Dao/orderDao');
+const InventoryItemDAO = require('./Dao/inventoryItemDao');
 
 
 // Create express app
@@ -157,6 +158,32 @@ app.post('/submitOrder', async (req, res) => {
 
         res.json({ success: true, orderId: result.orderId });
 
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false });
+    }
+});
+
+app.post('/inventoryAdd', async (req, res) => {
+    try {
+        const item = req.body;
+
+        await InventoryItemDAO.insertInventoryItem(item);
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false });
+    }
+});
+
+app.post('/updateQuantityName', async (req, res) => {
+    try {
+        const { name, quantity } = req.body;
+
+        await InventoryItemDAO.updateQuantityByName(name, quantity);
+
+        res.json({ success: true });
     } catch (err) {
         console.error(err);
         res.status(500).json({ success: false });
