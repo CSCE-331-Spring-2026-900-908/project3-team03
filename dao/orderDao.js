@@ -11,6 +11,73 @@ function getTodayBounds() {
     return { start, end };
 }
 
+function normalizePercentValue(value, fallback = 0) {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+        return value;
+    }
+
+    if (typeof value === 'string') {
+        const normalized = value.trim().toLowerCase();
+
+        if (normalized === 'none') {
+            return 0;
+        }
+
+        if (normalized === 'light') {
+            return 25;
+        }
+
+        if (normalized === 'medium') {
+            return 50;
+        }
+
+        if (normalized === 'full') {
+            return 100;
+        }
+
+        const parsed = Number.parseInt(normalized.replace('%', ''), 10);
+        if (!Number.isNaN(parsed)) {
+            return parsed;
+        }
+    }
+
+    return fallback;
+}
+
+function getDrinkField(drink, snakeCaseKey, camelCaseKey, fallback = null) {
+    if (drink[snakeCaseKey] !== undefined) {
+        return drink[snakeCaseKey];
+    }
+
+    if (camelCaseKey && drink[camelCaseKey] !== undefined) {
+        return drink[camelCaseKey];
+    }
+
+    return fallback;
+}
+
+function normalizeAddonEntries(addons) {
+    if (!addons) {
+        return [];
+    }
+
+    if (Array.isArray(addons)) {
+        return addons
+            .map(addon => ({
+                menuItemId: Number(addon.id ?? addon.menu_item_id ?? addon.menuItemId),
+                quantity: Number(addon.quantity) || 0
+            }))
+            .filter(addon => addon.menuItemId && addon.quantity > 0);
+    }
+
+    return Object.entries(addons)
+        .map(([menuItemId, quantity]) => ({
+            menuItemId: Number(menuItemId),
+            quantity: Number(quantity) || 0
+        }))
+        .filter(addon => addon.menuItemId && addon.quantity > 0);
+}
+
 async function getTodaySummary() {
     const { start, end } = getTodayBounds();
 
@@ -169,6 +236,36 @@ async function submitOrder(order) {
     try {
         await client.query('BEGIN');
 
+        const drinks = order.drinks || [];
+        let computedSubtotal = 0;
+
+        for (const drink of drinks) {
+            const drinkQuantity = Number(getDrinkField(drink, 'quantity', 'quantity', 1)) || 1;
+            const drinkBasePrice = Number(getDrinkField(drink, 'base_price', 'basePrice', 0)) || 0;
+            const addonEntries = normalizeAddonEntries(drink.addons);
+
+            computedSubtotal += drinkBasePrice * drinkQuantity;
+
+            for (const addon of addonEntries) {
+                const addonPriceRes = await client.query(`
+                    SELECT base_price
+                    FROM menu_item
+                    WHERE menu_item_id = $1
+                `, [addon.menuItemId]);
+
+                const addonBasePrice = Number(addonPriceRes.rows[0]?.base_price ?? 0) || 0;
+                computedSubtotal += drinkQuantity * addon.quantity * addonBasePrice;
+            }
+        }
+
+        // 8.25% tax rate
+        const computedTax = Number((computedSubtotal * 0.0825).toFixed(2));
+        const computedTotal = Number((computedSubtotal + computedTax).toFixed(2));
+
+        const orderSubtotal = Number(order.subtotal);
+        const orderTax = Number(order.tax);
+        const orderTotal = Number(order.total);
+
         // Insert order
         const res = await client.query(`
             INSERT INTO orders 
@@ -177,19 +274,23 @@ async function submitOrder(order) {
             RETURNING order_id
         `, [
             order.created_at,
-            order.status,
+            order.status || 'PAID',
             order.payment_method,
             order.employee_id,
             order.notes,
-            order.subtotal,
-            order.tax,
-            order.total
+            Number.isFinite(orderSubtotal) && orderSubtotal > 0 ? orderSubtotal : computedSubtotal,
+            Number.isFinite(orderTax) && orderTax >= 0 ? orderTax : computedTax,
+            Number.isFinite(orderTotal) && orderTotal > 0 ? orderTotal : computedTotal
         ]);
 
         const orderId = res.rows[0].order_id;
 
-        
-        for (const drink of order.drinks) {
+        for (const drink of drinks) {
+            const drinkQuantity = Number(getDrinkField(drink, 'quantity', 'quantity', 1)) || 1;
+            const addons = normalizeAddonEntries(drink.addons);
+            const menuItemId = Number(getDrinkField(drink, 'menu_item_id', 'menuItemId'));
+            const basePrice = Number(getDrinkField(drink, 'base_price', 'basePrice', 0)) || 0;
+
             const drinkRes = await client.query(`
                 INSERT INTO drink 
                 (order_id, menu_item_id, quantity, ice_amount, sugar_amount, special_notes, base_price) 
@@ -197,24 +298,22 @@ async function submitOrder(order) {
                 RETURNING drink_id
             `, [
                 orderId,
-                drink.menu_item_id,
-                drink.quantity,
-                drink.ice_amount,
-                drink.sugar_amount,
-                drink.special_notes,
-                drink.base_price
+                menuItemId,
+                drinkQuantity,
+                normalizePercentValue(getDrinkField(drink, 'ice_amount', 'iceAmount', 50), 50),
+                normalizePercentValue(getDrinkField(drink, 'sugar_amount', 'sugarAmount', 50), 50),
+                getDrinkField(drink, 'special_notes', 'specialNotes', null),
+                basePrice
             ]);
 
             const drinkId = drinkRes.rows[0].drink_id;
 
-            for (const addonId in drink.addons) {
-                const qty = drink.addons[addonId];
-
+            for (const addon of addons) {
                 await client.query(`
                     INSERT INTO drink_addon 
                     (drink_id, menu_item_id, quantity) 
                     VALUES ($1,$2,$3)
-                `, [drinkId, addonId, qty]);
+                `, [drinkId, addon.menuItemId, addon.quantity]);
             }
         }
 
@@ -238,31 +337,52 @@ async function updateInventory(order, menuItemDAO, inventoryItemDAO) {
     try {
         await client.query('BEGIN');
 
-        const ingredients = {}; 
+        const ingredients = {};
+        const getIngredients = menuItemDAO.get_ingredients || menuItemDAO.getIngredients;
+
+        if (!getIngredients) {
+            throw new Error('menuItemDAO is missing get_ingredients/getIngredients');
+        }
 
         for (const drink of order.drinks) {
+            const drinkQuantity = Number(drink.quantity) || 1;
+            const addons = drink.addons || {};
 
-          
-            const baseIngredients = await menuItemDAO.get_ingredients(drink.menu_item_id);
+            const baseIngredients = await getIngredients.call(menuItemDAO, drink.menu_item_id);
 
-            for (const id in baseIngredients) {
-                if (!ingredients[id]) ingredients[id] = 0;
-                ingredients[id] += baseIngredients[id];
+            for (const ingredient of baseIngredients) {
+                const ingredientId = Number(ingredient.ingredient_id);
+                const quantityRequired = Number(ingredient.quantity_required) || 0;
+
+                if (!ingredients[ingredientId]) {
+                    ingredients[ingredientId] = 0;
+                }
+
+                ingredients[ingredientId] += drinkQuantity * quantityRequired;
             }
 
-            
-            for (const addonId in drink.addons) {
-                const addonQty = drink.addons[addonId];
-                const addonIngredients = await menuItemDAO.get_ingredients(addonId);
+            for (const addonId in addons) {
+                const addonQty = Number(addons[addonId]) || 0;
 
-                for (const id in addonIngredients) {
-                    if (!ingredients[id]) ingredients[id] = 0;
-                    ingredients[id] += addonQty * addonIngredients[id];
+                if (addonQty <= 0) {
+                    continue;
+                }
+
+                const addonIngredients = await getIngredients.call(menuItemDAO, addonId);
+
+                for (const ingredient of addonIngredients) {
+                    const ingredientId = Number(ingredient.ingredient_id);
+                    const quantityRequired = Number(ingredient.quantity_required) || 0;
+
+                    if (!ingredients[ingredientId]) {
+                        ingredients[ingredientId] = 0;
+                    }
+
+                    ingredients[ingredientId] += drinkQuantity * addonQty * quantityRequired;
                 }
             }
         }
 
-        
         for (const id in ingredients) {
             const used = ingredients[id];
 
@@ -270,9 +390,11 @@ async function updateInventory(order, menuItemDAO, inventoryItemDAO) {
                 SELECT quantity FROM ingredient WHERE ingredient_id = $1
             `, [id]);
 
-            console.log(qtyRes);
+            if (qtyRes.rows.length === 0) {
+                continue;
+            }
 
-            let current = qtyRes.rows[0].quantity;
+            let current = Number(qtyRes.rows[0].quantity) || 0;
             let newQty = current - used;
 
             if (newQty < 0) newQty = 0;
