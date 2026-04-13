@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const employeeDao = require('../Dao/employeeDao');
+const pool = require('../db/pool');
 
 // -------------------- DASHBOARD --------------------
 router.get('/dashboard', (req, res) => {
@@ -165,6 +166,22 @@ router.get('/menu', (req, res) => {
         { menu_item_id: 3, name: 'Sakura Seasonal Tea', category: 'SEASONAL', base_price: '6.75', active: false }
         ]
     });
+
+    // let menu = []
+    // pool
+    //     .query('SELECT * FROM menu_items;')
+    //     .then(query_res => {
+    //         for (let i = 0; i < query_res.rowCount; i++) {
+    //             menu.push(query_res.rows[i]);
+    //         }
+    //         const data = {menu: menu};
+    //         console.log(manu);
+    //         res.render('name', menu);
+    //     })
+    //     .catch(err => {
+    //         console.error('Error fetching teammembers:', err);
+    //         res.status(500).send('Database error');
+    //     });
 });
 
 // TODO: Add update price logic
