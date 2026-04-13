@@ -39,150 +39,139 @@
 
         <!-- MAIN CONTENT -->
         <div class="content">
-            <!-- CENTER SECTION -->
             <section class="table-panel">
-            <table class="menu-table">
-                <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Category</th>
-                    <th>Base Price</th>
-                    <th>Active</th>
-                </tr>
-                </thead>
-                <tbody>
-                <% if (menuItems && menuItems.length > 0) { %>
-                    <% menuItems.forEach(item => { %>
-                    <tr
-                        class="<%= selectedItem && selectedItem.menu_item_id === item.menu_item_id ? 'selected-row' : '' %>"
-                        onclick="window.location.href='/manager/menu?menuItemId=<%= item.menu_item_id %>'"
-                        style="cursor: pointer;"
-                    >
-                        <td><%= item.menu_item_id %></td>
-                        <td><%= item.name %></td>
-                        <td><%= item.category %></td>
-                        <td>$<%= item.base_price %></td>
-                        <td><%= item.active ? 'Yes' : 'No' %></td>
-                    </tr>
-                    <% }) %>
-                <% } else { %>
+                <table class="menu-table">
+                    <thead>
                     <tr>
-                    <td colspan="5" class="empty-cell">No menu items found.</td>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Base Price</th>
+                        <th>Active</th>
                     </tr>
-                <% } %>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                    <% if (menuItems && menuItems.length > 0) { %>
+                        <% menuItems.forEach(item => { %>
+                        <tr
+                            class="<%= selectedItem && selectedItem.menu_item_id === item.menu_item_id ? 'selected-row' : '' %>"
+                            onclick="window.location.href='/manager/menu?menuItemId=<%= item.menu_item_id %>'"
+                            style="cursor: pointer;"
+                        >
+                            <td><%= item.menu_item_id %></td>
+                            <td><%= item.name %></td>
+                            <td><%= item.category %></td>
+                            <td>$<%= item.base_price %></td>
+                            <td><%= item.active ? 'Yes' : 'No' %></td>
+                        </tr>
+                        <% }) %>
+                    <% } else { %>
+                        <tr>
+                        <td colspan="5" class="empty-cell">No menu items found.</td>
+                        </tr>
+                    <% } %>
+                    </tbody>
+                </table>
             </section>
 
-            <!-- RIGHT SECTION -->
-            <aside class="side-panel">
-            <div class="panel-scroll">
-                <section class="panel-block">
-                <h2>Edit / Add</h2>
-
-                <label>Selected item:</label>
-                <div class="selected-item">
-                    <%= selectedItem ? `${selectedItem.menu_item_id} - ${selectedItem.name}` : '(none)' %>
-                </div>
-                </section>
-
-                <hr />
-
-                <section class="panel-block">
-                <label>New Price</label>
-                <form method="POST" action="/manager/menu/update-price" class="stack-form">
-                    <input type="hidden" name="menuItemId" value="<%= selectedItem ? selectedItem.menu_item_id : '' %>" />
-                    <input type="text" name="newPrice" placeholder="e.g. 6.50" />
-                    <button type="submit">Update Price</button>
-                </form>
-
-                <form method="POST" action="/manager/menu/toggle-active" class="stack-form">
-                    <input type="hidden" name="menuItemId" value="<%= selectedItem ? selectedItem.menu_item_id : '' %>" />
-                    <button type="submit">Toggle Active/Inactive</button>
-                </form>
-                </section>
-
-                <hr />
-
-                <section class="panel-block">
-                <h3>Add Menu Item</h3>
-                <form method="POST" action="/manager/menu/add" class="stack-form">
-                    <input type="text" name="name" placeholder="Name" required />
-
-                    <select name="category" required>
-                    <option value="">Category</option>
-                    <% if (categories && categories.length > 0) { %>
-                        <% categories.forEach(category => { %>
-                        <option value="<%= category %>"><%= category %></option>
-                        <% }) %>
-                    <% } %>
-                    </select>
-
-                    <input type="text" name="basePrice" placeholder="Base Price (e.g. 6.00)" required />
-                    <textarea name="description" rows="3" placeholder="Description (optional)"></textarea>
-
-                    <label class="checkbox-row">
-                    <input type="checkbox" name="active" checked />
-                    <span>Active</span>
-                    </label>
-
-                    <button type="submit">Add Item</button>
-                </form>
-                </section>
-
-                <hr />
-
-                <section class="panel-block">
-                <h3>Recipe (Ingredients for selected item)</h3>
-
-                <form method="POST" action="/manager/menu/add-recipe-ingredient" class="stack-form">
-                    <input type="hidden" name="menuItemId" value="<%= selectedItem ? selectedItem.menu_item_id : '' %>" />
-
-                    <label>Ingredient</label>
-                    <select name="ingredientId">
-                    <option value="">Select ingredient...</option>
-                    <% if (ingredients && ingredients.length > 0) { %>
-                        <% ingredients.forEach(ingredient => { %>
-                        <option value="<%= ingredient.ingredient_id %>"><%= ingredient.name %></option>
-                        <% }) %>
-                    <% } %>
-                    </select>
-
-                    <label>Qty Required</label>
-                    <input type="text" name="qtyRequired" placeholder="e.g. 50" />
-
-                    <button type="submit">Add Ingredient to Recipe</button>
-                </form>
-
-                <form method="GET" action="/manager/menu/recipe" class="stack-form">
-                    <input type="hidden" name="menuItemId" value="<%= selectedItem ? selectedItem.menu_item_id : '' %>" />
-                    <button type="submit">View Recipe</button>
-                </form>
-
-                <% if (recipeLines && recipeLines.length > 0) { %>
-                    <div class="recipe-preview">
-                    <% recipeLines.forEach(line => { %>
-                        <div class="recipe-line"><%= line %></div>
-                    <% }) %>
+            <section class="menu-actions-grid">
+                <section class="action-card action-card-highlight">
+                    <h2>Edit / Add</h2>
+                    <label>Selected item:</label>
+                    <div class="selected-item">
+                        <%= selectedItem ? `${selectedItem.menu_item_id} - ${selectedItem.name}` : '(none)' %>
                     </div>
-                <% } %>
                 </section>
 
-                <hr />
+                <section class="action-card">
+                    <h3>Price & Status</h3>
+                    <form method="POST" action="/manager/menu/update-price" class="stack-form">
+                        <input type="hidden" name="menuItemId" value="<%= selectedItem ? selectedItem.menu_item_id : '' %>" />
+                        <input type="text" name="newPrice" placeholder="e.g. 6.50" />
+                        <button type="submit">Update Price</button>
+                    </form>
 
-                <section class="panel-block">
-                <h3>Create New Ingredient (if missing)</h3>
-                <form method="POST" action="/manager/menu/create-ingredient" class="stack-form">
-                    <input type="hidden" name="menuItemId" value="<%= selectedItem ? selectedItem.menu_item_id : '' %>" />
-                    <input type="text" name="ingredientName" placeholder="Ingredient name (e.g. Sakura syrup)" required />
-                    <input type="text" name="ingredientUnit" placeholder="Unit (cups, scoops, oz)" required />
-                    <input type="text" name="ingredientCategory" placeholder="Category (Tea, Dairy, Topping)" required />
-                    <button type="submit">Create Ingredient</button>
-                </form>
+                    <form method="POST" action="/manager/menu/toggle-active" class="stack-form">
+                        <input type="hidden" name="menuItemId" value="<%= selectedItem ? selectedItem.menu_item_id : '' %>" />
+                        <button type="submit">Toggle Active/Inactive</button>
+                    </form>
                 </section>
-            </div>
-            </aside>
+
+                <section class="action-card">
+                    <h3>Add Menu Item</h3>
+                    <form method="POST" action="/manager/menu/add" class="stack-form">
+                        <input type="text" name="name" placeholder="Name" required />
+
+                        <select name="category" required>
+                        <option value="">Category</option>
+                        <% if (categories && categories.length > 0) { %>
+                            <% categories.forEach(category => { %>
+                            <option value="<%= category %>"><%= category %></option>
+                            <% }) %>
+                        <% } %>
+                        </select>
+
+                        <input type="text" name="basePrice" placeholder="Base Price (e.g. 6.00)" required />
+                        <textarea name="description" rows="3" placeholder="Description (optional)"></textarea>
+
+                        <label class="checkbox-row">
+                        <input type="checkbox" name="active" checked />
+                        <span>Active</span>
+                        </label>
+
+                        <button type="submit">Add Item</button>
+                    </form>
+                </section>
+
+                <section class="action-card action-card-wide">
+                    <h3>Recipe</h3>
+                    <p class="card-helper">Ingredients for the selected menu item.</p>
+
+                    <form method="POST" action="/manager/menu/add-recipe-ingredient" class="stack-form">
+                        <input type="hidden" name="menuItemId" value="<%= selectedItem ? selectedItem.menu_item_id : '' %>" />
+
+                        <label>Ingredient</label>
+                        <select name="ingredientId">
+                        <option value="">Select ingredient...</option>
+                        <% if (ingredients && ingredients.length > 0) { %>
+                            <% ingredients.forEach(ingredient => { %>
+                            <option value="<%= ingredient.ingredient_id %>"><%= ingredient.name %></option>
+                            <% }) %>
+                        <% } %>
+                        </select>
+
+                        <label>Qty Required</label>
+                        <input type="text" name="qtyRequired" placeholder="e.g. 50" />
+
+                        <button type="submit">Add Ingredient to Recipe</button>
+                    </form>
+
+                    <form method="GET" action="/manager/menu/recipe" class="stack-form">
+                        <input type="hidden" name="menuItemId" value="<%= selectedItem ? selectedItem.menu_item_id : '' %>" />
+                        <button type="submit">View Recipe</button>
+                    </form>
+
+                    <% if (recipeLines && recipeLines.length > 0) { %>
+                        <div class="recipe-preview">
+                        <% recipeLines.forEach(line => { %>
+                            <div class="recipe-line"><%= line %></div>
+                        <% }) %>
+                        </div>
+                    <% } %>
+                </section>
+
+                <section class="action-card">
+                    <h3>Create New Ingredient</h3>
+                    <p class="card-helper">Add a missing ingredient before assigning it to a recipe.</p>
+                    <form method="POST" action="/manager/menu/create-ingredient" class="stack-form">
+                        <input type="hidden" name="menuItemId" value="<%= selectedItem ? selectedItem.menu_item_id : '' %>" />
+                        <input type="text" name="ingredientName" placeholder="Ingredient name (e.g. Sakura syrup)" required />
+                        <input type="text" name="ingredientUnit" placeholder="Unit (cups, scoops, oz)" required />
+                        <input type="text" name="ingredientCategory" placeholder="Category (Tea, Dairy, Topping)" required />
+                        <button type="submit">Create Ingredient</button>
+                    </form>
+                </section>
+            </section>
         </div>
         </main>
     </div>
