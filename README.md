@@ -2,9 +2,16 @@
 
 ## FSH Boba Shop POS System
 
-A web-based Point of Sale (POS) system for a boba shop, featuring manager and cashier functionality. This phase includes a Node.js + Express barebones backend with EJS views for the UI.
+A web-based Point of Sale (POS) system for a boba shop, featuring manager, cashier, and self-service functionality. This phase includes a Node.js + Express backend integrating a PostgreSQL database with EJS views for the UI.
 
-## Getting Started
+## Link to the start page
+
+https://project3-team03-mkg4.onrender.com/
+
+- Temporal cashier login: `cashier`:`cashier123`
+- Temporal manager login: `manager`:`manager123`
+
+## Running Locally
 
 **1. Install dependencies**
 ```bash
