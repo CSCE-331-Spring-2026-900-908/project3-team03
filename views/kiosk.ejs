@@ -179,6 +179,23 @@
         @media (max-width: 960px) {
             .layout { grid-template-columns: 1fr; }
         }
+        #drinkPreviewMount {
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 16px;
+            min-height: 320px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 12px;
+        }
+
+        #drinkPreviewMount svg {
+            width: 260px;
+            height: auto;
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -192,7 +209,10 @@
 
         <div class="layout">
             <div class="panel">
-                <h2 class="section-title">Choose a category</h2>
+                <h2 class="section-title">Drink preview</h2>
+                <div id="drinkPreviewMount"></div>
+
+                <h2 class="section-title" style="margin-top: 24px;">Choose a category</h2>
                 <div class="category-tabs" id="categoryTabs"></div>
 
                 <h2 class="section-title">Menu items</h2>
@@ -245,7 +265,7 @@
                 { id: 105, name: 'Cheese Foam', price: 1.00 }
             ]
         };
-
+        const drinkStyleMap = <%- JSON.stringify(typeof drinkStyleMap !== 'undefined' ? drinkStyleMap : {}) %>;
         const categoryTabs = document.getElementById('categoryTabs');
         const menuGrid = document.getElementById('menuGrid');
         const addonGrid = document.getElementById('addonGrid');
@@ -260,6 +280,105 @@
         let selectedAddons = [];
         let quantity = 1;
         let order = [];
+
+        //Drink art Customization
+        let drinkSvg = null;
+
+        async function loadDrinkSvg() {
+            const mount = document.getElementById('drinkPreviewMount');
+            if (!mount) return;
+
+            try {
+                const response = await fetch('/images/DrinkFoundation.svg');
+                const svgText = await response.text();
+
+                mount.innerHTML = svgText;
+                drinkSvg = mount.querySelector('svg');
+            } catch (err) {
+                console.error('Could not load drink SVG:', err);
+                mount.innerHTML = '<div class="muted">Could not load drink preview</div>';
+            }
+        }
+
+        function getGroup(id) {
+            if (!drinkSvg) return null;
+            return drinkSvg.querySelector(`#${CSS.escape(id)}`);
+        }
+
+        function setGroupFill(groupId, color) {
+            const group = getGroup(groupId);
+            if (!group) return;
+
+            const shapes = group.querySelectorAll('path, rect, circle, ellipse, polygon, polyline');
+            shapes.forEach(shape => {
+                shape.setAttribute('fill', color);
+            });
+        }
+
+        function setLayerVisible(groupId, isVisible) {
+            const group = getGroup(groupId);
+            if (!group) return;
+            group.style.display = isVisible ? '' : 'none';
+        }
+
+        function setLidColor(color) {
+            setGroupFill('Lid', color);
+        }
+
+        function setStrawColor(color) {
+            setGroupFill('Straw', color);
+        }
+
+        function setLiquidGradient(topColor, midColor, bottomColor) {
+            if (!drinkSvg) return;
+
+            const stops = drinkSvg.querySelectorAll('#linear-gradient stop');
+            if (stops.length < 3) return;
+
+            stops[0].setAttribute('stop-color', bottomColor);
+            stops[1].setAttribute('stop-color', midColor);
+            stops[2].setAttribute('stop-color', topColor);
+        }
+
+        function setBobba(enabled, color = null) {
+            setLayerVisible('Bobba', enabled);
+            if (enabled && color) setGroupFill('Bobba', color);
+        }
+
+        function setSeeds(enabled, color = null) {
+            setLayerVisible('Seeds', enabled);
+            if (enabled && color) setGroupFill('Seeds', color);
+        }
+
+        function setCubeTopping(enabled, color = null) {
+            setLayerVisible('Cube_Topping', enabled);
+            if (enabled && color) setGroupFill('Cube_Topping', color);
+        }
+
+        function setSyrup(enabled, color = null) {
+            setLayerVisible('Syrup', enabled);
+            if (enabled && color) setGroupFill('Syrup', color);
+        }
+
+        function applyDrinkStyle(drinkConfig) {
+            if (!drinkSvg || !drinkConfig) return;
+
+            if (drinkConfig.lid_color) setLidColor(drinkConfig.lid_color);
+            if (drinkConfig.straw_color) setStrawColor(drinkConfig.straw_color);
+
+            if (drinkConfig.liquid_top && drinkConfig.liquid_mid && drinkConfig.liquid_bottom) {
+                setLiquidGradient(
+                    drinkConfig.liquid_top,
+                    drinkConfig.liquid_mid,
+                    drinkConfig.liquid_bottom
+                );
+            }
+
+            setBobba(!!drinkConfig.show_bobba, drinkConfig.bobba_color || null);
+            setSeeds(!!drinkConfig.show_seeds, drinkConfig.seeds_color || null);
+            setCubeTopping(!!drinkConfig.show_cube_topping, drinkConfig.cube_topping_color || null);
+            setSyrup(!!drinkConfig.show_syrup, drinkConfig.syrup_color || null);
+        }
 
         function money(value) {
             return value.toFixed(2);
@@ -298,6 +417,12 @@
                 button.innerHTML = `<h3>${item.name}</h3><p>$${money(item.price)}</p>`;
                 button.onclick = () => {
                     selectedDrink = item;
+
+                    const style = drinkStyleMap[item.name];
+                    if (style) {
+                        applyDrinkStyle(style); // your SVG function
+                    }
+
                     renderSelection();
                 };
                 menuGrid.appendChild(button);

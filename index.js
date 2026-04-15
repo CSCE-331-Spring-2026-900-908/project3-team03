@@ -1,6 +1,10 @@
 const express = require('express');
 const session = require('express-session');
 const dotenv = require('dotenv').config();
+
+const fs = require('fs/promises');
+const path = require('path');
+
 const pool = require('./db/pool');
 const MenuItemDao = require('./dao/MenuItemDao');
 const orderDao = require('./dao/orderDao');
@@ -24,6 +28,68 @@ app.use(session({
 // Routes
 const managerRoutes = require('./routes/manager');
 const cashierRoutes = require('./routes/cashier');
+
+const drinkCsvPath = path.join(__dirname, 'images', 'DrinkColorData.csv');
+
+let cachedDrinkStyleMap = null;
+
+function parseSimpleCsv(text) {
+    const lines = text.trim().split(/\r?\n/);
+    const headers = lines[0].split(',').map(h => h.trim());
+
+    return lines.slice(1).map(line => {
+        const values = line.split(',').map(v => v.trim());
+        const row = {};
+
+        headers.forEach((h, i) => {
+            row[h] = values[i] ?? '';
+        });
+
+        return row;
+    });
+}
+
+function buildDrinkStyleMap(rows) {
+    const map = {};
+
+    rows.forEach(row => {
+        const type = (row.accent_type || '').toLowerCase();
+
+        map[row.drink] = {
+            lid_color: row.lid_color,
+            straw_color: row.straw_main,
+            straw_shadow: row.straw_shadow,
+            liquid_top: row.liquid_top,
+            liquid_mid: row.liquid_mid,
+            liquid_bottom: row.liquid_bottom,
+
+            show_bobba: false,
+            bobba_color: row.boba_color,
+
+            show_seeds: type === 'seeds',
+            seeds_color: row.accent_color,
+
+            show_cube_topping: type === 'cube' || type === 'cube_topping',
+            cube_topping_color: row.accent_color,
+
+            show_syrup: type === 'syrup' || type === 'powder' || type === 'caramel',
+            syrup_color: row.accent_color
+        };
+    });
+
+    return map;
+}
+
+async function getDrinkStyleMap() {
+    if (cachedDrinkStyleMap) return cachedDrinkStyleMap;
+
+    const csv = await fs.readFile(drinkCsvPath, 'utf8');
+    const rows = parseSimpleCsv(csv);
+    cachedDrinkStyleMap = buildDrinkStyleMap(rows);
+
+    return cachedDrinkStyleMap;
+}
+
 
 app.use('/manager', managerRoutes);
 app.use('/cashier', cashierRoutes);
@@ -105,14 +171,18 @@ app.get('/kiosk', async (req, res) => {
         
         console.log('Kiosk: Organized into', Object.keys(categories).length, 'categories');
         
+        const drinkStyleMap = await getDrinkStyleMap();
+
         res.render('kiosk', {
             categories,
+            drinkStyleMap,
             statusMessage: ''
         });
     } catch (err) {
-        console.error('Kiosk: Error loading menu:', err.message);
+        console.error('Kiosk: Error loading menu:', err);
         res.render('kiosk', {
             categories: {},
+            drinkStyleMap: {},
             statusMessage: 'Error loading menu items'
         });
     }
