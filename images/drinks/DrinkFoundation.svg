@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dynamic Drink SVG</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 24px;
+    }
+
+    .drink-layout {
+      display: flex;
+      gap: 32px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+
+    .drink-preview {
+      width: 320px;
+      background: white;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    .drink-preview svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .controls {
+      min-width: 280px;
+      background: white;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    .controls h2 {
+      margin-top: 0;
+    }
+
+    .control-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    input[type="color"],
+    button {
+      cursor: pointer;
+    }
+
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      background: #222;
+      color: white;
+      margin-right: 8px;
+    }
+
+    button:hover {
+      background: #333;
+    }
+  </style>
+</head>
+<body>
+  <div class="drink-layout">
+    <div class="drink-preview">
+      <svg id="drinkSvg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 154.2 154.2">
+        <defs>
+          <linearGradient id="linear-gradient" x1="73.39" y1="149.07" x2="73.39" y2="36.36" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#1f1000"></stop>
+            <stop offset=".5" stop-color="#bf5a00"></stop>
+            <stop offset="1" stop-color="#df7c00"></stop>
+          </linearGradient>
+        </defs>
+
+        <g id="Background">
+          <rect x=".5" y=".5" width="153.2" height="153.2" rx="13.41" ry="13.41" fill="#ccf8ff" stroke="#000" stroke-miterlimit="10"></rect>
+          <g id="Straw">
+            <rect x="65.38" y="8.06" width="16.02" height="45.49" fill="#fff" stroke="#000" stroke-miterlimit="10"></rect>
+          </g>
+        </g>
+
+        <g id="Drink">
+          <rect x="34.69" y="36.36" width="77.41" height="112.71" rx="8.84" ry="8.84" fill="url(#linear-gradient)" stroke="#000" stroke-miterlimit="10"></rect>
+        </g>
+
+        <g id="Lid">
+          <rect x="31.43" y="28.85" width="83.93" height="14.51" fill="#ccf8ff" stroke="#000" stroke-miterlimit="10"></rect>
+        </g>
+
+        <g id="Bobba">
+          <g>
+            <circle cx="46.95" cy="136.43" r="9.1" fill="#fff" stroke="#000" stroke-miterlimit="10"></circle>
+            <circle cx="100.35" cy="136.43" r="9.1" fill="#fff" stroke="#000" stroke-miterlimit="10"></circle>
+            <circle cx="73.39" cy="136.43" r="9.1" fill="#fff" stroke="#000" stroke-miterlimit="10"></circle>
+          </g>
+        </g>
+
+        <g id="Seeds">
+          <g>
+            <circle cx="60.1" cy="124.27" r="3.07" fill="#d6ffbf" stroke="#000" stroke-miterlimit="10"></circle>
+            <circle cx="60.1" cy="141.67" r="3.07" fill="#d6ffbf" stroke="#000" stroke-miterlimit="10"></circle>
+            <circle cx="86.81" cy="124.27" r="3.07" fill="#d6ffbf" stroke="#000" stroke-miterlimit="10"></circle>
+            <circle cx="87.1" cy="141.38" r="3.36" fill="#d6ffbf" stroke="#000" stroke-miterlimit="10"></circle>
+            <circle cx="106.88" cy="122.58" r="2.57" fill="#d6ffbf" stroke="#000" stroke-miterlimit="10"></circle>
+            <circle cx="41.17" cy="122.35" r="3.32" fill="#d6ffbf" stroke="#000" stroke-miterlimit="10"></circle>
+          </g>
+        </g>
+
+        <g id="Cube_Topping">
+          <g>
+            <rect x="47.54" y="113.63" width="7.57" height="10.78" fill="#d6ffbf" stroke="#000" stroke-miterlimit="10"></rect>
+            <rect x="69.6" y="113.63" width="7.57" height="10.78" fill="#d6ffbf" stroke="#000" stroke-miterlimit="10"></rect>
+            <rect x="92.66" y="113.63" width="7.57" height="10.78" fill="#d6ffbf" stroke="#000" stroke-miterlimit="10"></rect>
+            <rect x="58.57" y="106.15" width="7.57" height="10.78" fill="#d6ffbf" stroke="#000" stroke-miterlimit="10"></rect>
+            <rect x="82.22" y="106.15" width="7.57" height="10.78" fill="#d6ffbf" stroke="#000" stroke-miterlimit="10"></rect>
+            <rect x="36.51" y="106.15" width="7.57" height="10.78" fill="#d6ffbf" stroke="#000" stroke-miterlimit="10"></rect>
+            <rect x="103.09" y="106.15" width="7.57" height="10.78" fill="#d6ffbf" stroke="#000" stroke-miterlimit="10"></rect>
+          </g>
+        </g>
+
+        <g id="Syrup">
+          <path d="M38.91,56.85c.22.04.32.28.4.46.5,1.4.62,2.91.82,4.38.56,5.07.82,10.16,1.13,15.25.69,8.39.48,17.04,2.23,25.27.06.16.19.38.21.37-.04-.02-.09.02-.04-.02.03-.04.08-.11.12-.2,1.19-4.46,1.06-9.21,1.44-13.8.47-8.48.67-16.99,1.37-25.46.2-1.91.31-3.88.88-5.79.1-.3.33-.91.88-.98,1.8-.25,1.9,7.49,2.15,8.94.81,10.17,1.07,20.36,1.94,30.51.26,2.17.29,4.49,1.05,6.51-.08-.13-.29-.13-.43-.12-.15.05-.17.08-.19.09-.03.05-.01,0,0,0,1.14-3.9,1.03-8.19,1.39-12.28.27-5.07.78-15.28,1.05-20.36.22-3.4.4-6.79.89-10.23.2-1.02.2-1.74.75-2.78.36-.67,1.36-.84,1.87-.13,1.14,2.23,1.02,4.92,1.35,7.32.3,3.4.5,6.8.69,10.2.52,8.47.71,16.95,1.69,25.35.15.98.25,1.98.61,2.82-.07-.13-.35-.23-.57-.2-.21.02-.33.14-.34.14-.13.14.01-.03.04-.18.85-3.34.91-7.02,1.2-10.5.43-6.76.71-13.55,1.1-20.35.29-4.26.44-8.56,1.2-12.82.14-.6.27-1.39.76-1.95.44-.52,1.37-.53,1.82.07,1.06,1.86.96,3.95,1.27,5.95.94,10.21,1.16,20.36,1.91,30.54.29,3.05.33,6.2,1.17,9.14.02.06.05.11.04.09,0,.03-.08-.23-.58-.24-.5.03-.55.28-.55.24,1.49-6.24,1.3-12.95,1.82-19.39.38-6.78.65-13.57,1.29-20.39.31-1.96.21-4.16,1.28-5.96.27-.33.87-.59,1.32-.38.46.17.68.54.83.85.55,1.36.62,2.65.82,4.03,1.05,10.18,1.21,20.39,1.9,30.56.27,3.44.43,7.67,1.24,10.67-.01,0-.16-.13-.36-.14-.15-.04-.41.07-.45.11,1.63-8.59,1.54-18.88,2.21-28.08.19-3.4.39-6.79.69-10.2.33-2.39.21-5.11,1.36-7.32.36-.52,1.25-.61,1.65-.13.78.99.74,1.98.97,3.06.85,5.92,1.04,14.39,1.41,20.41,0,0,.52,10.17.52,10.17.37,4.08.26,8.38,1.39,12.27,0,.01.02.04,0,0-.02,0-.05-.05-.2-.09-.14-.01-.33,0-.42.12.76-2.02.79-4.33,1.05-6.51.3-3.37.51-6.76.71-10.15.4-6.78.7-13.57,1.24-20.36.24-2.58.38-5.14,1.02-7.68.13-.4.23-.81.63-1.14.11-.08.34-.16.51-.13.21.03.36.13.42.2.49.52.46.89.64,1.44.69,3.41.82,6.78,1.07,10.22.64,10.17.75,20.37,1.75,30.51.2,1.28.22,2.7.81,3.85.05.04,0,0-.04.02.77-1.52.79-3.55,1.05-5.31.99-10.13,1.26-20.34,2.05-30.5.27-2.96.42-5.95,1.09-8.85.15-.37.18-.91.6-1.07-.41.15-.46.71-.58,1.07-.64,2.9-.75,5.89-.98,8.85-.67,10.18-.82,20.36-1.69,30.54-.11.88-.54,7.77-2.12,5.28-1.32-4.52-1.22-9.34-1.66-14-.8-10.11-.75-20.37-2.36-30.38-.03-.33-.24-.72-.31-.89,0-.01.05.05.15.05.07.01.19-.02.21-.05.05-.04,0,0-.02.06-.83,2.52-.84,5.32-1.11,7.96-.49,6.76-.74,13.55-1.1,20.34-.31,5.12-.45,10.23-1.25,15.32-.14.98-.69,3.35-2.11,2.25-.75-.94-.72-1.93-.95-2.97-.84-5.9-1.18-14.39-1.55-20.39,0,0-.59-10.17-.59-10.17-.38-4.06-.33-8.34-1.45-12.2.13.18.67.27.88-.01-1.38,5.33-1.2,11.07-1.65,16.57-.68,9.36-.46,18.85-2.14,28.13-.17.66-.57,1.6-1.5,1.53-1.08-.21-1.18-1.2-1.41-1.92-.72-3.46-.85-6.81-1.13-10.28-.72-10.16-.9-20.36-1.96-30.46-.13-1.12-.34-2.61-.67-3.48.14.16.57.27.81.14.18-.1.15-.09.22-.16-.54,1.44-.64,3.33-.83,4.92-.91,10.1-1.12,20.34-1.83,30.49-.19,2.57-.37,5.14-.78,7.7-.17.86-.26,1.75-.77,2.54-.4.69-1.59.87-2.12.01-.87-1.58-.85-3.41-1.11-5.13-.52-5.1-.75-10.2-1.03-15.31-.36-6.78-.62-13.59-1.24-20.3-.19-1.6-.31-3.51-.83-4.93.26.35.89.22,1.04,0-1.19,4.34-1.1,9.08-1.5,13.6-.41,6.77-.7,13.56-1.15,20.36-.33,3.69-.35,7.34-1.33,10.98-.11.25-.13.49-.55.93-.08.09-.31.24-.62.29-.25.05-.61-.08-.76-.19-.12-.09-.28-.25-.32-.32-1.28-2.74-1.07-5.86-1.45-8.77-.51-6.8-.78-13.59-1.15-20.37-.46-5.49-.28-11.26-1.65-16.57.18.26.7.2.85.04-1.02,3.62-1.08,8.17-1.43,12.17-.29,5.07-.9,15.28-1.19,20.35-.29,3.82-.45,7.69-1.2,11.51-.14.5-.22,1.15-.7,1.67-1.41,1.12-1.96-1.25-2.11-2.23-2.02-14.28-.98-28.91-3.27-43.12-.05-.19-.12-.36-.18-.5-.03-.05-.07-.1-.02-.06.01.02.14.07.21.05.1,0,.16-.07.15-.05-.71,1.76-.76,3.9-1.01,5.86-.77,8.45-1.1,16.93-1.66,25.41-.23,3.39-.45,6.79-.87,10.17-.25,1.39-.24,2.91-1.01,4.16-.08.11-.37.28-.6.14-.36-.23-.37-.46-.48-.67-.52-1.71-.63-3.39-.82-5.09-.87-10.17-1.02-20.36-1.69-30.54-.23-2.96-.35-5.95-.98-8.85-.14-.37-.17-.91-.58-1.07h0Z" fill="#603813"></path>
+        </g>
+      </svg>
+    </div>
+
+    <div class="controls">
+      <h2>Test controls</h2>
+
+      <div class="control-group">
+        <label for="lidColor">Lid color</label>
+        <input id="lidColor" type="color" value="#d9f8ff" />
+      </div>
+
+      <div class="control-group">
+        <label for="strawColor">Straw color</label>
+        <input id="strawColor" type="color" value="#ffffff" />
+      </div>
+
+      <div class="control-group">
+        <label for="liquidTop">Liquid top</label>
+        <input id="liquidTop" type="color" value="#f2b15f" />
+      </div>
+
+      <div class="control-group">
+        <label for="liquidMid">Liquid mid</label>
+        <input id="liquidMid" type="color" value="#d7892a" />
+      </div>
+
+      <div class="control-group">
+        <label for="liquidBottom">Liquid bottom</label>
+        <input id="liquidBottom" type="color" value="#8a4b14" />
+      </div>
+
+      <div class="checkbox-row">
+        <input id="toggleBobba" type="checkbox" checked />
+        <label for="toggleBobba">Bobba</label>
+      </div>
+
+      <div class="checkbox-row">
+        <input id="toggleSeeds" type="checkbox" />
+        <label for="toggleSeeds">Seeds</label>
+      </div>
+
+      <div class="checkbox-row">
+        <input id="toggleCube" type="checkbox" />
+        <label for="toggleCube">Cube topping</label>
+      </div>
+
+      <div class="checkbox-row">
+        <input id="toggleSyrup" type="checkbox" checked />
+        <label for="toggleSyrup">Syrup</label>
+      </div>
+
+      <button id="applyManualBtn" type="button">Apply manual style</button>
+      <button id="applyExampleBtn" type="button">Apply example drink</button>
+    </div>
+  </div>
+
+  <script>
+    const drinkSvg = document.getElementById('drinkSvg');
+
+    function getGroup(id) {
+      return drinkSvg.getElementById
+        ? drinkSvg.getElementById(id)
+        : drinkSvg.querySelector(`#${CSS.escape(id)}`);
+    }
+
+    function setGroupFill(groupId, color) {
+      const group = getGroup(groupId);
+      if (!group) return;
+
+      const shapes = group.querySelectorAll('path, rect, circle, ellipse, polygon, polyline');
+      shapes.forEach(shape => {
+        shape.setAttribute('fill', color);
+      });
+    }
+
+    function setLayerVisible(groupId, isVisible) {
+      const group = getGroup(groupId);
+      if (!group) return;
+      group.style.display = isVisible ? '' : 'none';
+    }
+
+    function setLidColor(color) {
+      setGroupFill('Lid', color);
+    }
+
+    function setStrawColor(color) {
+      setGroupFill('Straw', color);
+    }
+
+    function setAccentColor(groupId, color) {
+      setGroupFill(groupId, color);
+    }
+
+    function setLiquidGradient(topColor, midColor, bottomColor) {
+      const stops = drinkSvg.querySelectorAll('#linear-gradient stop');
+      if (stops.length < 3) return;
+
+      stops[0].setAttribute('stop-color', bottomColor);
+      stops[1].setAttribute('stop-color', midColor);
+      stops[2].setAttribute('stop-color', topColor);
+    }
+
+    function setBobba(enabled, color = null) {
+      setLayerVisible('Bobba', enabled);
+      if (enabled && color) {
+        setAccentColor('Bobba', color);
+      }
+    }
+
+    function setSeeds(enabled, color = null) {
+      setLayerVisible('Seeds', enabled);
+      if (enabled && color) {
+        setAccentColor('Seeds', color);
+      }
+    }
+
+    function setCubeTopping(enabled, color = null) {
+      setLayerVisible('Cube_Topping', enabled);
+      if (enabled && color) {
+        setAccentColor('Cube_Topping', color);
+      }
+    }
+
+    function setSyrup(enabled, color = null) {
+      setLayerVisible('Syrup', enabled);
+      if (enabled && color) {
+        setAccentColor('Syrup', color);
+      }
+    }
+
+    function applyDrinkStyle(drinkConfig) {
+      if (drinkConfig.lid_color) {
+        setLidColor(drinkConfig.lid_color);
+      }
+
+      if (drinkConfig.straw_color) {
+        setStrawColor(drinkConfig.straw_color);
+      }
+
+      if (
+        drinkConfig.liquid_top &&
+        drinkConfig.liquid_mid &&
+        drinkConfig.liquid_bottom
+      ) {
+        setLiquidGradient(
+          drinkConfig.liquid_top,
+          drinkConfig.liquid_mid,
+          drinkConfig.liquid_bottom
+        );
+      }
+
+      setBobba(
+        !!drinkConfig.show_bobba,
+        drinkConfig.bobba_color || null
+      );
+
+      setSeeds(
+        !!drinkConfig.show_seeds,
+        drinkConfig.seeds_color || null
+      );
+
+      setCubeTopping(
+        !!drinkConfig.show_cube_topping,
+        drinkConfig.cube_topping_color || null
+      );
+
+      setSyrup(
+        !!drinkConfig.show_syrup,
+        drinkConfig.syrup_color || null
+      );
+    }
+
+    const exampleDrink = {
+      name: 'Brown Sugar Milk Tea',
+      lid_color: '#f7efe2',
+      straw_color: '#ffffff',
+      liquid_top: '#e5b16e',
+      liquid_mid: '#b97433',
+      liquid_bottom: '#6d3b16',
+      show_bobba: true,
+      bobba_color: '#2f1707',
+      show_seeds: false,
+      seeds_color: '#7bc96f',
+      show_cube_topping: false,
+      cube_topping_color: '#c8f0b3',
+      show_syrup: true,
+      syrup_color: '#5a2c12'
+    };
+
+    document.getElementById('applyManualBtn').addEventListener('click', () => {
+      applyDrinkStyle({
+        lid_color: document.getElementById('lidColor').value,
+        straw_color: document.getElementById('strawColor').value,
+        liquid_top: document.getElementById('liquidTop').value,
+        liquid_mid: document.getElementById('liquidMid').value,
+        liquid_bottom: document.getElementById('liquidBottom').value,
+        show_bobba: document.getElementById('toggleBobba').checked,
+        bobba_color: '#2f1707',
+        show_seeds: document.getElementById('toggleSeeds').checked,
+        seeds_color: '#d6ffbf',
+        show_cube_topping: document.getElementById('toggleCube').checked,
+        cube_topping_color: '#d6ffbf',
+        show_syrup: document.getElementById('toggleSyrup').checked,
+        syrup_color: '#603813'
+      });
+    });
+
+    document.getElementById('applyExampleBtn').addEventListener('click', () => {
+      applyDrinkStyle(exampleDrink);
+    });
+
+    applyDrinkStyle(exampleDrink);
+  </script>
+</body>
+</html>
