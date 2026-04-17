@@ -30,25 +30,28 @@ passport.use('local-manager', new LocalStrategy({
 }));
 
 // Configure Google Strategy
+// Determine callback URL based on environment
+const isProduction = process.env.NODE_ENV === 'production';
+const callbackURL = isProduction 
+  ? 'https://project3-team03-mkg4.onrender.com/auth/google/callback'
+  : 'http://localhost:3000/auth/google/callback';
+
 passport.use('google', new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: process.env.GOOGLE_CALLBACK_URL
-}, (accessToken, refreshToken, profile, done) => {
+    callbackURL: callbackURL,
+    passReqToCallback: true
+}, (req, accessToken, refreshToken, profile, done) => {
     // Create user object from Google profile
-    // In a real application, you would:
-    // 1. Check database for existing user
-    // 2. Create new user if not exists
-    // 3. Map Google email to a role (cashier/manager)
-    
+    // Store the requested role from the query parameter
     const user = {
         id: profile.id,
         googleId: profile.id,
         email: profile.emails?.[0]?.value,
         name: profile.displayName,
         avatar: profile.photos?.[0]?.value,
-        // Default role - in production, query database to determine role
-        role: 'cashier' // Default to cashier, should be determined by email/DB
+        // Store the role from the initial request
+        requestedRole: req.query.state ? (req.query.state.toUpperCase()) : 'CASHIER'
     };
     
     return done(null, user);

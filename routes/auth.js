@@ -1,6 +1,7 @@
 const express = require('express');
 const passport = require('passport');
 const router = express.Router();
+const employeeDao = require('../dao/employeeDao');
 
 // ================== LOCAL LOGIN ==================
 
@@ -25,31 +26,71 @@ router.post('/login-manager-local', passport.authenticate('local-manager', {
 // ================== GOOGLE OAUTH ==================
 
 // Initiate Google login for cashier
-router.get('/google/cashier', passport.authenticate('google', {
-    scope: ['profile', 'email'],
-    state: 'cashier'
-}));
+router.get('/google/cashier', (req, res, next) => {
+    passport.authenticate('google', {
+        scope: ['profile', 'email'],
+        state: 'cashier'
+    })(req, res, next);
+});
 
 // Initiate Google login for manager
-router.get('/google/manager', passport.authenticate('google', {
-    scope: ['profile', 'email'],
-    state: 'manager'
-}));
+router.get('/google/manager', (req, res, next) => {
+    passport.authenticate('google', {
+        scope: ['profile', 'email'],
+        state: 'manager'
+    })(req, res, next);
+});
 
 // Google OAuth callback
 router.get('/google/callback', passport.authenticate('google', {
     failureRedirect: '/login?error=Google+authentication+failed'
-}), (req, res) => {
-    // Determine role from state or request
-    // In production, verify user email against a database of authorized users
-    const state = req.query.state || 'cashier';
-    req.session.role = state; // Set role from state
-    req.session.user = req.user;
-    
-    if (state === 'manager') {
-        res.redirect('/manager/dashboard');
-    } else {
-        res.redirect('/cashier/menu');
+}), async (req, res) => {
+    try {
+        const userEmail = req.user.email;
+        const requestedRole = req.user.requestedRole || 'CASHIER';
+        
+        // Query database for employee with this email
+        const employee = await employeeDao.findEmployeeByEmail(userEmail);
+        
+        if (!employee) {
+            // Email not found in database
+            req.logout((err) => {
+                res.redirect(`/login?error=Email+${encodeURIComponent(userEmail)}+not+found+in+system`);
+            });
+            return;
+        }
+        
+        // Check if employee is active
+        if (!employee.active) {
+            req.logout((err) => {
+                res.redirect(`/login?error=Account+is+inactive`);
+            });
+            return;
+        }
+        
+        // Verify the employee's role matches the requested role
+        if (employee.role !== requestedRole) {
+            req.logout((err) => {
+                res.redirect(`/login?error=Your+role+is+${employee.role}+not+${requestedRole}`);
+            });
+            return;
+        }
+        
+        // All checks passed - create session
+        req.session.role = employee.role.toLowerCase();
+        req.session.user = req.user;
+        req.session.employeeId = employee.employee_id;
+        
+        if (employee.role === 'MANAGER') {
+            res.redirect('/manager/dashboard');
+        } else {
+            res.redirect('/cashier/menu');
+        }
+    } catch (err) {
+        console.error('Error in Google callback:', err);
+        req.logout((err) => {
+            res.redirect('/login?error=Authentication+error');
+        });
     }
 });
 
