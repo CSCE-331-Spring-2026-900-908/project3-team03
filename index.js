@@ -1,30 +1,40 @@
 const express = require('express');
 const session = require('express-session');
+const passport = require('passport');
 const dotenv = require('dotenv').config();
 const pool = require('./db/pool');
 const MenuItemDao = require('./dao/MenuItemDao');
 const orderDao = require('./dao/orderDao');
 const inventoryDao = require('./dao/inventoryDao');
 
+// Load Passport configuration
+require('./config/passportConfig');
+
 // Create express app
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(session({
-    secret: 'your-secret-key', // Change this to a secure key
+    secret: process.env.SESSION_SECRET || 'your-secret-key',
     resave: false,
     saveUninitialized: true,
     cookie: { secure: false } // Set to true if using HTTPS
 }));
 
+// Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
+
 // Routes
 const managerRoutes = require('./routes/manager');
 const cashierRoutes = require('./routes/cashier');
+const authRoutes = require('./routes/auth');
 
+app.use('/auth', authRoutes);
 app.use('/manager', managerRoutes);
 app.use('/cashier', cashierRoutes);
 
