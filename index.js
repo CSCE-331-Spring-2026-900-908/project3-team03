@@ -102,6 +102,7 @@ async function getDrinkStyleMap() {
 
 app.use('/manager', managerRoutes);
 app.use('/cashier', cashierRoutes);
+app.use('/auth', authRoutes);
 
 // Add process hook to shutdown pool
 process.on('SIGINT', function() {
