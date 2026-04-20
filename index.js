@@ -2,6 +2,10 @@ const express = require('express');
 const session = require('express-session');
 const passport = require('passport');
 const dotenv = require('dotenv').config();
+
+const fs = require('fs/promises');
+const path = require('path');
+
 const pool = require('./db/pool');
 const MenuItemDao = require('./dao/MenuItemDao');
 const orderDao = require('./dao/orderDao');
@@ -34,7 +38,68 @@ const managerRoutes = require('./routes/manager');
 const cashierRoutes = require('./routes/cashier');
 const authRoutes = require('./routes/auth');
 
-app.use('/auth', authRoutes);
+const drinkCsvPath = path.join(__dirname, 'images', 'DrinkColorData.csv');
+
+let cachedDrinkStyleMap = null;
+
+function parseSimpleCsv(text) {
+    const lines = text.trim().split(/\r?\n/);
+    const headers = lines[0].split(',').map(h => h.trim());
+
+    return lines.slice(1).map(line => {
+        const values = line.split(',').map(v => v.trim());
+        const row = {};
+
+        headers.forEach((h, i) => {
+            row[h] = values[i] ?? '';
+        });
+
+        return row;
+    });
+}
+
+function buildDrinkStyleMap(rows) {
+    const map = {};
+
+    rows.forEach(row => {
+        const type = (row.accent_type || '').toLowerCase();
+
+        map[row.drink] = {
+            lid_color: row.lid_color,
+            straw_color: row.straw_main,
+            straw_shadow: row.straw_shadow,
+            liquid_top: row.liquid_top,
+            liquid_mid: row.liquid_mid,
+            liquid_bottom: row.liquid_bottom,
+
+            show_bobba: false,
+            bobba_color: row.boba_color,
+
+            show_seeds: type === 'seeds',
+            seeds_color: row.accent_color,
+
+            show_cube_topping: type === 'cube' || type === 'cube_topping',
+            cube_topping_color: row.accent_color,
+
+            show_syrup: type === 'syrup' || type === 'powder' || type === 'caramel',
+            syrup_color: row.accent_color
+        };
+    });
+
+    return map;
+}
+
+async function getDrinkStyleMap() {
+    if (cachedDrinkStyleMap) return cachedDrinkStyleMap;
+
+    const csv = await fs.readFile(drinkCsvPath, 'utf8');
+    const rows = parseSimpleCsv(csv);
+    cachedDrinkStyleMap = buildDrinkStyleMap(rows);
+
+    return cachedDrinkStyleMap;
+}
+
+
 app.use('/manager', managerRoutes);
 app.use('/cashier', cashierRoutes);
 
@@ -96,9 +161,12 @@ app.get('/kiosk', async (req, res) => {
     try {
         console.log('Kiosk: Loading menu from database');
         
-        // Fetch all active menu items
-        const menuItems = await MenuItemDao.get_active_menu_items();
-        console.log('Kiosk: Retrieved', menuItems.length, 'menu items');
+        const [menuItems, activeAddons] = await Promise.all([
+            MenuItemDao.get_active_drink_items(),
+            MenuItemDao.get_active_addons()
+        ]);
+        console.log('Kiosk: Retrieved', menuItems.length, 'drink items');
+        console.log('Kiosk: Retrieved', activeAddons.length, 'addons');
         
         // Group menu items by category
         const categories = {};
@@ -115,14 +183,24 @@ app.get('/kiosk', async (req, res) => {
         
         console.log('Kiosk: Organized into', Object.keys(categories).length, 'categories');
         
+        const drinkStyleMap = await getDrinkStyleMap();
+
         res.render('kiosk', {
             categories,
+            addons: activeAddons.map(item => ({
+                id: item.menu_item_id,
+                name: item.name,
+                price: parseFloat(item.base_price)
+            })),
+            drinkStyleMap,
             statusMessage: ''
         });
     } catch (err) {
-        console.error('Kiosk: Error loading menu:', err.message);
+        console.error('Kiosk: Error loading menu:', err);
         res.render('kiosk', {
             categories: {},
+            addons: [],
+            drinkStyleMap: {},
             statusMessage: 'Error loading menu items'
         });
     }
@@ -177,7 +255,7 @@ app.post('/inventoryAdd', async (req, res) => {
     try {
         const item = req.body;
 
-        await InventoryItemDAO.insertInventoryItem(item);
+        await inventoryDao.createInventoryItem(item);
 
         res.json({ success: true });
     } catch (err) {
@@ -190,7 +268,7 @@ app.post('/updateQuantityName', async (req, res) => {
     try {
         const { name, quantity } = req.body;
 
-        await InventoryItemDAO.updateQuantityByName(name, quantity);
+        await inventoryDao.updateInventoryQuantityByName(name, quantity);
 
         res.json({ success: true });
     } catch (err) {
@@ -203,7 +281,7 @@ app.post('/deleteInventoryItem', async (req, res) => {
     try {
         const { name } = req.body;
 console.log("Deleting:", name);
-        const count = await InventoryItemDAO.deleteInventoryItem(name);
+        const count = await inventoryDao.deactivateInventoryItemByName(name);
 
         if (count === 0) {
             return res.json({ success: false, message: "Item not found" });
@@ -220,7 +298,7 @@ app.post('/insertIngredientReturningId', async (req, res) => {
     try {
         const { name } = req.body;
 
-        const id = await InventoryItemDAO.insert_ingredient_returning_id(name);
+        const id = await inventoryDao.createInventoryItem(name);
 
         res.json({
             success: true,
@@ -304,6 +382,7 @@ app.get('/loginManager', (req, res) => {
     res.render('loginManager');
 
 });
+
 
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`);

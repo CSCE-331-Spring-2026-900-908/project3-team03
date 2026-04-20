@@ -2,6 +2,9 @@ const express = require('express');
 const passport = require('passport');
 const router = express.Router();
 const employeeDao = require('../dao/employeeDao');
+const googleAuthEnabled = Boolean(
+    process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+);
 
 // ================== LOCAL LOGIN ==================
 
@@ -27,6 +30,10 @@ router.post('/login-manager-local', passport.authenticate('local-manager', {
 
 // Initiate Google login for cashier
 router.get('/google/cashier', (req, res, next) => {
+    if (!googleAuthEnabled) {
+        return res.redirect('/login?error=Google+login+is+not+configured');
+    }
+
     passport.authenticate('google', {
         scope: ['profile', 'email'],
         state: 'cashier'
@@ -35,6 +42,10 @@ router.get('/google/cashier', (req, res, next) => {
 
 // Initiate Google login for manager
 router.get('/google/manager', (req, res, next) => {
+    if (!googleAuthEnabled) {
+        return res.redirect('/login?error=Google+login+is+not+configured');
+    }
+
     passport.authenticate('google', {
         scope: ['profile', 'email'],
         state: 'manager'
@@ -42,9 +53,15 @@ router.get('/google/manager', (req, res, next) => {
 });
 
 // Google OAuth callback
-router.get('/google/callback', passport.authenticate('google', {
-    failureRedirect: '/login?error=Google+authentication+failed'
-}), async (req, res) => {
+router.get('/google/callback', (req, res, next) => {
+    if (!googleAuthEnabled) {
+        return res.redirect('/login?error=Google+login+is+not+configured');
+    }
+
+    passport.authenticate('google', {
+        failureRedirect: '/login?error=Google+authentication+failed'
+    })(req, res, next);
+}, async (req, res) => {
     try {
         const userEmail = req.user.email;
         const requestedRole = req.user.requestedRole || 'CASHIER';
