@@ -1,0 +1,5 @@
+PSQL_USER=team_03
+PSQL_HOST=csce-315-db.engr.tamu.edu
+PSQL_DATABASE=team_03_db
+PSQL_PASSWORD=awesomeswordfish
+PSQL_PORT=5432
