@@ -75,7 +75,7 @@
         }
         button {
             height: 50px;
-            padding: 10px 30px;
+            padding: 0px;
             border-radius: 25px;
             border: none;
             font-size: 16px;
@@ -86,6 +86,15 @@
             background: #f1f1f1;
             color: #333;
         }
+
+        .cancel-btn a {
+            display: block;
+            text-decoration: none;
+            height: 30px;
+            width: 150px;
+            padding: 17px;
+        }
+
         .cancel-btn:hover {
             background: #ddd;
         }
@@ -97,6 +106,12 @@
             background: rgb(114, 122, 154);
         }
         .confirm-btn a {
+            display: block;
+            text-decoration: none;
+            color: white;
+            height: 30px;
+            width: 150px;
+            padding: 17px;
             text-decoration: none;
             color: white;
         }
@@ -150,10 +165,43 @@
     <% } %>
     
     <footer>
-        <button class="cancel-btn"><a href="/cashier/menu" style="text-decoration: none; color: #333;">Cancel Order</a></button>
+        <button id="cancel-button" class="cancel-btn" onclick="cancelOrder()"><a href="/cashier/menu" style="text-decoration: none; color: #333;">Cancel Order</a></button>
         <% if (drinks && drinks.length > 0) { %>
             <button class="confirm-btn"><a href="/cashier/confirm">Confirm</a></button>
         <% } %>
     </footer>
+
+
+    <script>
+        const cancelButton = document.getElementById('cancel-button');
+
+        async function cancelOrder() {
+            try {
+                const response = await fetch("/cashier/menu/clear-cart", {
+                    method: "POST",
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Response status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                console.log("Response: ", result);
+
+                const menuURL = new URL('./menu', window.location.href);
+
+                console.log(menuURL);
+
+                location.replace(menuURL);
+        
+
+            } catch (error) {
+                console.error(error.message);
+            }
+
+        }
+
+    </script>
+
 </body>
 </html>
