@@ -1,5 +1,6 @@
 const express = require('express');
 const session = require('express-session');
+const passport = require('passport');
 const dotenv = require('dotenv').config();
 
 const fs = require('fs/promises');
@@ -10,24 +11,32 @@ const MenuItemDao = require('./dao/MenuItemDao');
 const orderDao = require('./dao/orderDao');
 const inventoryDao = require('./dao/inventoryDao');
 
+// Load Passport configuration
+require('./config/passportConfig');
+
 // Create express app
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(session({
-    secret: 'your-secret-key', // Change this to a secure key
+    secret: process.env.SESSION_SECRET || 'your-secret-key',
     resave: false,
     saveUninitialized: true,
     cookie: { secure: false } // Set to true if using HTTPS
 }));
 
+// Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
+
 // Routes
 const managerRoutes = require('./routes/manager');
 const cashierRoutes = require('./routes/cashier');
+const authRoutes = require('./routes/auth');
 
 const drinkCsvPath = path.join(__dirname, 'images', 'DrinkColorData.csv');
 
@@ -246,7 +255,7 @@ app.post('/inventoryAdd', async (req, res) => {
     try {
         const item = req.body;
 
-        await InventoryItemDAO.insertInventoryItem(item);
+        await inventoryDao.createInventoryItem(item);
 
         res.json({ success: true });
     } catch (err) {
@@ -259,7 +268,7 @@ app.post('/updateQuantityName', async (req, res) => {
     try {
         const { name, quantity } = req.body;
 
-        await InventoryItemDAO.updateQuantityByName(name, quantity);
+        await inventoryDao.updateInventoryQuantityByName(name, quantity);
 
         res.json({ success: true });
     } catch (err) {
@@ -272,7 +281,7 @@ app.post('/deleteInventoryItem', async (req, res) => {
     try {
         const { name } = req.body;
 console.log("Deleting:", name);
-        const count = await InventoryItemDAO.deleteInventoryItem(name);
+        const count = await inventoryDao.deactivateInventoryItemByName(name);
 
         if (count === 0) {
             return res.json({ success: false, message: "Item not found" });
@@ -289,7 +298,7 @@ app.post('/insertIngredientReturningId', async (req, res) => {
     try {
         const { name } = req.body;
 
-        const id = await InventoryItemDAO.insert_ingredient_returning_id(name);
+        const id = await inventoryDao.createInventoryItem(name);
 
         res.json({
             success: true,
@@ -373,6 +382,7 @@ app.get('/loginManager', (req, res) => {
     res.render('loginManager');
 
 });
+
 
 app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`);

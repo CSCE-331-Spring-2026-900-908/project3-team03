@@ -475,6 +475,7 @@
             <div class="panel main-panel">
                 <h2 class="section-title">Choose a category</h2>
                 <div class="category-tabs" id="categoryTabs"></div>
+                
 
                 <h2 class="section-title">Menu items</h2>
                 <div class="menu-grid" id="menuGrid"></div>
@@ -1268,6 +1269,7 @@
             visibleCategories.forEach((category) => {
                 const button = document.createElement('button');
                 button.className = 'tab-btn' + (category === currentCategory ? ' active' : '');
+                button.textContent = category;
                 button.type = 'button';
                 button.textContent = category;
                 button.style.backgroundColor = getCategoryTabColor(category);
@@ -1294,15 +1296,7 @@
                 const button = document.createElement('button');
                 button.className = 'item-btn' + (isSelected ? ' selected' : '');
                 button.type = 'button';
-                button.innerHTML = `
-                    <div class="item-btn-content">
-                        <img class="menu-drink-thumb" src="${previewUrl}" alt="${item.name} preview" />
-                        <div class="item-btn-copy">
-                            <h3>${item.name}</h3>
-                            <p>$${money(item.price)}</p>
-                        </div>
-                    </div>
-                `;
+                button.innerHTML = `<h3>${item.name}</h3><p>$${money(item.price)}</p>`;
                 button.onclick = () => {
                     openCustomizeModal(item);
                 };
@@ -1326,7 +1320,7 @@
                 const button = document.createElement('button');
                 button.className = 'addon-btn' + (selectedAddons.some((a) => a.id === addon.id) ? ' selected' : '');
                 button.type = 'button';
-                button.textContent = `${addon.name} +$${money(addon.price)}`;
+                button.textContent = `${translateName(addon.name)} +$${money(addon.price)}`;
                 button.onclick = () => {
                     const exists = selectedAddons.some((a) => a.id === addon.id);
 
@@ -1346,20 +1340,15 @@
 
         function renderSelection() {
             if (!selectedDrink) {
-                selectedDrinkEl.textContent = 'No drink selected yet';
+                selectedDrinkEl.textContent = currentLang === 'es' ? 'Ninguna bebida seleccionada' : 'No drink selected yet';
             } else {
-                selectedDrinkEl.textContent = `${selectedDrink.name}  $${money(selectedDrink.price)}`;
+                selectedDrinkEl.textContent = `${translateName(selectedDrink.name)}  $${money(selectedDrink.price)}`;
             }
 
-            const optionParts = [];
-
-            if (selectedDrink) {
-                optionParts.push(`Sugar: ${selectedSugar}`);
-                optionParts.push(`Ice: ${selectedIce}`);
-            }
-
-            if (selectedAddons.length > 0) {
-                optionParts.push('Add ons: ' + selectedAddons.map((addon) => `${addon.name} +$${money(addon.price)}`).join(', '));
+            if (selectedAddons.length === 0) {
+                selectedAddonsEl.textContent = 'No add ons selected';
+            } else {
+                selectedAddonsEl.textContent = 'Add ons: ' + selectedAddons.map((a) => `${a.name} +$${money(a.price)}`).join(', ');
             }
 
             selectedOptionsEl.textContent = optionParts.length
@@ -1371,7 +1360,7 @@
 
         function renderOrder() {
             if (order.length === 0) {
-                orderListEl.innerHTML = '<div class="muted">Your order is empty</div>';
+                orderListEl.innerHTML = `<div class="muted">${currentLang === 'es' ? 'Tu pedido está vacío' : 'Your order is empty'}</div>`;
                 orderTotalEl.textContent = '0.00';
                 return;
             }
@@ -1386,8 +1375,7 @@
                 div.className = 'order-item';
                 div.innerHTML = `
                     <h3>${item.quantity} x ${item.name}</h3>
-                    <div>Sugar: ${item.sugar} | Ice: ${item.ice}</div>
-                    <div>${item.addons.length ? 'Add ons: ' + item.addons.map((addon) => addon.name).join(', ') : 'No add ons'}</div>
+                    <div>${item.addons.length ? 'Add ons: ' + item.addons.map((a) => a.name).join(', ') : 'No add ons'}</div>
                     <div style="margin-top:8px;"><strong>$${money(item.total)}</strong></div>
                     <button class="cart-btn danger" type="button" style="margin-top:10px;" onclick="removeOrderItem(${index})">Remove</button>
                 `;
@@ -1428,57 +1416,6 @@
             order.splice(index, 1);
             renderOrder();
         }
-
-        async function checkoutOrder() {
-            if (order.length === 0) {
-                alert('Order is empty');
-                return;
-            }
-
-            const payload = { order };
-
-            try {
-                const res = await fetch('/submitOrder', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
-                });
-
-                const data = await res.json();
-
-                if (data.success) {
-                    alert('Order submitted successfully!');
-                    order = [];
-                    renderOrder();
-                } else {
-                    alert('Order failed');
-                }
-            } catch (err) {
-                console.error(err);
-                alert('Server error');
-            }
-        }
-
-        async function initializeKiosk() {
-            await loadDrinkSvg();
-
-            if (Object.keys(menuData.categories).length > 0) {
-                renderTabs();
-                renderMenu();
-                renderAddons();
-                renderSelection();
-                renderOrder();
-
-                const firstCategory = Object.keys(menuData.categories)[0];
-                const firstDrink = firstCategory && menuData.categories[firstCategory]?.[0];
-
-            } else {
-                document.querySelector('.section-title').textContent = 'No menu items available';
-            }
-        }
-
         window.removeOrderItem = removeOrderItem;
 
         document.getElementById('minusQty').onclick = () => {
@@ -1494,16 +1431,66 @@
         };
 
         document.getElementById('addToOrder').onclick = addToOrder;
+
         document.getElementById('clearOrder').onclick = () => {
             order = [];
             renderOrder();
         };
-        document.getElementById('checkoutOrder').onclick = checkoutOrder;
-        document.getElementById('closeCustomize').onclick = () => closeCustomizeModal();
-        document.getElementById('cancelCustomize').onclick = () => closeCustomizeModal();
-        document.getElementById('saveCustomize').onclick = saveCustomization;
 
-        initializeKiosk();
+        document.getElementById('checkoutOrder').onclick = () => {
+            if (order.length === 0) {
+                alert('Order is empty');
+                return;
+            }
+
+            console.log('Order being processed:', order);
+            document.getElementById('checkoutOrder').onclick = async () => {
+    if (order.length === 0) {
+        alert('Order is empty');
+        return;
+    }
+
+    console.log('Order being processed:', order);
+
+            const payload = { order };
+
+            try {
+                const res = await fetch('/submitOrder', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+
+        if (data.success) {
+            alert('Order submitted successfully!');
+            order = [];
+            renderOrder();
+        } else {
+            alert('Order failed');
+        }
+
+    } catch (err) {
+        console.error(err);
+        alert('Server error');
+    }
+};
+        };
+
+        // Initialize UI
+        if (Object.keys(menuData.categories).length > 0) {
+            renderTabs();
+            renderMenu();
+            renderAddons();
+            renderSelection();
+            renderOrder();
+        } else {
+            document.querySelector('.section-title').textContent = 'No menu items available';
+        }
+    </script>
     </script>
 </body>
 </html>
