@@ -4,12 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kiosk</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; }
         body {
             margin: 0;
-            font-family: Arial, Helvetica, sans-serif;
-            background: #f3f4f6;
+            font-family: 'Nunito', Arial, Helvetica, sans-serif;
+            font-size: 18px;
+            background: #ccf8ff;
             color: #111827;
         }
         .page {
@@ -27,7 +31,10 @@
         }
         .topbar h1 {
             margin: 0;
-            font-size: 2rem;
+            font-size: 2.35rem;
+            font-family: 'Fredoka', 'Nunito', Arial, Helvetica, sans-serif;
+            font-weight: 700;
+            letter-spacing: 0.02em;
         }
         .topbar a {
             text-decoration: none;
@@ -48,9 +55,19 @@
             padding: 20px;
             box-shadow: 0 10px 28px rgba(0,0,0,0.08);
         }
+        .main-panel {
+            background: #eefcff;
+        }
+        .order-panel {
+            background: #ffd6c2;
+            border: 1px solid #f4bfa7;
+        }
         .section-title {
             margin: 0 0 14px 0;
-            font-size: 1.35rem;
+            font-family: 'Fredoka', 'Nunito', Arial, Helvetica, sans-serif;
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: #222;
         }
         .category-tabs {
             display: flex;
@@ -59,17 +76,20 @@
             margin-bottom: 18px;
         }
         .tab-btn {
-            border: none;
+            border: 2px solid transparent;
             border-radius: 999px;
-            padding: 12px 18px;
+            padding: 14px 20px;
             font-weight: 700;
+            font-size: 1rem;
             cursor: pointer;
-            background: #e5e7eb;
+            background: #fff5ee;
             color: #111827;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
         }
         .tab-btn.active {
-            background: #2563eb;
-            color: white;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+            transform: translateY(-1px);
         }
         .menu-grid {
             display: grid;
@@ -79,23 +99,46 @@
         .item-btn {
             border: 2px solid #d1d5db;
             border-radius: 14px;
-            background: #f9fafb;
-            padding: 18px;
+            background: #efe4c9;
+            padding: 16px;
             text-align: left;
             cursor: pointer;
-            min-height: 108px;
+            min-height: 132px;
         }
         .item-btn:hover {
             border-color: #2563eb;
         }
+        .item-btn.selected {
+            background: #f7eedb;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
         .item-btn h3 {
             margin: 0 0 8px 0;
-            font-size: 1.1rem;
+            font-size: 1.3rem;
         }
         .item-btn p {
             margin: 0;
             color: #4b5563;
-            font-size: 0.95rem;
+            font-size: 1.05rem;
+        }
+        .item-btn-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .menu-drink-thumb {
+            width: 88px;
+            height: 88px;
+            flex: 0 0 88px;
+            object-fit: contain;
+            border-radius: 12px;
+            background: white;
+            border: 1px solid #e5e7eb;
+            padding: 2px;
+        }
+        .item-btn-copy {
+            min-width: 0;
         }
         .addons {
             margin-top: 22px;
@@ -105,6 +148,26 @@
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 10px;
         }
+        .addon-category-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 8px 0 14px 0;
+        }
+        .addon-category-tab {
+            border: 2px solid transparent;
+            border-radius: 999px;
+            padding: 10px 16px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            background: #eef6fb;
+            color: #111827;
+            cursor: pointer;
+        }
+        .addon-category-tab.active {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
         .addon-btn {
             border: 2px solid #d1d5db;
             border-radius: 12px;
@@ -112,6 +175,7 @@
             padding: 12px;
             cursor: pointer;
             font-weight: 700;
+            font-size: 1rem;
         }
         .addon-btn.selected {
             background: #dbeafe;
@@ -126,6 +190,9 @@
         }
         .selected-box h3 {
             margin-top: 0;
+            font-family: 'Fredoka', 'Nunito', Arial, Helvetica, sans-serif;
+            font-size: 1.4rem;
+            font-weight: 600;
         }
         .qty-row {
             display: flex;
@@ -137,8 +204,9 @@
         .qty-btn, .action-btn, .cart-btn {
             border: none;
             border-radius: 10px;
-            padding: 10px 14px;
+            padding: 12px 16px;
             font-weight: 700;
+            font-size: 1rem;
             cursor: pointer;
         }
         .qty-btn { background: #d1d5db; }
@@ -159,25 +227,239 @@
         }
         .order-item h3 {
             margin: 0 0 6px 0;
+            font-family: 'Fredoka', 'Nunito', Arial, Helvetica, sans-serif;
+            font-size: 1.25rem;
+            font-weight: 600;
         }
         .total {
-            font-size: 1.35rem;
+            font-size: 1.55rem;
             font-weight: 800;
             margin: 18px 0;
         }
         .muted {
             color: #6b7280;
+            font-size: 1rem;
         }
         .cart-actions {
             display: flex;
             gap: 10px;
             flex-wrap: wrap;
         }
+        .section-title {
+            color: #222;
+        }
+
+        .item-btn {
+            color: #111827;
+        }
+
+        .item-btn h3 {
+            color: #111827 !important;
+        }
+
+        .item-btn p {
+            color: #4b5563 !important;
+        }
+
+        .addon-btn {
+            color: #111827;
+        }
+
+        .selected-box,
+        .selected-box h3,
+        .selected-box div,
+        .selected-box span,
+        .selected-box strong {
+            color: #111827;
+        }
+
+        .qty-btn {
+            color: #111827;
+        }
+
+        .cart-btn.secondary {
+            color: white;
+        }
+
+        .action-btn {
+            color: white;
+        }
+        .customize-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(17, 24, 39, 0.55);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            z-index: 1000;
+        }
+        .customize-overlay.hidden {
+            display: none;
+        }
+        .customize-modal {
+            width: min(980px, 100%);
+            max-height: 92vh;
+            overflow-y: auto;
+            background: #f7eedb;
+            border-radius: 22px;
+            box-shadow: 0 24px 64px rgba(0,0,0,0.2);
+            padding: 24px;
+        }
+        .customize-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+        .customize-header h2 {
+            margin: 0 0 6px 0;
+            font-family: 'Fredoka', 'Nunito', Arial, Helvetica, sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        .close-btn {
+            border: none;
+            border-radius: 10px;
+            background: #e5e7eb;
+            color: #111827;
+            font-weight: 700;
+            padding: 10px 14px;
+            cursor: pointer;
+        }
+        .customize-layout {
+            display: grid;
+            grid-template-columns: 1.1fr 1fr;
+            gap: 22px;
+        }
+        .customize-preview {
+            background: #f2dfb9;
+            border: 1px solid #ddc79d;
+            border-radius: 18px;
+            padding: 16px;
+        }
+        .modal-drink-preview-mount {
+            min-height: 420px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-drink-preview-frame {
+            width: 320px;
+            height: 320px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: #ead3a2;
+            border-radius: 22px;
+        }
+        .modal-drink-preview-frame img,
+        .modal-drink-preview-frame svg {
+            width: 320px;
+            height: auto;
+            display: block;
+        }
+        .preview-wave-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 2;
+            overflow: hidden;
+            border-radius: 18px;
+        }
+        .preview-wave-overlay::before {
+            content: '';
+            position: absolute;
+            left: -10%;
+            width: 120%;
+            height: 78%;
+            top: 100%;
+            background:
+                radial-gradient(circle at 10% 60%, rgba(255,255,255,0.55) 0 12%, transparent 13%),
+                radial-gradient(circle at 26% 38%, rgba(255,255,255,0.45) 0 10%, transparent 11%),
+                radial-gradient(circle at 45% 62%, rgba(255,255,255,0.55) 0 12%, transparent 13%),
+                radial-gradient(circle at 65% 35%, rgba(255,255,255,0.42) 0 10%, transparent 11%),
+                radial-gradient(circle at 84% 58%, rgba(255,255,255,0.52) 0 12%, transparent 13%),
+                linear-gradient(180deg, #bfefff 0%, #8eddf4 55%, #65c8ec 100%);
+            clip-path: polygon(
+                0% 22%,
+                8% 10%,
+                16% 20%,
+                25% 8%,
+                34% 22%,
+                44% 11%,
+                54% 24%,
+                64% 9%,
+                74% 21%,
+                84% 12%,
+                92% 24%,
+                100% 14%,
+                100% 100%,
+                0% 100%
+            );
+            border-top: 3px solid rgba(255,255,255,0.75);
+            box-shadow: 0 -8px 20px rgba(101, 200, 236, 0.18);
+        }
+        .preview-wave-overlay.is-animating {
+            opacity: 1;
+        }
+        .preview-wave-overlay.is-animating::before {
+            animation: preview-wave-sweep 350ms ease-in-out forwards;
+        }
+        @keyframes preview-wave-sweep {
+            0% {
+                top: 100%;
+            }
+            50% {
+                top: 38%;
+            }
+            100% {
+                top: -82%;
+            }
+        }
+        .option-section {
+            margin-bottom: 18px;
+        }
+        .option-section h3 {
+            margin: 0 0 10px 0;
+            font-size: 1.2rem;
+        }
+        .choice-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+        }
+        .choice-btn {
+            border: 2px solid #d1d5db;
+            border-radius: 12px;
+            background: #f9fafb;
+            padding: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            color: #111827;
+            cursor: pointer;
+        }
+        .choice-btn.selected {
+            background: #dbeafe;
+            border-color: #2563eb;
+        }
+        .customize-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
         .hidden {
             display: none;
         }
         @media (max-width: 960px) {
             .layout { grid-template-columns: 1fr; }
+            .customize-layout { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -186,13 +468,11 @@
         <div class="topbar">
             <div>
                 <h1>Self Service Kiosk</h1>
-                <div class="muted">Database-connected menu items and orders</div>
-                <button class="translateButton" id="translateToggle" type="button">ES</button>
             </div>
         </div>
 
         <div class="layout">
-            <div class="panel">
+            <div class="panel main-panel">
                 <h2 class="section-title">Choose a category</h2>
                 <div class="category-tabs" id="categoryTabs"></div>
                 
@@ -200,15 +480,10 @@
                 <h2 class="section-title">Menu items</h2>
                 <div class="menu-grid" id="menuGrid"></div>
 
-                <div class="addons">
-                    <h2 class="section-title">Add ons</h2>
-                    <div class="addon-grid" id="addonGrid"></div>
-                </div>
-
                 <div class="selected-box">
                     <h3>Current selection</h3>
                     <div id="selectedDrink" class="muted">No drink selected yet</div>
-                    <div id="selectedAddons" class="muted" style="margin-top:8px;">No add ons selected</div>
+                    <div id="selectedOptions" class="muted" style="margin-top:8px;">Choose a drink to customize sugar, ice, and add ons</div>
 
                     <div class="qty-row">
                         <span>Quantity</span>
@@ -220,7 +495,7 @@
                 </div>
             </div>
 
-            <div class="panel">
+            <div class="panel order-panel">
                 <h2 class="section-title">Your order</h2>
                 <div id="orderList" class="order-list">
                     <div class="muted">Your order is empty</div>
@@ -230,54 +505,784 @@
                     <button class="cart-btn secondary" id="clearOrder" type="button">Clear order</button>
                     <button class="cart-btn" id="checkoutOrder" type="button">Checkout</button>
                 </div>
-                <p class="muted" style="margin-top:14px;">Powered by database integration. Menu items are fetched from the server.</p>
+            </div>
+        </div>
+    </div>
+
+    <div id="customizeOverlay" class="customize-overlay hidden">
+        <div class="customize-modal">
+            <div class="customize-header">
+                <div>
+                    <h2 id="customizeDrinkTitle">Customize drink</h2>
+                    <div id="customizeDrinkPrice" class="muted"></div>
+                </div>
+                <button class="close-btn" id="closeCustomize" type="button">Close</button>
+            </div>
+
+            <div class="customize-layout">
+                <div class="customize-preview">
+                    <div class="modal-drink-preview-mount">
+                        <div class="modal-drink-preview-frame">
+                            <div id="modalDrinkPreviewMount"></div>
+                            <div id="previewWaveOverlay" class="preview-wave-overlay"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="option-section">
+                        <h3>Sugar level</h3>
+                        <div class="choice-grid" id="sugarGrid"></div>
+                    </div>
+
+                    <div class="option-section">
+                        <h3>Ice level</h3>
+                        <div class="choice-grid" id="iceGrid"></div>
+                    </div>
+
+                    <div class="option-section">
+                        <h3>Add ons</h3>
+                        <div id="addonCategoryTabs" class="addon-category-tabs"></div>
+                        <div class="addon-grid" id="addonGrid"></div>
+                    </div>
+
+                    <div class="customize-actions">
+                        <button class="cart-btn secondary" id="cancelCustomize" type="button">Cancel</button>
+                        <button class="action-btn" id="saveCustomize" type="button">Done</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Data from server (database)
         const menuData = {
             categories: <%- JSON.stringify(categories || {}) %>,
-            addons: [
-                { id: 101, name: 'Boba', price: 0.75 },
-                { id: 102, name: 'Pudding', price: 0.75 },
-                { id: 103, name: 'Grass Jelly', price: 0.75 },
-                { id: 104, name: 'Lychee Jelly', price: 0.75 },
-                { id: 105, name: 'Cheese Foam', price: 1.00 }
-            ]
+            addons: <%- JSON.stringify(addons || []) %>
         };
 
+        const drinkStyleMap = <%- JSON.stringify(typeof drinkStyleMap !== 'undefined' ? drinkStyleMap : {}) %>;
+        const sugarOptions = ['0%', '25%', '50%', '75%', '100%'];
+        const iceOptions = ['No Ice', 'Light Ice', 'Regular Ice', 'Extra Ice'];
         const categoryTabs = document.getElementById('categoryTabs');
         const menuGrid = document.getElementById('menuGrid');
         const addonGrid = document.getElementById('addonGrid');
         const selectedDrinkEl = document.getElementById('selectedDrink');
-        const selectedAddonsEl = document.getElementById('selectedAddons');
+        const selectedOptionsEl = document.getElementById('selectedOptions');
         const qtyValueEl = document.getElementById('qtyValue');
         const orderListEl = document.getElementById('orderList');
         const orderTotalEl = document.getElementById('orderTotal');
+        const customizeOverlay = document.getElementById('customizeOverlay');
+        const customizeDrinkTitleEl = document.getElementById('customizeDrinkTitle');
+        const customizeDrinkPriceEl = document.getElementById('customizeDrinkPrice');
+        const sugarGrid = document.getElementById('sugarGrid');
+        const iceGrid = document.getElementById('iceGrid');
+        const modalDrinkPreviewMount = document.getElementById('modalDrinkPreviewMount');
+        const previewWaveOverlay = document.getElementById('previewWaveOverlay');
+        const addonCategoryTabs = document.getElementById('addonCategoryTabs');
+
+        const cubeStackLayers = [
+            { id: 'Cube_Topping_Stack_0', scale: 1.0, insertBehind: false },
+            { id: 'Cube_Topping_Stack_1', scale: 0.82, insertBehind: true },
+            { id: 'Cube_Topping_Stack_2', scale: 0.64, insertBehind: true }
+        ];
+        const addonStackConfigs = {
+            cube: {
+                sourceId: 'Cube_Topping',
+                hideSource: true,
+                layers: cubeStackLayers
+            },
+            ball: {
+                sourceId: 'Bobba',
+                hideSource: false,
+                layers: [
+                    { id: 'Bobba_Stack_0', scale: 1.0, insertBehind: false },
+                    { id: 'Bobba_Stack_1', scale: 0.82, insertBehind: true },
+                    { id: 'Bobba_Stack_2', scale: 0.64, insertBehind: true }
+                ]
+            },
+            seeds: {
+                sourceId: 'Seeds',
+                hideSource: false,
+                layers: [
+                    { id: 'Seeds_Stack_0', scale: 1.0, insertBehind: false },
+                    { id: 'Seeds_Stack_1', scale: 0.82, insertBehind: true },
+                    { id: 'Seeds_Stack_2', scale: 0.64, insertBehind: true }
+                ]
+            },
+            syrup: {
+                sourceId: 'Syrup',
+                hideSource: false,
+                layers: [
+                    { id: 'Syrup_Stack_0', scale: 1.0, insertBehind: false },
+                    { id: 'Syrup_Stack_1', scale: 0.88, insertBehind: true },
+                    { id: 'Syrup_Stack_2', scale: 0.76, insertBehind: true }
+                ]
+            }
+        };
+        const addonCategoryOrder = ['ball', 'seeds', 'cube', 'syrup', 'extras'];
+        const addonCategoryLabels = {
+            ball: 'Ball',
+            seeds: 'Seeds',
+            cube: 'Cube',
+            syrup: 'Syrup',
+            extras: 'Extras'
+        };
+        const addonCategoryTabColors = {
+            ball: '#f8d8e8',
+            seeds: '#dff2d8',
+            cube: '#ffe4d6',
+            syrup: '#dff4ff',
+            extras: '#fdecc8'
+        };
+        const categoryTabColors = {
+            'Milk Tea': '#f8d8e8',
+            'Tea': '#dff2d8',
+            'Fruit Tea': '#ffe4d6',
+            'Smoothie': '#f9e2ff',
+            'Specialty': '#fdecc8',
+            'Energy': '#fff4b8',
+            'Sour': '#e1f7e7',
+            'Matcha': '#d7f0d3',
+            'SEASONAL': '#dff4ff',
+            'Seasonal': '#dff4ff'
+        };
 
         let currentCategory = Object.keys(menuData.categories)[0] || null;
+        let currentAddonCategory = 'ball';
         let selectedDrink = null;
         let selectedAddons = [];
+        let cubeAddonOrder = [];
+        let selectedSugar = '100%';
+        let selectedIce = 'Regular Ice';
         let quantity = 1;
         let order = [];
+        let drinkSvgTemplate = null;
+        let customizationDraft = null;
+        const menuPreviewCache = new Map();
+        let previewWaveTimer = null;
+        let previewWaveCleanupTimer = null;
+        const closeCustomizeBtn = document.getElementById('closeCustomize');
+        const cancelCustomizeBtn = document.getElementById('cancelCustomize');
+        const saveCustomizeBtn = document.getElementById('saveCustomize');
+        const addonVisualMap = {
+            'boba': { type: 'ball', color: '#2f1707' },
+            'strawberry popping boba': { type: 'ball', color: '#f28aa5' },
+            'eye of newt': { type: 'ball', color: '#7f5aa2' },
+            'jelly coffee': { type: 'cube', color: '#6f4e37' },
+            'jelly grass': { type: 'cube', color: '#1f1f1f' },
+            'jelly tuna': { type: 'cube', color: '#f1b6a8' },
+            'aloe vera': { type: 'cube', color: '#d8f3c4' },
+            'milk foam': { type: 'syrup', color: '#fff7dc' },
+            'milk oat': { type: 'syrup', color: '#efe6d6' },
+            'honey': { type: 'syrup', color: '#f5c542' },
+            'chamoy': { type: 'syrup', color: '#c94f3d' },
+            'lemon juice': { type: 'syrup', color: '#f6e27a' },
+            'cocoa powder': { type: 'syrup', color: '#7a4a2f' },
+            'taro': { type: 'syrup', color: '#b9a0dc' },
+            'yogurt base': { type: 'syrup', color: '#f5f2ea' },
+            'syrup chocolate': { type: 'syrup', color: '#6b3e26' },
+            'syrup strawberry': { type: 'syrup', color: '#f07f93' },
+            'syrup mango': { type: 'syrup', color: '#f5b54c' },
+            'syrup caramel': { type: 'syrup', color: '#b9783f' },
+            'syrup vanilla': { type: 'syrup', color: '#f1dfb3' },
+            'syrup brown sugar': { type: 'syrup', color: '#8b5a3c' },
+            'seeds chia': { type: 'seeds', color: '#3a3a3a' },
+            'basil seeds': { type: 'seeds', color: '#2f3b2f' }
+        };
+
+        function normalizeAddonName(name) {
+            return String(name || '').trim().toLowerCase();
+        }
+
+        function translateName(name) {
+            return name;
+        }
+
+        function getAddonVisualConfig(name) {
+            const normalizedName = normalizeAddonName(name);
+            if (addonVisualMap[normalizedName]) {
+                return addonVisualMap[normalizedName];
+            }
+
+            if (normalizedName.includes('boba') || normalizedName.includes('newt')) {
+                return { type: 'ball', color: '#2f1707' };
+            }
+
+            if (normalizedName.includes('seed')) {
+                return { type: 'seeds', color: '#2f3b2f' };
+            }
+
+            if (normalizedName.includes('jelly') || normalizedName.includes('aloe')) {
+                return { type: 'cube', color: '#d8f3c4' };
+            }
+
+            if (
+                normalizedName.includes('syrup') ||
+                normalizedName.includes('foam') ||
+                normalizedName.includes('honey') ||
+                normalizedName.includes('juice') ||
+                normalizedName.includes('powder') ||
+                normalizedName.includes('taro') ||
+                normalizedName.includes('milk') ||
+                normalizedName.includes('yogurt')
+            ) {
+                return { type: 'syrup', color: '#c58940' };
+            }
+
+            return { type: 'cube', color: '#d8f3c4' };
+        }
+
+        function getAddonDisplayCategory(name) {
+            const normalizedName = normalizeAddonName(name);
+
+            if (
+                normalizedName.includes('foam') ||
+                normalizedName === 'milk oat' ||
+                normalizedName === 'taro' ||
+                normalizedName === 'chamoy' ||
+                normalizedName === 'cocoa powder' ||
+                normalizedName === 'yogurt base'
+            ) {
+                return 'extras';
+            }
+
+            return getAddonVisualConfig(name).type;
+        }
+
+        function extractDrinkSvgTemplate(svgAssetText) {
+            const parser = new DOMParser();
+            const assetDoc = parser.parseFromString(svgAssetText, 'text/html');
+            const svg = assetDoc.querySelector('svg');
+
+            return svg ? svg.cloneNode(true) : null;
+        }
+
+        function createDrinkSvgInstance() {
+            return drinkSvgTemplate ? drinkSvgTemplate.cloneNode(true) : null;
+        }
+
+        function getGroupFromSvg(svgRoot, id) {
+            if (!svgRoot) return null;
+            return svgRoot.querySelector(`#${CSS.escape(id)}`);
+        }
+
+        function setLayerVisibleOnSvg(svgRoot, groupId, isVisible) {
+            const group = getGroupFromSvg(svgRoot, groupId);
+            if (!group) return;
+            group.style.display = isVisible ? '' : 'none';
+        }
+
+        function setGroupFillOnSvg(svgRoot, groupId, color) {
+            const group = getGroupFromSvg(svgRoot, groupId);
+            if (!group) return;
+
+            const shapes = group.querySelectorAll('path, rect, circle, ellipse, polygon, polyline');
+            shapes.forEach((shape) => {
+                shape.setAttribute('fill', color);
+            });
+        }
+
+        function ensureClonedLayerOnSvg(svgRoot, sourceId, newId, scale = 1, insertBehind = false) {
+            if (!svgRoot) return null;
+
+            const existing = getGroupFromSvg(svgRoot, newId);
+            if (existing) return existing;
+
+            const source = getGroupFromSvg(svgRoot, sourceId);
+            if (!source || !source.parentNode) return null;
+
+            const clone = source.cloneNode(true);
+            clone.setAttribute('id', newId);
+            clone.style.display = 'none';
+            clone.style.transformBox = 'fill-box';
+            clone.style.transformOrigin = 'center';
+            clone.style.transform = `scale(${scale})`;
+
+            if (insertBehind) {
+                source.parentNode.insertBefore(clone, source);
+            } else {
+                source.parentNode.appendChild(clone);
+            }
+
+            return clone;
+        }
+
+        function resetAddonStackOnSvg(svgRoot, stackType) {
+            const stackConfig = addonStackConfigs[stackType];
+            if (!stackConfig) return;
+
+            stackConfig.layers.forEach((layer) => setLayerVisibleOnSvg(svgRoot, layer.id, false));
+        }
+
+        function setupAddonLayersOnSvg(svgRoot) {
+            if (!svgRoot) return;
+
+            Object.values(addonStackConfigs).forEach((stackConfig) => {
+                stackConfig.layers.forEach((layer) => {
+                    ensureClonedLayerOnSvg(svgRoot, stackConfig.sourceId, layer.id, layer.scale, layer.insertBehind);
+                });
+
+                if (stackConfig.hideSource) {
+                    setLayerVisibleOnSvg(svgRoot, stackConfig.sourceId, false);
+                }
+
+                resetAddonStackOnSvg(svgRoot, Object.keys(addonStackConfigs).find((key) => addonStackConfigs[key] === stackConfig));
+            });
+        }
+
+        function setLiquidGradientOnSvg(svgRoot, topColor, midColor, bottomColor) {
+            if (!svgRoot) return;
+
+            const stops = svgRoot.querySelectorAll('#linear-gradient stop');
+            if (stops.length < 3) return;
+
+            stops[0].setAttribute('stop-color', bottomColor);
+            stops[1].setAttribute('stop-color', midColor);
+            stops[2].setAttribute('stop-color', topColor);
+        }
+
+        function setBobbaOnSvg(svgRoot, enabled, color = null) {
+            setLayerVisibleOnSvg(svgRoot, 'Bobba', enabled);
+            if (enabled && color) setGroupFillOnSvg(svgRoot, 'Bobba', color);
+        }
+
+        function setSeedsOnSvg(svgRoot, enabled, color = null) {
+            setLayerVisibleOnSvg(svgRoot, 'Seeds', enabled);
+            if (enabled && color) setGroupFillOnSvg(svgRoot, 'Seeds', color);
+        }
+
+        function setSyrupOnSvg(svgRoot, enabled, color = null) {
+            setLayerVisibleOnSvg(svgRoot, 'Syrup', enabled);
+            if (enabled && color) setGroupFillOnSvg(svgRoot, 'Syrup', color);
+        }
+
+        function applyDrinkStyleToSvg(svgRoot, drinkConfig) {
+            if (!svgRoot || !drinkConfig) return;
+
+            if (drinkConfig.lid_color) setGroupFillOnSvg(svgRoot, 'Lid', drinkConfig.lid_color);
+            if (drinkConfig.straw_color) setGroupFillOnSvg(svgRoot, 'Straw', drinkConfig.straw_color);
+
+            if (drinkConfig.liquid_top && drinkConfig.liquid_mid && drinkConfig.liquid_bottom) {
+                setLiquidGradientOnSvg(
+                    svgRoot,
+                    drinkConfig.liquid_top,
+                    drinkConfig.liquid_mid,
+                    drinkConfig.liquid_bottom
+                );
+            }
+
+            setBobbaOnSvg(svgRoot, !!drinkConfig.show_bobba, drinkConfig.bobba_color || null);
+            setSeedsOnSvg(svgRoot, !!drinkConfig.show_seeds, drinkConfig.seeds_color || null);
+            setSyrupOnSvg(svgRoot, !!drinkConfig.show_syrup, drinkConfig.syrup_color || null);
+
+            Object.entries(addonStackConfigs).forEach(([stackType, stackConfig]) => {
+                if (stackConfig.hideSource) {
+                    setLayerVisibleOnSvg(svgRoot, stackConfig.sourceId, false);
+                }
+                resetAddonStackOnSvg(svgRoot, stackType);
+            });
+        }
+
+        function renderAddonStackOnSvg(svgRoot, stackType, addonNames) {
+            if (!svgRoot) return;
+
+            const stackConfig = addonStackConfigs[stackType];
+            if (!stackConfig) return;
+
+            if (stackConfig.hideSource) {
+                setLayerVisibleOnSvg(svgRoot, stackConfig.sourceId, false);
+            }
+
+            resetAddonStackOnSvg(svgRoot, stackType);
+
+            addonNames.slice(0, stackConfig.layers.length).forEach((addonName, index) => {
+                const layerId = stackConfig.layers[index].id;
+                const color = getAddonVisualConfig(addonName).color || '#d8f3c4';
+
+                setGroupFillOnSvg(svgRoot, layerId, color);
+                setLayerVisibleOnSvg(svgRoot, layerId, true);
+            });
+        }
+
+        function applyAddonsToSvg(svgRoot, drink, addons, cubeNames) {
+            if (!svgRoot || !drink) return;
+
+            const baseStyle = drinkStyleMap[drink.name];
+            if (!baseStyle) return;
+
+            applyDrinkStyleToSvg(svgRoot, baseStyle);
+
+            const ballAddons = addons.filter((addon) => getAddonVisualConfig(addon.name).type === 'ball');
+            const seedAddons = addons.filter((addon) => getAddonVisualConfig(addon.name).type === 'seeds');
+            const syrupAddons = addons.filter((addon) => getAddonVisualConfig(addon.name).type === 'syrup');
+            const topGradientAddon = syrupAddons.find((addon) => {
+                const normalizedName = normalizeAddonName(addon.name);
+                return (
+                    normalizedName.includes('foam') ||
+                    normalizedName.includes('milk foam') ||
+                    normalizedName === 'taro' ||
+                    normalizedName === 'chamoy'
+                );
+            });
+
+            renderAddonStackOnSvg(svgRoot, 'cube', cubeNames);
+
+            if (ballAddons.length > 0) {
+                renderAddonStackOnSvg(svgRoot, 'ball', ballAddons.map((addon) => addon.name));
+            }
+
+            if (seedAddons.length > 0) {
+                renderAddonStackOnSvg(svgRoot, 'seeds', seedAddons.map((addon) => addon.name));
+            }
+
+            const visibleSyrupAddons = syrupAddons.filter((addon) => {
+                const normalizedName = normalizeAddonName(addon.name);
+                return !['taro', 'chamoy', 'milk oat', 'milk foam', 'cocoa powder', 'yogurt base'].includes(normalizedName);
+            });
+
+            if (visibleSyrupAddons.length > 0) {
+                renderAddonStackOnSvg(svgRoot, 'syrup', visibleSyrupAddons.map((addon) => addon.name));
+            }
+
+            let gradientTop = baseStyle.liquid_top;
+            let gradientMid = baseStyle.liquid_mid;
+            let gradientBottom = baseStyle.liquid_bottom;
+
+            syrupAddons.forEach((addon) => {
+                const normalizedName = normalizeAddonName(addon.name);
+
+                if (normalizedName.includes('foam') || normalizedName === 'milk oat') {
+                    gradientTop = normalizedName === 'milk oat' ? '#efe6d6' : '#fff7dc';
+                }
+
+                if (normalizedName === 'taro') {
+                    gradientTop = '#c7b0e8';
+                }
+
+                if (normalizedName === 'chamoy') {
+                    gradientTop = '#f08a6c';
+                }
+
+                if (normalizedName === 'cocoa powder') {
+                    gradientTop = '#8b5a3c';
+                    gradientMid = '#6f4630';
+                }
+
+                if (normalizedName === 'yogurt base') {
+                    gradientBottom = '#f5f2ea';
+                }
+            });
+
+            if (
+                gradientTop !== baseStyle.liquid_top ||
+                gradientMid !== baseStyle.liquid_mid ||
+                gradientBottom !== baseStyle.liquid_bottom
+            ) {
+                setLiquidGradientOnSvg(svgRoot, gradientTop, gradientMid, gradientBottom);
+            }
+        }
+
+        function svgToDataUrl(svgRoot) {
+            const serialized = new XMLSerializer().serializeToString(svgRoot);
+            return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(serialized)}`;
+        }
+
+        function renderModalPreviewFromCurrentSvg() {
+            if (!modalDrinkPreviewMount) return;
+
+            if (!selectedDrink) {
+                modalDrinkPreviewMount.innerHTML = '<div class="muted">Choose a drink to preview it here.</div>';
+                return;
+            }
+
+            const modalSvg = createDrinkSvgInstance();
+            if (!modalSvg) {
+                modalDrinkPreviewMount.innerHTML = '<div class="muted">Could not load preview.</div>';
+                return;
+            }
+
+            setupAddonLayersOnSvg(modalSvg);
+            applyAddonsToSvg(modalSvg, selectedDrink, selectedAddons, cubeAddonOrder);
+
+            const img = document.createElement('img');
+            img.alt = `${selectedDrink.name} preview`;
+            img.src = svgToDataUrl(modalSvg);
+
+            modalDrinkPreviewMount.innerHTML = '';
+            modalDrinkPreviewMount.appendChild(img);
+        }
+
+        function animateAddonPreviewUpdate() {
+            if (!previewWaveOverlay) {
+                updateDrinkPreviewForAddons();
+                return;
+            }
+
+            if (previewWaveTimer) {
+                clearTimeout(previewWaveTimer);
+            }
+
+            if (previewWaveCleanupTimer) {
+                clearTimeout(previewWaveCleanupTimer);
+            }
+
+            previewWaveOverlay.classList.remove('is-animating');
+            void previewWaveOverlay.offsetWidth;
+            previewWaveOverlay.classList.add('is-animating');
+
+            previewWaveTimer = setTimeout(() => {
+                updateDrinkPreviewForAddons();
+            }, 175);
+
+            previewWaveCleanupTimer = setTimeout(() => {
+                previewWaveOverlay.classList.remove('is-animating');
+            }, 360);
+        }
+
+        function createMenuDrinkPreviewDataUrl(drink) {
+            const cacheKey = drink.name;
+            if (menuPreviewCache.has(cacheKey)) {
+                return menuPreviewCache.get(cacheKey);
+            }
+
+            const svgRoot = createDrinkSvgInstance();
+            if (!svgRoot) return '';
+
+            setupAddonLayersOnSvg(svgRoot);
+            applyAddonsToSvg(svgRoot, drink, [], []);
+
+            const dataUrl = svgToDataUrl(svgRoot);
+            menuPreviewCache.set(cacheKey, dataUrl);
+            return dataUrl;
+        }
+
+        async function loadDrinkSvg() {
+            try {
+                const response = await fetch('/images/DrinkFoundation.svg');
+                const svgAssetText = await response.text();
+
+                if (!response.ok) {
+                    throw new Error(`Drink SVG request failed: ${response.status}`);
+                }
+
+                drinkSvgTemplate = extractDrinkSvgTemplate(svgAssetText);
+                if (!drinkSvgTemplate) {
+                    throw new Error('Could not find SVG markup in DrinkFoundation asset');
+                }
+
+                menuPreviewCache.clear();
+                renderMenu();
+                renderModalPreviewFromCurrentSvg();
+            } catch (err) {
+                console.error('Could not load drink SVG:', err);
+                if (modalDrinkPreviewMount) {
+                    modalDrinkPreviewMount.innerHTML = '<div class="muted">Could not load drink preview</div>';
+                }
+            }
+        }
+
+        function clearDrinkPreviewLayers() {
+            renderModalPreviewFromCurrentSvg();
+        }
+
+        function isCubeAddonName(name) {
+            return getAddonVisualConfig(name).type === 'cube';
+        }
+
+        function getCubeAddonColor(name) {
+            return getAddonVisualConfig(name).color || '#d8f3c4';
+        }
+
+        function syncCubeAddonOrder() {
+            const selectedCubeNames = selectedAddons
+                .filter((addon) => isCubeAddonName(addon.name))
+                .map((addon) => addon.name);
+
+            cubeAddonOrder = cubeAddonOrder.filter((name) => selectedCubeNames.includes(name));
+
+            selectedCubeNames.forEach((name) => {
+                if (!cubeAddonOrder.includes(name)) {
+                    cubeAddonOrder.push(name);
+                }
+            });
+        }
+
+        function updateDrinkPreviewForAddons() {
+            if (!selectedDrink) {
+                clearDrinkPreviewLayers();
+                return;
+            }
+
+            const baseStyle = drinkStyleMap[selectedDrink.name];
+            if (!baseStyle) {
+                clearDrinkPreviewLayers();
+                return;
+            }
+
+            syncCubeAddonOrder();
+            renderModalPreviewFromCurrentSvg();
+        }
 
         function money(value) {
             return value.toFixed(2);
         }
 
+        function getCategoryTabColor(category) {
+            return categoryTabColors[category] || '#fff5ee';
+        }
+
+        function getVisibleAddonCategories() {
+            const categories = addonCategoryOrder.filter((category) =>
+                menuData.addons.some((addon) => getAddonDisplayCategory(addon.name) === category)
+            );
+
+            return categories.length ? categories : ['ball'];
+        }
+
+        function renderAddonCategoryTabs() {
+            if (!addonCategoryTabs) return;
+
+            const visibleCategories = getVisibleAddonCategories();
+            if (!visibleCategories.includes(currentAddonCategory)) {
+                currentAddonCategory = visibleCategories[0];
+            }
+
+            addonCategoryTabs.innerHTML = '';
+
+            visibleCategories.forEach((category) => {
+                const button = document.createElement('button');
+                button.className = 'addon-category-tab' + (category === currentAddonCategory ? ' active' : '');
+                button.type = 'button';
+                button.textContent = addonCategoryLabels[category] || category;
+                button.style.backgroundColor = addonCategoryTabColors[category] || '#eef6fb';
+                button.onclick = () => {
+                    currentAddonCategory = category;
+                    renderAddonCategoryTabs();
+                    renderAddons();
+                };
+                addonCategoryTabs.appendChild(button);
+            });
+        }
+
+        function getDefaultCustomization(drink) {
+            return {
+                drink,
+                addons: [],
+                cubeAddonOrder: [],
+                sugar: '100%',
+                ice: 'Regular Ice'
+            };
+        }
+
+        function openCustomizeModal(drink) {
+            customizationDraft = getDefaultCustomization(drink);
+            selectedDrink = drink;
+            selectedAddons = [...customizationDraft.addons];
+            cubeAddonOrder = [...customizationDraft.cubeAddonOrder];
+            selectedSugar = customizationDraft.sugar;
+            selectedIce = customizationDraft.ice;
+
+            customizeDrinkTitleEl.textContent = `Customize ${drink.name}`;
+            customizeDrinkPriceEl.textContent = `$${money(drink.price)}`;
+            customizeOverlay.classList.remove('hidden');
+
+            renderSugarOptions();
+            renderIceOptions();
+            renderAddonCategoryTabs();
+            renderAddons();
+            renderSelection();
+            renderMenu();
+            updateDrinkPreviewForAddons();
+        }
+
+        function closeCustomizeModal(resetToSavedState = true) {
+            customizeOverlay.classList.add('hidden');
+
+            if (resetToSavedState) {
+                if (!selectedDrink) {
+                    clearDrinkPreviewLayers();
+                    return;
+                }
+
+                updateDrinkPreviewForAddons();
+            }
+        }
+
+        function saveCustomization() {
+            if (!customizationDraft || !selectedDrink) return;
+
+            customizationDraft.addons = [...selectedAddons];
+            customizationDraft.cubeAddonOrder = [...cubeAddonOrder];
+            customizationDraft.sugar = selectedSugar;
+            customizationDraft.ice = selectedIce;
+
+            closeCustomizeModal(false);
+            renderSelection();
+            renderMenu();
+        }
+
+        function clearCurrentSelection() {
+            selectedDrink = null;
+            selectedAddons = [];
+            cubeAddonOrder = [];
+            selectedSugar = '100%';
+            selectedIce = 'Regular Ice';
+            customizationDraft = null;
+            quantity = 1;
+            clearDrinkPreviewLayers();
+        }
+
+        function renderChoiceButtons(container, options, selectedValue, onSelect) {
+            container.innerHTML = '';
+
+            options.forEach((option) => {
+                const button = document.createElement('button');
+                button.className = 'choice-btn' + (option === selectedValue ? ' selected' : '');
+                button.type = 'button';
+                button.textContent = option;
+                button.onclick = () => onSelect(option);
+                container.appendChild(button);
+            });
+        }
+
+        function renderSugarOptions() {
+            renderChoiceButtons(sugarGrid, sugarOptions, selectedSugar, (option) => {
+                selectedSugar = option;
+                renderSugarOptions();
+                renderSelection();
+            });
+        }
+
+        function renderIceOptions() {
+            renderChoiceButtons(iceGrid, iceOptions, selectedIce, (option) => {
+                selectedIce = option;
+                renderIceOptions();
+                renderSelection();
+            });
+        }
+
         function renderTabs() {
             categoryTabs.innerHTML = '';
-            if (!currentCategory) {
+
+            const visibleCategories = Object.keys(menuData.categories).filter((category) => category.toUpperCase() !== 'ADDON');
+
+            if (!currentCategory || !visibleCategories.length) {
                 categoryTabs.innerHTML = '<div class="muted">No categories available</div>';
                 return;
             }
-            Object.keys(menuData.categories).forEach((category) => {
+
+            if (!visibleCategories.includes(currentCategory)) {
+                currentCategory = visibleCategories[0] || null;
+            }
+
+            visibleCategories.forEach((category) => {
                 const button = document.createElement('button');
                 button.className = 'tab-btn' + (category === currentCategory ? ' active' : '');
-                button.textContent = translateName(category);
+                button.textContent = category;
                 button.type = 'button';
+                button.textContent = category;
+                button.style.backgroundColor = getCategoryTabColor(category);
                 button.onclick = () => {
                     currentCategory = category;
                     renderTabs();
@@ -289,18 +1294,29 @@
 
         function renderMenu() {
             menuGrid.innerHTML = '';
+
             if (!currentCategory || !menuData.categories[currentCategory] || menuData.categories[currentCategory].length === 0) {
                 menuGrid.innerHTML = '<div class="muted">No items in this category</div>';
                 return;
             }
+
             menuData.categories[currentCategory].forEach((item) => {
+                const isSelected = selectedDrink && selectedDrink.id === item.id;
+                const previewUrl = createMenuDrinkPreviewDataUrl(item);
                 const button = document.createElement('button');
-                button.className = 'item-btn';
+                button.className = 'item-btn' + (isSelected ? ' selected' : '');
                 button.type = 'button';
-                button.innerHTML = `<h3>${translateName(item.name)}</h3><p>$${money(item.price)}</p>`;
+                button.innerHTML = `
+                    <div class="item-btn-content">
+                        ${previewUrl ? `<img class="menu-drink-thumb" src="${previewUrl}" alt="${item.name} preview">` : ''}
+                        <div class="item-btn-copy">
+                            <h3>${item.name}</h3>
+                            <p>$${money(item.price)}</p>
+                        </div>
+                    </div>
+                `;
                 button.onclick = () => {
-                    selectedDrink = item;
-                    renderSelection();
+                    openCustomizeModal(item);
                 };
                 menuGrid.appendChild(button);
             });
@@ -308,20 +1324,33 @@
 
         function renderAddons() {
             addonGrid.innerHTML = '';
-            menuData.addons.forEach((addon) => {
+
+            const filteredAddons = menuData.addons.filter(
+                (addon) => getAddonDisplayCategory(addon.name) === currentAddonCategory
+            );
+
+            if (filteredAddons.length === 0) {
+                addonGrid.innerHTML = '<div class="muted">No add ons in this category</div>';
+                return;
+            }
+
+            filteredAddons.forEach((addon) => {
                 const button = document.createElement('button');
                 button.className = 'addon-btn' + (selectedAddons.some((a) => a.id === addon.id) ? ' selected' : '');
                 button.type = 'button';
                 button.textContent = `${translateName(addon.name)} +$${money(addon.price)}`;
                 button.onclick = () => {
                     const exists = selectedAddons.some((a) => a.id === addon.id);
+
                     if (exists) {
                         selectedAddons = selectedAddons.filter((a) => a.id !== addon.id);
                     } else {
                         selectedAddons.push(addon);
                     }
+
                     renderAddons();
                     renderSelection();
+                    animateAddonPreviewUpdate();
                 };
                 addonGrid.appendChild(button);
             });
@@ -329,17 +1358,23 @@
 
         function renderSelection() {
             if (!selectedDrink) {
-                selectedDrinkEl.textContent = currentLang === 'es' ? 'Ninguna bebida seleccionada' : 'No drink selected yet';
+                selectedDrinkEl.textContent = 'No drink selected yet';
+                selectedOptionsEl.textContent = 'Choose a drink to customize sugar, ice, and add ons';
             } else {
                 selectedDrinkEl.textContent = `${translateName(selectedDrink.name)}  $${money(selectedDrink.price)}`;
-            }
 
-            if (selectedAddons.length === 0) {
-                selectedAddonsEl.textContent = currentLang === 'es' ? 'No se seleccionaron extras' : 'No add ons selected';
-            } else {
-                selectedAddonsEl.textContent =
-                    (currentLang === 'es' ? 'Extras: ' : 'Add ons: ') +
-                    selectedAddons.map((a) => `${translateName(a.name)} +$${money(a.price)}`).join(', ');
+                const optionParts = [
+                    `Sugar: ${selectedSugar}`,
+                    `Ice: ${selectedIce}`
+                ];
+
+                if (selectedAddons.length > 0) {
+                    optionParts.push(
+                        'Add ons: ' + selectedAddons.map((a) => `${translateName(a.name)} +$${money(a.price)}`).join(', ')
+                    );
+                }
+
+                selectedOptionsEl.textContent = optionParts.join(' | ');
             }
 
             qtyValueEl.textContent = quantity;
@@ -347,7 +1382,7 @@
 
         function renderOrder() {
             if (order.length === 0) {
-                orderListEl.innerHTML = `<div class="muted">${currentLang === 'es' ? 'Tu pedido está vacío' : 'Your order is empty'}</div>`;
+                orderListEl.innerHTML = '<div class="muted">Your order is empty</div>';
                 orderTotalEl.textContent = '0.00';
                 return;
             }
@@ -357,15 +1392,12 @@
 
             order.forEach((item, index) => {
                 total += item.total;
+
                 const div = document.createElement('div');
                 div.className = 'order-item';
                 div.innerHTML = `
-                    <h3>${item.quantity} x ${translateName(item.name)}</h3>
-                    <div>${
-                        item.addons.length
-                            ? (currentLang === 'es' ? 'Extras: ' : 'Add ons: ') + item.addons.map((a) => translateName(a.name)).join(', ')
-                            : (currentLang === 'es' ? 'Sin extras' : 'No add ons')
-                    }</div>
+                    <h3>${item.quantity} x ${item.name}</h3>
+                    <div>${item.addons.length ? 'Add ons: ' + item.addons.map((a) => a.name).join(', ') : 'No add ons'}</div>
                     <div style="margin-top:8px;"><strong>$${money(item.total)}</strong></div>
                     <button class="cart-btn danger" type="button" style="margin-top:10px;" onclick="removeOrderItem(${index})">Remove</button>
                 `;
@@ -388,13 +1420,15 @@
                 drinkId: selectedDrink.id,
                 name: selectedDrink.name,
                 addons: [...selectedAddons],
+                sugar: selectedSugar,
+                ice: selectedIce,
                 quantity,
                 total
             });
 
-            selectedDrink = null;
-            selectedAddons = [];
-            quantity = 1;
+            clearCurrentSelection();
+            closeCustomizeModal(false);
+            renderMenu();
             renderAddons();
             renderSelection();
             renderOrder();
@@ -425,182 +1459,56 @@
             renderOrder();
         };
 
+        document.getElementById('checkoutOrder').onclick = () => {
+            if (order.length === 0) {
+                alert('Order is empty');
+                return;
+            }
+
             console.log('Order being processed:', order);
+        };
+
         document.getElementById('checkoutOrder').onclick = async () => {
-    if (order.length === 0) {
-        alert('Order is empty');
-        return;
-    }
+            if (order.length === 0) {
+                alert('Order is empty');
+                return;
+            }
 
-    console.log('Order being processed:', order);
+            const payload = { order };
 
-    const payload = { order };
+            try {
+                const res = await fetch('/submitOrder', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
 
-    try {
-        const res = await fetch('/submitOrder', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-        });
+                const data = await res.json();
 
-        const data = await res.json();
+                if (data.success) {
+                    alert('Order submitted successfully!');
+                    order = [];
+                    renderOrder();
+                } else {
+                    alert('Order failed');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Server error');
+            }
+        };
 
-        if (data.success) {
-            alert('Order submitted successfully!');
-            order = [];
-            renderOrder();
-        } else {
-            alert('Order failed');
-        }
+        closeCustomizeBtn.onclick = () => closeCustomizeModal(true);
+        cancelCustomizeBtn.onclick = () => closeCustomizeModal(true);
+        saveCustomizeBtn.onclick = saveCustomization;
+        customizeOverlay.onclick = (event) => {
+            if (event.target === customizeOverlay) {
+                closeCustomizeModal(true);
+            }
+        };
 
-    } catch (err) {
-        console.error(err);
-        alert('Server error');
-    }
-};
-
-
-    
-
-    let currentLang = "en";
-
-    document.getElementById("translateToggle").onclick = async () => {
-    if (currentLang === "en") {
-        setLanguage("es");
-        currentLang = "es";
-        document.getElementById("translateToggle").innerText = "EN";
-    } else {
-        setLanguage("en");
-        currentLang = "en";
-        document.getElementById("translateToggle").innerText = "ES";
-    }
-
-    renderTabs();
-    renderMenu();
-    renderAddons();
-    renderSelection();
-    renderOrder();
-};
-const translations = {
-    en: {
-        title: "Self Service Kiosk",
-        chooseCategory: "Choose a category",
-        menuItems: "Menu items",
-        addOns: "Add ons",
-        currentSelection: "Current selection",
-        noDrink: "No drink selected yet",
-        noAddons: "No add ons selected",
-        quantity: "Quantity",
-        addToOrder: "Add to order",
-        yourOrder: "Your order",
-        emptyOrder: "Your order is empty",
-        clearOrder: "Clear order",
-        checkout: "Checkout"
-    },
-    es: {
-        title: "Quiosco de Autoservicio",
-        chooseCategory: "Elige una categoría",
-        menuItems: "Artículos del menú",
-        addOns: "Extras",
-        currentSelection: "Selección actual",
-        noDrink: "Ninguna bebida seleccionada",
-        noAddons: "No se seleccionaron extras",
-        quantity: "Cantidad",
-        addToOrder: "Agregar al pedido",
-        yourOrder: "Tu pedido",
-        emptyOrder: "Tu pedido está vacío",
-        clearOrder: "Vaciar pedido",
-        checkout: "Pagar"
-    }
-};
-const itemTranslations = {
-    en: {
-        "Milk Tea": "Milk Tea",
-        "Tea": "Tea",
-        "Fruit Tea": "Fruit Tea",
-        "Smoothie": "Smoothie",
-        "Specialty": "Specialty",
-        "Energy": "Energy",
-        "Sour": "Sour",
-        "Matcha": "Matcha",
-        "ADDON": "ADDON",
-        "SEASONAL": "SEASONAL",
-
-        "Boba": "Boba",
-        "Pudding": "Pudding",
-        "Grass Jelly": "Grass Jelly",
-        "Lychee Jelly": "Lychee Jelly",
-        "Cheese Foam": "Cheese Foam",
-
-        "Lava Flow": "Lava Flow",
-        "Misty Milk": "Misty Milk",
-        "Skilly n Duff": "Skilly n Duff",
-        "Coal Chocolate": "Coal Chocolate",
-        "Flounder Creme Brulee": "Flounder Creme Brulee",
-        "Mola Mola Matcha": "Mola Mola Matcha",
-        "Black Sea": "Black Sea"
-    },
-    es: {
-        "Milk Tea": "Té con leche",
-        "Tea": "Té",
-        "Fruit Tea": "Té de frutas",
-        "Smoothie": "Batido",
-        "Specialty": "Especialidad",
-        "Energy": "Energía",
-        "Sour": "Ácido",
-        "Matcha": "Matcha",
-        "ADDON": "EXTRAS",
-        "SEASONAL": "TEMPORADA",
-
-        "Boba": "Boba",
-        "Pudding": "Pudín",
-        "Grass Jelly": "Gelatina de hierbas",
-        "Lychee Jelly": "Gelatina de lichi",
-        "Cheese Foam": "Espuma de queso",
-
-        "Lava Flow": "Flujo de lava",
-        "Misty Milk": "Leche brumosa",
-        "Skilly n Duff": "Skilly n Duff",
-        "Coal Chocolate": "Chocolate carbón",
-        "Flounder Creme Brulee": "Crema brûlée Flounder",
-        "Mola Mola Matcha": "Matcha Mola Mola",
-        "Black Sea": "Mar Negro"
-    }
-};
-
-function translateName(name) {
-    return itemTranslations[currentLang]?.[name] || name;
-}
-
-function setLanguage(lang) {
-    document.querySelector(".topbar h1").innerText = translations[lang].title;
-    document.querySelectorAll(".section-title")[0].innerText = translations[lang].chooseCategory;
-    document.querySelectorAll(".section-title")[1].innerText = translations[lang].menuItems;
-    document.querySelectorAll(".section-title")[2].innerText = translations[lang].addOns;
-    document.querySelector(".selected-box h3").innerText = translations[lang].currentSelection;
-
-    if (!selectedDrink) {
-        selectedDrinkEl.innerText = translations[lang].noDrink;
-    }
-
-    if (selectedAddons.length === 0) {
-        selectedAddonsEl.innerText = translations[lang].noAddons;
-    }
-
-    document.querySelector(".qty-row span").innerText = translations[lang].quantity;
-    document.getElementById("addToOrder").innerText = translations[lang].addToOrder;
-
-    document.querySelectorAll(".section-title")[3].innerText = translations[lang].yourOrder;
-
-    if (order.length === 0) {
-        orderListEl.innerHTML = `<div class="muted">${translations[lang].emptyOrder}</div>`;
-    }
-
-    document.getElementById("clearOrder").innerText = translations[lang].clearOrder;
-    document.getElementById("checkoutOrder").innerText = translations[lang].checkout;
-}
         // Initialize UI
         if (Object.keys(menuData.categories).length > 0) {
             renderTabs();
@@ -611,6 +1519,8 @@ function setLanguage(lang) {
         } else {
             document.querySelector('.section-title').textContent = 'No menu items available';
         }
+
+        loadDrinkSvg();
     </script>
 </body>
 </html>
