@@ -152,9 +152,12 @@ app.get('/kiosk', async (req, res) => {
     try {
         console.log('Kiosk: Loading menu from database');
         
-        // Fetch all active menu items
-        const menuItems = await MenuItemDao.get_active_menu_items();
-        console.log('Kiosk: Retrieved', menuItems.length, 'menu items');
+        const [menuItems, activeAddons] = await Promise.all([
+            MenuItemDao.get_active_drink_items(),
+            MenuItemDao.get_active_addons()
+        ]);
+        console.log('Kiosk: Retrieved', menuItems.length, 'drink items');
+        console.log('Kiosk: Retrieved', activeAddons.length, 'addons');
         
         // Group menu items by category
         const categories = {};
@@ -175,6 +178,11 @@ app.get('/kiosk', async (req, res) => {
 
         res.render('kiosk', {
             categories,
+            addons: activeAddons.map(item => ({
+                id: item.menu_item_id,
+                name: item.name,
+                price: parseFloat(item.base_price)
+            })),
             drinkStyleMap,
             statusMessage: ''
         });
@@ -182,6 +190,7 @@ app.get('/kiosk', async (req, res) => {
         console.error('Kiosk: Error loading menu:', err);
         res.render('kiosk', {
             categories: {},
+            addons: [],
             drinkStyleMap: {},
             statusMessage: 'Error loading menu items'
         });
