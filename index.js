@@ -177,7 +177,7 @@ app.post('/inventoryAdd', async (req, res) => {
     try {
         const item = req.body;
 
-        await InventoryItemDAO.insertInventoryItem(item);
+        await inventoryDao.createInventoryItem(item);
 
         res.json({ success: true });
     } catch (err) {
@@ -190,7 +190,7 @@ app.post('/updateQuantityName', async (req, res) => {
     try {
         const { name, quantity } = req.body;
 
-        await InventoryItemDAO.updateQuantityByName(name, quantity);
+        await inventoryDao.updateInventoryQuantityByName(name, quantity);
 
         res.json({ success: true });
     } catch (err) {
@@ -203,7 +203,7 @@ app.post('/deleteInventoryItem', async (req, res) => {
     try {
         const { name } = req.body;
 console.log("Deleting:", name);
-        const count = await InventoryItemDAO.deleteInventoryItem(name);
+        const count = await inventoryDao.deactivateInventoryItemByName(name);
 
         if (count === 0) {
             return res.json({ success: false, message: "Item not found" });
@@ -220,7 +220,7 @@ app.post('/insertIngredientReturningId', async (req, res) => {
     try {
         const { name } = req.body;
 
-        const id = await InventoryItemDAO.insert_ingredient_returning_id(name);
+        const id = await inventoryDao.createInventoryItem(name);
 
         res.json({
             success: true,
