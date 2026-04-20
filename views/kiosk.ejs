@@ -4,11 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kiosk</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; }
         body {
             margin: 0;
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: 'Nunito', Arial, Helvetica, sans-serif;
             font-size: 18px;
             background: #ccf8ff;
             color: #111827;
@@ -29,6 +32,9 @@
         .topbar h1 {
             margin: 0;
             font-size: 2.35rem;
+            font-family: 'Fredoka', 'Nunito', Arial, Helvetica, sans-serif;
+            font-weight: 700;
+            letter-spacing: 0.02em;
         }
         .topbar a {
             text-decoration: none;
@@ -58,7 +64,9 @@
         }
         .section-title {
             margin: 0 0 14px 0;
+            font-family: 'Fredoka', 'Nunito', Arial, Helvetica, sans-serif;
             font-size: 1.6rem;
+            font-weight: 600;
             color: #222;
         }
         .category-tabs {
@@ -140,6 +148,26 @@
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 10px;
         }
+        .addon-category-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 8px 0 14px 0;
+        }
+        .addon-category-tab {
+            border: 2px solid transparent;
+            border-radius: 999px;
+            padding: 10px 16px;
+            font-weight: 700;
+            font-size: 0.95rem;
+            background: #eef6fb;
+            color: #111827;
+            cursor: pointer;
+        }
+        .addon-category-tab.active {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+        }
         .addon-btn {
             border: 2px solid #d1d5db;
             border-radius: 12px;
@@ -162,7 +190,9 @@
         }
         .selected-box h3 {
             margin-top: 0;
+            font-family: 'Fredoka', 'Nunito', Arial, Helvetica, sans-serif;
             font-size: 1.4rem;
+            font-weight: 600;
         }
         .qty-row {
             display: flex;
@@ -197,7 +227,9 @@
         }
         .order-item h3 {
             margin: 0 0 6px 0;
+            font-family: 'Fredoka', 'Nunito', Arial, Helvetica, sans-serif;
             font-size: 1.25rem;
+            font-weight: 600;
         }
         .total {
             font-size: 1.55rem;
@@ -269,7 +301,7 @@
             width: min(980px, 100%);
             max-height: 92vh;
             overflow-y: auto;
-            background: white;
+            background: #f7eedb;
             border-radius: 22px;
             box-shadow: 0 24px 64px rgba(0,0,0,0.2);
             padding: 24px;
@@ -283,7 +315,9 @@
         }
         .customize-header h2 {
             margin: 0 0 6px 0;
+            font-family: 'Fredoka', 'Nunito', Arial, Helvetica, sans-serif;
             font-size: 2rem;
+            font-weight: 700;
         }
         .close-btn {
             border: none;
@@ -300,8 +334,8 @@
             gap: 22px;
         }
         .customize-preview {
-            background: #ffffff;
-            border: 1px solid #e5e7eb;
+            background: #f2dfb9;
+            border: 1px solid #ddc79d;
             border-radius: 18px;
             padding: 16px;
         }
@@ -311,11 +345,81 @@
             align-items: center;
             justify-content: center;
         }
-        .modal-drink-preview-mount img,
-        .modal-drink-preview-mount svg {
+        .modal-drink-preview-frame {
+            width: 320px;
+            height: 320px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            background: #ead3a2;
+            border-radius: 22px;
+        }
+        .modal-drink-preview-frame img,
+        .modal-drink-preview-frame svg {
             width: 320px;
             height: auto;
             display: block;
+        }
+        .preview-wave-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 2;
+            overflow: hidden;
+            border-radius: 18px;
+        }
+        .preview-wave-overlay::before {
+            content: '';
+            position: absolute;
+            left: -10%;
+            width: 120%;
+            height: 78%;
+            top: 100%;
+            background:
+                radial-gradient(circle at 10% 60%, rgba(255,255,255,0.55) 0 12%, transparent 13%),
+                radial-gradient(circle at 26% 38%, rgba(255,255,255,0.45) 0 10%, transparent 11%),
+                radial-gradient(circle at 45% 62%, rgba(255,255,255,0.55) 0 12%, transparent 13%),
+                radial-gradient(circle at 65% 35%, rgba(255,255,255,0.42) 0 10%, transparent 11%),
+                radial-gradient(circle at 84% 58%, rgba(255,255,255,0.52) 0 12%, transparent 13%),
+                linear-gradient(180deg, #bfefff 0%, #8eddf4 55%, #65c8ec 100%);
+            clip-path: polygon(
+                0% 22%,
+                8% 10%,
+                16% 20%,
+                25% 8%,
+                34% 22%,
+                44% 11%,
+                54% 24%,
+                64% 9%,
+                74% 21%,
+                84% 12%,
+                92% 24%,
+                100% 14%,
+                100% 100%,
+                0% 100%
+            );
+            border-top: 3px solid rgba(255,255,255,0.75);
+            box-shadow: 0 -8px 20px rgba(101, 200, 236, 0.18);
+        }
+        .preview-wave-overlay.is-animating {
+            opacity: 1;
+        }
+        .preview-wave-overlay.is-animating::before {
+            animation: preview-wave-sweep 350ms ease-in-out forwards;
+        }
+        @keyframes preview-wave-sweep {
+            0% {
+                top: 100%;
+            }
+            50% {
+                top: 38%;
+            }
+            100% {
+                top: -82%;
+            }
         }
         .option-section {
             margin-bottom: 18px;
@@ -416,7 +520,12 @@
 
             <div class="customize-layout">
                 <div class="customize-preview">
-                    <div id="modalDrinkPreviewMount" class="modal-drink-preview-mount"></div>
+                    <div class="modal-drink-preview-mount">
+                        <div class="modal-drink-preview-frame">
+                            <div id="modalDrinkPreviewMount"></div>
+                            <div id="previewWaveOverlay" class="preview-wave-overlay"></div>
+                        </div>
+                    </div>
                 </div>
 
                 <div>
@@ -432,6 +541,7 @@
 
                     <div class="option-section">
                         <h3>Add ons</h3>
+                        <div id="addonCategoryTabs" class="addon-category-tabs"></div>
                         <div class="addon-grid" id="addonGrid"></div>
                     </div>
 
@@ -467,12 +577,29 @@
         const sugarGrid = document.getElementById('sugarGrid');
         const iceGrid = document.getElementById('iceGrid');
         const modalDrinkPreviewMount = document.getElementById('modalDrinkPreviewMount');
+        const previewWaveOverlay = document.getElementById('previewWaveOverlay');
+        const addonCategoryTabs = document.getElementById('addonCategoryTabs');
 
         const cubeStackLayers = [
             { id: 'Cube_Topping_Stack_0', scale: 1.0, insertBehind: false },
             { id: 'Cube_Topping_Stack_1', scale: 0.82, insertBehind: true },
             { id: 'Cube_Topping_Stack_2', scale: 0.64, insertBehind: true }
         ];
+        const addonCategoryOrder = ['ball', 'seeds', 'cube', 'syrup', 'extras'];
+        const addonCategoryLabels = {
+            ball: 'Ball',
+            seeds: 'Seeds',
+            cube: 'Cube',
+            syrup: 'Syrup',
+            extras: 'Extras'
+        };
+        const addonCategoryTabColors = {
+            ball: '#f8d8e8',
+            seeds: '#dff2d8',
+            cube: '#ffe4d6',
+            syrup: '#dff4ff',
+            extras: '#fdecc8'
+        };
         const categoryTabColors = {
             'Milk Tea': '#f8d8e8',
             'Tea': '#dff2d8',
@@ -487,6 +614,7 @@
         };
 
         let currentCategory = Object.keys(menuData.categories)[0] || null;
+        let currentAddonCategory = 'ball';
         let selectedDrink = null;
         let selectedAddons = [];
         let cubeAddonOrder = [];
@@ -497,6 +625,8 @@
         let drinkSvgTemplate = null;
         let customizationDraft = null;
         const menuPreviewCache = new Map();
+        let previewWaveTimer = null;
+        let previewWaveCleanupTimer = null;
         const addonVisualMap = {
             'boba': { type: 'ball', color: '#2f1707' },
             'strawberry popping boba': { type: 'ball', color: '#f28aa5' },
@@ -553,6 +683,23 @@
             }
 
             return { type: 'cube', color: '#d8f3c4' };
+        }
+
+        function getAddonDisplayCategory(name) {
+            const normalizedName = normalizeAddonName(name);
+
+            if (
+                normalizedName.includes('foam') ||
+                normalizedName === 'milk oat' ||
+                normalizedName === 'taro' ||
+                normalizedName === 'chamoy' ||
+                normalizedName === 'cocoa powder' ||
+                normalizedName === 'yogurt base'
+            ) {
+                return 'extras';
+            }
+
+            return getAddonVisualConfig(name).type;
         }
 
         function extractDrinkSvgTemplate(svgAssetText) {
@@ -802,6 +949,33 @@
             modalDrinkPreviewMount.appendChild(img);
         }
 
+        function animateAddonPreviewUpdate() {
+            if (!previewWaveOverlay) {
+                updateDrinkPreviewForAddons();
+                return;
+            }
+
+            if (previewWaveTimer) {
+                clearTimeout(previewWaveTimer);
+            }
+
+            if (previewWaveCleanupTimer) {
+                clearTimeout(previewWaveCleanupTimer);
+            }
+
+            previewWaveOverlay.classList.remove('is-animating');
+            void previewWaveOverlay.offsetWidth;
+            previewWaveOverlay.classList.add('is-animating');
+
+            previewWaveTimer = setTimeout(() => {
+                updateDrinkPreviewForAddons();
+            }, 175);
+
+            previewWaveCleanupTimer = setTimeout(() => {
+                previewWaveOverlay.classList.remove('is-animating');
+            }, 360);
+        }
+
         function createMenuDrinkPreviewDataUrl(drink) {
             const cacheKey = drink.name;
             if (menuPreviewCache.has(cacheKey)) {
@@ -891,6 +1065,39 @@
             return categoryTabColors[category] || '#fff5ee';
         }
 
+        function getVisibleAddonCategories() {
+            const categories = addonCategoryOrder.filter((category) =>
+                menuData.addons.some((addon) => getAddonDisplayCategory(addon.name) === category)
+            );
+
+            return categories.length ? categories : ['ball'];
+        }
+
+        function renderAddonCategoryTabs() {
+            if (!addonCategoryTabs) return;
+
+            const visibleCategories = getVisibleAddonCategories();
+            if (!visibleCategories.includes(currentAddonCategory)) {
+                currentAddonCategory = visibleCategories[0];
+            }
+
+            addonCategoryTabs.innerHTML = '';
+
+            visibleCategories.forEach((category) => {
+                const button = document.createElement('button');
+                button.className = 'addon-category-tab' + (category === currentAddonCategory ? ' active' : '');
+                button.type = 'button';
+                button.textContent = addonCategoryLabels[category] || category;
+                button.style.backgroundColor = addonCategoryTabColors[category] || '#eef6fb';
+                button.onclick = () => {
+                    currentAddonCategory = category;
+                    renderAddonCategoryTabs();
+                    renderAddons();
+                };
+                addonCategoryTabs.appendChild(button);
+            });
+        }
+
         function getDefaultCustomization(drink) {
             return {
                 drink,
@@ -915,6 +1122,7 @@
 
             renderSugarOptions();
             renderIceOptions();
+            renderAddonCategoryTabs();
             renderAddons();
             renderSelection();
             renderMenu();
@@ -1049,7 +1257,16 @@
         function renderAddons() {
             addonGrid.innerHTML = '';
 
-            menuData.addons.forEach((addon) => {
+            const filteredAddons = menuData.addons.filter(
+                (addon) => getAddonDisplayCategory(addon.name) === currentAddonCategory
+            );
+
+            if (filteredAddons.length === 0) {
+                addonGrid.innerHTML = '<div class="muted">No add ons in this category</div>';
+                return;
+            }
+
+            filteredAddons.forEach((addon) => {
                 const button = document.createElement('button');
                 button.className = 'addon-btn' + (selectedAddons.some((a) => a.id === addon.id) ? ' selected' : '');
                 button.type = 'button';
@@ -1065,7 +1282,7 @@
 
                     renderAddons();
                     renderSelection();
-                    updateDrinkPreviewForAddons();
+                    animateAddonPreviewUpdate();
                 };
                 addonGrid.appendChild(button);
             });
