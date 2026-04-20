@@ -187,6 +187,7 @@
             <div>
                 <h1>Self Service Kiosk</h1>
                 <div class="muted">Database-connected menu items and orders</div>
+                <button class="translateButton" id="translateToggle" type="button">ES</button>
             </div>
         </div>
 
@@ -194,6 +195,7 @@
             <div class="panel">
                 <h2 class="section-title">Choose a category</h2>
                 <div class="category-tabs" id="categoryTabs"></div>
+                
 
                 <h2 class="section-title">Menu items</h2>
                 <div class="menu-grid" id="menuGrid"></div>
@@ -274,7 +276,7 @@
             Object.keys(menuData.categories).forEach((category) => {
                 const button = document.createElement('button');
                 button.className = 'tab-btn' + (category === currentCategory ? ' active' : '');
-                button.textContent = category;
+                button.textContent = translateName(category);
                 button.type = 'button';
                 button.onclick = () => {
                     currentCategory = category;
@@ -295,7 +297,7 @@
                 const button = document.createElement('button');
                 button.className = 'item-btn';
                 button.type = 'button';
-                button.innerHTML = `<h3>${item.name}</h3><p>$${money(item.price)}</p>`;
+                button.innerHTML = `<h3>${translateName(item.name)}</h3><p>$${money(item.price)}</p>`;
                 button.onclick = () => {
                     selectedDrink = item;
                     renderSelection();
@@ -310,7 +312,7 @@
                 const button = document.createElement('button');
                 button.className = 'addon-btn' + (selectedAddons.some((a) => a.id === addon.id) ? ' selected' : '');
                 button.type = 'button';
-                button.textContent = `${addon.name} +$${money(addon.price)}`;
+                button.textContent = `${translateName(addon.name)} +$${money(addon.price)}`;
                 button.onclick = () => {
                     const exists = selectedAddons.some((a) => a.id === addon.id);
                     if (exists) {
@@ -327,15 +329,17 @@
 
         function renderSelection() {
             if (!selectedDrink) {
-                selectedDrinkEl.textContent = 'No drink selected yet';
+                selectedDrinkEl.textContent = currentLang === 'es' ? 'Ninguna bebida seleccionada' : 'No drink selected yet';
             } else {
-                selectedDrinkEl.textContent = `${selectedDrink.name}  $${money(selectedDrink.price)}`;
+                selectedDrinkEl.textContent = `${translateName(selectedDrink.name)}  $${money(selectedDrink.price)}`;
             }
 
             if (selectedAddons.length === 0) {
-                selectedAddonsEl.textContent = 'No add ons selected';
+                selectedAddonsEl.textContent = currentLang === 'es' ? 'No se seleccionaron extras' : 'No add ons selected';
             } else {
-                selectedAddonsEl.textContent = 'Add ons: ' + selectedAddons.map((a) => `${a.name} +$${money(a.price)}`).join(', ');
+                selectedAddonsEl.textContent =
+                    (currentLang === 'es' ? 'Extras: ' : 'Add ons: ') +
+                    selectedAddons.map((a) => `${translateName(a.name)} +$${money(a.price)}`).join(', ');
             }
 
             qtyValueEl.textContent = quantity;
@@ -343,7 +347,7 @@
 
         function renderOrder() {
             if (order.length === 0) {
-                orderListEl.innerHTML = '<div class="muted">Your order is empty</div>';
+                orderListEl.innerHTML = `<div class="muted">${currentLang === 'es' ? 'Tu pedido está vacío' : 'Your order is empty'}</div>`;
                 orderTotalEl.textContent = '0.00';
                 return;
             }
@@ -356,8 +360,12 @@
                 const div = document.createElement('div');
                 div.className = 'order-item';
                 div.innerHTML = `
-                    <h3>${item.quantity} x ${item.name}</h3>
-                    <div>${item.addons.length ? 'Add ons: ' + item.addons.map((a) => a.name).join(', ') : 'No add ons'}</div>
+                    <h3>${item.quantity} x ${translateName(item.name)}</h3>
+                    <div>${
+                        item.addons.length
+                            ? (currentLang === 'es' ? 'Extras: ' : 'Add ons: ') + item.addons.map((a) => translateName(a.name)).join(', ')
+                            : (currentLang === 'es' ? 'Sin extras' : 'No add ons')
+                    }</div>
                     <div style="margin-top:8px;"><strong>$${money(item.total)}</strong></div>
                     <button class="cart-btn danger" type="button" style="margin-top:10px;" onclick="removeOrderItem(${index})">Remove</button>
                 `;
@@ -417,14 +425,8 @@
             renderOrder();
         };
 
-        document.getElementById('checkoutOrder').onclick = () => {
-            if (order.length === 0) {
-                alert('Order is empty');
-                return;
-            }
-
             console.log('Order being processed:', order);
-            document.getElementById('checkoutOrder').onclick = async () => {
+        document.getElementById('checkoutOrder').onclick = async () => {
     if (order.length === 0) {
         alert('Order is empty');
         return;
@@ -458,8 +460,147 @@
         alert('Server error');
     }
 };
-        };
 
+
+    
+
+    let currentLang = "en";
+
+    document.getElementById("translateToggle").onclick = async () => {
+    if (currentLang === "en") {
+        setLanguage("es");
+        currentLang = "es";
+        document.getElementById("translateToggle").innerText = "EN";
+    } else {
+        setLanguage("en");
+        currentLang = "en";
+        document.getElementById("translateToggle").innerText = "ES";
+    }
+
+    renderTabs();
+    renderMenu();
+    renderAddons();
+    renderSelection();
+    renderOrder();
+};
+const translations = {
+    en: {
+        title: "Self Service Kiosk",
+        chooseCategory: "Choose a category",
+        menuItems: "Menu items",
+        addOns: "Add ons",
+        currentSelection: "Current selection",
+        noDrink: "No drink selected yet",
+        noAddons: "No add ons selected",
+        quantity: "Quantity",
+        addToOrder: "Add to order",
+        yourOrder: "Your order",
+        emptyOrder: "Your order is empty",
+        clearOrder: "Clear order",
+        checkout: "Checkout"
+    },
+    es: {
+        title: "Quiosco de Autoservicio",
+        chooseCategory: "Elige una categoría",
+        menuItems: "Artículos del menú",
+        addOns: "Extras",
+        currentSelection: "Selección actual",
+        noDrink: "Ninguna bebida seleccionada",
+        noAddons: "No se seleccionaron extras",
+        quantity: "Cantidad",
+        addToOrder: "Agregar al pedido",
+        yourOrder: "Tu pedido",
+        emptyOrder: "Tu pedido está vacío",
+        clearOrder: "Vaciar pedido",
+        checkout: "Pagar"
+    }
+};
+const itemTranslations = {
+    en: {
+        "Milk Tea": "Milk Tea",
+        "Tea": "Tea",
+        "Fruit Tea": "Fruit Tea",
+        "Smoothie": "Smoothie",
+        "Specialty": "Specialty",
+        "Energy": "Energy",
+        "Sour": "Sour",
+        "Matcha": "Matcha",
+        "ADDON": "ADDON",
+        "SEASONAL": "SEASONAL",
+
+        "Boba": "Boba",
+        "Pudding": "Pudding",
+        "Grass Jelly": "Grass Jelly",
+        "Lychee Jelly": "Lychee Jelly",
+        "Cheese Foam": "Cheese Foam",
+
+        "Lava Flow": "Lava Flow",
+        "Misty Milk": "Misty Milk",
+        "Skilly n Duff": "Skilly n Duff",
+        "Coal Chocolate": "Coal Chocolate",
+        "Flounder Creme Brulee": "Flounder Creme Brulee",
+        "Mola Mola Matcha": "Mola Mola Matcha",
+        "Black Sea": "Black Sea"
+    },
+    es: {
+        "Milk Tea": "Té con leche",
+        "Tea": "Té",
+        "Fruit Tea": "Té de frutas",
+        "Smoothie": "Batido",
+        "Specialty": "Especialidad",
+        "Energy": "Energía",
+        "Sour": "Ácido",
+        "Matcha": "Matcha",
+        "ADDON": "EXTRAS",
+        "SEASONAL": "TEMPORADA",
+
+        "Boba": "Boba",
+        "Pudding": "Pudín",
+        "Grass Jelly": "Gelatina de hierbas",
+        "Lychee Jelly": "Gelatina de lichi",
+        "Cheese Foam": "Espuma de queso",
+
+        "Lava Flow": "Flujo de lava",
+        "Misty Milk": "Leche brumosa",
+        "Skilly n Duff": "Skilly n Duff",
+        "Coal Chocolate": "Chocolate carbón",
+        "Flounder Creme Brulee": "Crema brûlée Flounder",
+        "Mola Mola Matcha": "Matcha Mola Mola",
+        "Black Sea": "Mar Negro"
+    }
+};
+
+function translateName(name) {
+    return itemTranslations[currentLang]?.[name] || name;
+}
+
+function setLanguage(lang) {
+    document.querySelector(".topbar h1").innerText = translations[lang].title;
+    document.querySelectorAll(".section-title")[0].innerText = translations[lang].chooseCategory;
+    document.querySelectorAll(".section-title")[1].innerText = translations[lang].menuItems;
+    document.querySelectorAll(".section-title")[2].innerText = translations[lang].addOns;
+    document.querySelector(".selected-box h3").innerText = translations[lang].currentSelection;
+
+    if (!selectedDrink) {
+        selectedDrinkEl.innerText = translations[lang].noDrink;
+    }
+
+    if (selectedAddons.length === 0) {
+        selectedAddonsEl.innerText = translations[lang].noAddons;
+    }
+
+    document.querySelector(".qty-row span").innerText = translations[lang].quantity;
+    document.getElementById("addToOrder").innerText = translations[lang].addToOrder;
+
+    document.querySelectorAll(".section-title")[3].innerText = translations[lang].yourOrder;
+
+    if (order.length === 0) {
+        orderListEl.innerHTML = `<div class="muted">${translations[lang].emptyOrder}</div>`;
+    }
+
+    document.getElementById("clearOrder").innerText = translations[lang].clearOrder;
+    document.getElementById("checkoutOrder").innerText = translations[lang].checkout;
+}
         // Initialize UI
         if (Object.keys(menuData.categories).length > 0) {
             renderTabs();
@@ -470,7 +611,6 @@
         } else {
             document.querySelector('.section-title').textContent = 'No menu items available';
         }
-    </script>
     </script>
 </body>
 </html>
