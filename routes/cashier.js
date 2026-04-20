@@ -58,6 +58,18 @@ router.get('/menu', async (req, res) => {
         });
     });
 
+    const addon_list = await MenuItemDAO.get_active_addons();
+    console.log('Cashier: Retrieved', addon_list.length, 'active addons');
+
+    const temp = [];
+    addon_list.forEach((item) => {
+      temp.push({
+        id: item.menu_item_id,
+        name: item.name,
+        price: parseFloat(item.base_price)
+      })
+    });
+
     const drinksWithDetails = await Promise.all(
       req.session.cart.drinks.map(async (drink) => {
         const menuItem = await MenuItemDAO.get_all_menu_items()
@@ -74,6 +86,7 @@ router.get('/menu', async (req, res) => {
       categories: categories,
       cartCount: req.session.cart.drinks.length,
       drinks: drinksWithDetails,
+      addons: temp,
       statusMessage: ''
     });
   } catch (err) {
@@ -133,7 +146,7 @@ router.get('/customize', async (req, res) => {
 });
 
 // Add drink to cart
-router.post('/customize/add-to-cart', async (req, res) => {
+router.post('/menu/add-to-cart', async (req, res) => {
   try {
     initializeCart(req);
     const { menuItemId, iceAmount, sugarAmount, specialNotes, basePrice, idsToQuants } = req.body;
@@ -433,7 +446,15 @@ router.post('/confirm/finalize-order', async (req, res) => {
       }))
     }
 
-    orderDao.submitOrder(order);
+    const result = await orderDao.submitOrder(order);
+    
+    if (!result.success) {
+        return res.json({ success: false });
+    }
+
+    await orderDao.updateInventory(order, MenuItemDao, null);
+
+    res.json({ success: true, orderId: result.orderId });
 
     req.session.cart = {
       orderId: null,
