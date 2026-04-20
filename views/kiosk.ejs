@@ -585,6 +585,40 @@
             { id: 'Cube_Topping_Stack_1', scale: 0.82, insertBehind: true },
             { id: 'Cube_Topping_Stack_2', scale: 0.64, insertBehind: true }
         ];
+        const addonStackConfigs = {
+            cube: {
+                sourceId: 'Cube_Topping',
+                hideSource: true,
+                layers: cubeStackLayers
+            },
+            ball: {
+                sourceId: 'Bobba',
+                hideSource: false,
+                layers: [
+                    { id: 'Bobba_Stack_0', scale: 1.0, insertBehind: false },
+                    { id: 'Bobba_Stack_1', scale: 0.82, insertBehind: true },
+                    { id: 'Bobba_Stack_2', scale: 0.64, insertBehind: true }
+                ]
+            },
+            seeds: {
+                sourceId: 'Seeds',
+                hideSource: false,
+                layers: [
+                    { id: 'Seeds_Stack_0', scale: 1.0, insertBehind: false },
+                    { id: 'Seeds_Stack_1', scale: 0.82, insertBehind: true },
+                    { id: 'Seeds_Stack_2', scale: 0.64, insertBehind: true }
+                ]
+            },
+            syrup: {
+                sourceId: 'Syrup',
+                hideSource: false,
+                layers: [
+                    { id: 'Syrup_Stack_0', scale: 1.0, insertBehind: false },
+                    { id: 'Syrup_Stack_1', scale: 0.88, insertBehind: true },
+                    { id: 'Syrup_Stack_2', scale: 0.76, insertBehind: true }
+                ]
+            }
+        };
         const addonCategoryOrder = ['ball', 'seeds', 'cube', 'syrup', 'extras'];
         const addonCategoryLabels = {
             ball: 'Ball',
@@ -643,6 +677,12 @@
             'cocoa powder': { type: 'syrup', color: '#7a4a2f' },
             'taro': { type: 'syrup', color: '#b9a0dc' },
             'yogurt base': { type: 'syrup', color: '#f5f2ea' },
+            'syrup chocolate': { type: 'syrup', color: '#6b3e26' },
+            'syrup strawberry': { type: 'syrup', color: '#f07f93' },
+            'syrup mango': { type: 'syrup', color: '#f5b54c' },
+            'syrup caramel': { type: 'syrup', color: '#b9783f' },
+            'syrup vanilla': { type: 'syrup', color: '#f1dfb3' },
+            'syrup brown sugar': { type: 'syrup', color: '#8b5a3c' },
             'seeds chia': { type: 'seeds', color: '#3a3a3a' },
             'basil seeds': { type: 'seeds', color: '#2f3b2f' }
         };
@@ -760,19 +800,27 @@
             return clone;
         }
 
-        function resetCubeAddonStackOnSvg(svgRoot) {
-            cubeStackLayers.forEach((layer) => setLayerVisibleOnSvg(svgRoot, layer.id, false));
+        function resetAddonStackOnSvg(svgRoot, stackType) {
+            const stackConfig = addonStackConfigs[stackType];
+            if (!stackConfig) return;
+
+            stackConfig.layers.forEach((layer) => setLayerVisibleOnSvg(svgRoot, layer.id, false));
         }
 
         function setupAddonLayersOnSvg(svgRoot) {
             if (!svgRoot) return;
 
-            cubeStackLayers.forEach((layer) => {
-                ensureClonedLayerOnSvg(svgRoot, 'Cube_Topping', layer.id, layer.scale, layer.insertBehind);
-            });
+            Object.values(addonStackConfigs).forEach((stackConfig) => {
+                stackConfig.layers.forEach((layer) => {
+                    ensureClonedLayerOnSvg(svgRoot, stackConfig.sourceId, layer.id, layer.scale, layer.insertBehind);
+                });
 
-            setLayerVisibleOnSvg(svgRoot, 'Cube_Topping', false);
-            resetCubeAddonStackOnSvg(svgRoot);
+                if (stackConfig.hideSource) {
+                    setLayerVisibleOnSvg(svgRoot, stackConfig.sourceId, false);
+                }
+
+                resetAddonStackOnSvg(svgRoot, Object.keys(addonStackConfigs).find((key) => addonStackConfigs[key] === stackConfig));
+            });
         }
 
         function setLiquidGradientOnSvg(svgRoot, topColor, midColor, bottomColor) {
@@ -819,19 +867,30 @@
             setBobbaOnSvg(svgRoot, !!drinkConfig.show_bobba, drinkConfig.bobba_color || null);
             setSeedsOnSvg(svgRoot, !!drinkConfig.show_seeds, drinkConfig.seeds_color || null);
             setSyrupOnSvg(svgRoot, !!drinkConfig.show_syrup, drinkConfig.syrup_color || null);
-            setLayerVisibleOnSvg(svgRoot, 'Cube_Topping', false);
-            resetCubeAddonStackOnSvg(svgRoot);
+
+            Object.entries(addonStackConfigs).forEach(([stackType, stackConfig]) => {
+                if (stackConfig.hideSource) {
+                    setLayerVisibleOnSvg(svgRoot, stackConfig.sourceId, false);
+                }
+                resetAddonStackOnSvg(svgRoot, stackType);
+            });
         }
 
-        function renderCubeAddonStackOnSvg(svgRoot, cubeNames) {
+        function renderAddonStackOnSvg(svgRoot, stackType, addonNames) {
             if (!svgRoot) return;
 
-            setLayerVisibleOnSvg(svgRoot, 'Cube_Topping', false);
-            resetCubeAddonStackOnSvg(svgRoot);
+            const stackConfig = addonStackConfigs[stackType];
+            if (!stackConfig) return;
 
-            cubeNames.slice(0, cubeStackLayers.length).forEach((addonName, index) => {
-                const layerId = cubeStackLayers[index].id;
-                const color = getCubeAddonColor(addonName);
+            if (stackConfig.hideSource) {
+                setLayerVisibleOnSvg(svgRoot, stackConfig.sourceId, false);
+            }
+
+            resetAddonStackOnSvg(svgRoot, stackType);
+
+            addonNames.slice(0, stackConfig.layers.length).forEach((addonName, index) => {
+                const layerId = stackConfig.layers[index].id;
+                const color = getAddonVisualConfig(addonName).color || '#d8f3c4';
 
                 setGroupFillOnSvg(svgRoot, layerId, color);
                 setLayerVisibleOnSvg(svgRoot, layerId, true);
@@ -859,26 +918,23 @@
                 );
             });
 
-            renderCubeAddonStackOnSvg(svgRoot, cubeNames);
+            renderAddonStackOnSvg(svgRoot, 'cube', cubeNames);
 
             if (ballAddons.length > 0) {
-                const topBall = getAddonVisualConfig(ballAddons[ballAddons.length - 1].name);
-                setBobbaOnSvg(svgRoot, true, topBall.color || baseStyle.bobba_color || '#2f1707');
+                renderAddonStackOnSvg(svgRoot, 'ball', ballAddons.map((addon) => addon.name));
             }
 
             if (seedAddons.length > 0) {
-                const topSeed = getAddonVisualConfig(seedAddons[seedAddons.length - 1].name);
-                setSeedsOnSvg(svgRoot, true, topSeed.color || '#2f3b2f');
+                renderAddonStackOnSvg(svgRoot, 'seeds', seedAddons.map((addon) => addon.name));
             }
 
             const visibleSyrupAddons = syrupAddons.filter((addon) => {
                 const normalizedName = normalizeAddonName(addon.name);
-                return normalizedName !== 'taro' && normalizedName !== 'chamoy';
+                return !['taro', 'chamoy', 'milk oat', 'milk foam', 'cocoa powder', 'yogurt base'].includes(normalizedName);
             });
 
             if (visibleSyrupAddons.length > 0) {
-                const topSyrup = getAddonVisualConfig(visibleSyrupAddons[visibleSyrupAddons.length - 1].name);
-                setSyrupOnSvg(svgRoot, true, topSyrup.color || baseStyle.syrup_color || '#c58940');
+                renderAddonStackOnSvg(svgRoot, 'syrup', visibleSyrupAddons.map((addon) => addon.name));
             }
 
             let gradientTop = baseStyle.liquid_top;
