@@ -36,26 +36,32 @@ const callbackURL = isProduction
   ? 'https://project3-team03-mkg4.onrender.com/auth/google/callback'
   : 'http://localhost:3000/auth/google/callback';
 
-passport.use('google', new GoogleStrategy({
-    clientID: process.env.GOOGLE_CLIENT_ID,
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: callbackURL,
-    passReqToCallback: true
-}, (req, accessToken, refreshToken, profile, done) => {
-    // Create user object from Google profile
-    // Store the requested role from the query parameter
-    const user = {
-        id: profile.id,
-        googleId: profile.id,
-        email: profile.emails?.[0]?.value,
-        name: profile.displayName,
-        avatar: profile.photos?.[0]?.value,
-        // Store the role from the initial request
-        requestedRole: req.query.state ? (req.query.state.toUpperCase()) : 'CASHIER'
-    };
-    
-    return done(null, user);
-}));
+const hasGoogleOAuthConfig = Boolean(
+    process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
+);
+
+if (hasGoogleOAuthConfig) {
+    passport.use('google', new GoogleStrategy({
+        clientID: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        callbackURL: callbackURL,
+        passReqToCallback: true
+    }, (req, accessToken, refreshToken, profile, done) => {
+        // Create user object from Google profile
+        // Store the requested role from the query parameter
+        const user = {
+            id: profile.id,
+            googleId: profile.id,
+            email: profile.emails?.[0]?.value,
+            name: profile.displayName,
+            avatar: profile.photos?.[0]?.value,
+            // Store the role from the initial request
+            requestedRole: req.query.state ? (req.query.state.toUpperCase()) : 'CASHIER'
+        };
+        
+        return done(null, user);
+    }));
+}
 
 // Serialize user to session
 passport.serializeUser((user, done) => {

@@ -662,6 +662,9 @@
         const menuPreviewCache = new Map();
         let previewWaveTimer = null;
         let previewWaveCleanupTimer = null;
+        const closeCustomizeBtn = document.getElementById('closeCustomize');
+        const cancelCustomizeBtn = document.getElementById('cancelCustomize');
+        const saveCustomizeBtn = document.getElementById('saveCustomize');
         const addonVisualMap = {
             'boba': { type: 'ball', color: '#2f1707' },
             'strawberry popping boba': { type: 'ball', color: '#f28aa5' },
@@ -690,6 +693,10 @@
 
         function normalizeAddonName(name) {
             return String(name || '').trim().toLowerCase();
+        }
+
+        function translateName(name) {
+            return name;
         }
 
         function getAddonVisualConfig(name) {
@@ -1063,6 +1070,9 @@
                 if (!drinkSvgTemplate) {
                     throw new Error('Could not find SVG markup in DrinkFoundation asset');
                 }
+
+                menuPreviewCache.clear();
+                renderMenu();
                 renderModalPreviewFromCurrentSvg();
             } catch (err) {
                 console.error('Could not load drink SVG:', err);
@@ -1296,7 +1306,15 @@
                 const button = document.createElement('button');
                 button.className = 'item-btn' + (isSelected ? ' selected' : '');
                 button.type = 'button';
-                button.innerHTML = `<h3>${item.name}</h3><p>$${money(item.price)}</p>`;
+                button.innerHTML = `
+                    <div class="item-btn-content">
+                        ${previewUrl ? `<img class="menu-drink-thumb" src="${previewUrl}" alt="${item.name} preview">` : ''}
+                        <div class="item-btn-copy">
+                            <h3>${item.name}</h3>
+                            <p>$${money(item.price)}</p>
+                        </div>
+                    </div>
+                `;
                 button.onclick = () => {
                     openCustomizeModal(item);
                 };
@@ -1340,27 +1358,31 @@
 
         function renderSelection() {
             if (!selectedDrink) {
-                selectedDrinkEl.textContent = currentLang === 'es' ? 'Ninguna bebida seleccionada' : 'No drink selected yet';
+                selectedDrinkEl.textContent = 'No drink selected yet';
+                selectedOptionsEl.textContent = 'Choose a drink to customize sugar, ice, and add ons';
             } else {
                 selectedDrinkEl.textContent = `${translateName(selectedDrink.name)}  $${money(selectedDrink.price)}`;
-            }
 
-            if (selectedAddons.length === 0) {
-                selectedAddonsEl.textContent = 'No add ons selected';
-            } else {
-                selectedAddonsEl.textContent = 'Add ons: ' + selectedAddons.map((a) => `${a.name} +$${money(a.price)}`).join(', ');
-            }
+                const optionParts = [
+                    `Sugar: ${selectedSugar}`,
+                    `Ice: ${selectedIce}`
+                ];
 
-            selectedOptionsEl.textContent = optionParts.length
-                ? optionParts.join(' | ')
-                : 'Choose a drink to customize sugar, ice, and add ons';
+                if (selectedAddons.length > 0) {
+                    optionParts.push(
+                        'Add ons: ' + selectedAddons.map((a) => `${translateName(a.name)} +$${money(a.price)}`).join(', ')
+                    );
+                }
+
+                selectedOptionsEl.textContent = optionParts.join(' | ');
+            }
 
             qtyValueEl.textContent = quantity;
         }
 
         function renderOrder() {
             if (order.length === 0) {
-                orderListEl.innerHTML = `<div class="muted">${currentLang === 'es' ? 'Tu pedido está vacío' : 'Your order is empty'}</div>`;
+                orderListEl.innerHTML = '<div class="muted">Your order is empty</div>';
                 orderTotalEl.textContent = '0.00';
                 return;
             }
@@ -1444,13 +1466,13 @@
             }
 
             console.log('Order being processed:', order);
-            document.getElementById('checkoutOrder').onclick = async () => {
-    if (order.length === 0) {
-        alert('Order is empty');
-        return;
-    }
+        };
 
-    console.log('Order being processed:', order);
+        document.getElementById('checkoutOrder').onclick = async () => {
+            if (order.length === 0) {
+                alert('Order is empty');
+                return;
+            }
 
             const payload = { order };
 
@@ -1465,19 +1487,26 @@
 
                 const data = await res.json();
 
-        if (data.success) {
-            alert('Order submitted successfully!');
-            order = [];
-            renderOrder();
-        } else {
-            alert('Order failed');
-        }
+                if (data.success) {
+                    alert('Order submitted successfully!');
+                    order = [];
+                    renderOrder();
+                } else {
+                    alert('Order failed');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Server error');
+            }
+        };
 
-    } catch (err) {
-        console.error(err);
-        alert('Server error');
-    }
-};
+        closeCustomizeBtn.onclick = () => closeCustomizeModal(true);
+        cancelCustomizeBtn.onclick = () => closeCustomizeModal(true);
+        saveCustomizeBtn.onclick = saveCustomization;
+        customizeOverlay.onclick = (event) => {
+            if (event.target === customizeOverlay) {
+                closeCustomizeModal(true);
+            }
         };
 
         // Initialize UI
@@ -1490,7 +1519,8 @@
         } else {
             document.querySelector('.section-title').textContent = 'No menu items available';
         }
-    </script>
+
+        loadDrinkSvg();
     </script>
 </body>
 </html>
