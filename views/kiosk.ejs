@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
+
         * { box-sizing: border-box; }
         body {
             margin: 0;
@@ -519,6 +520,7 @@
             <button onclick="toggleHighContrast()" id="highContrastBtn">High Contrast</button>
             <button onclick="toggleLowContrast()" id="lowContrastBtn">Low Contrast</button>
             <button onclick="toggleScreenMagnifier()">Toggle Magnifier</button>
+            <button id="fontToggle" onclick="toggleFontSize()">Toggle Font Size</button>
             </div>
             <div id="screenMagnifier">
             <div id="screenMagnifierContent"></div>
@@ -1592,62 +1594,70 @@
     function toggleLowContrast() {
         document.body.classList.toggle('low-contrast');
     }
-</script>
-<script>
-(function magnifierSetup() {
-  const lens = document.getElementById("screenMagnifier");
-  const lensContent = document.getElementById("screenMagnifierContent");
-
-  const zoom = 2;
-  const lensSize = 220;
-  let magnifierOn = false;
-
-  function buildClone() {
-    const clone = document.body.cloneNode(true);
-
-    const oldLens = clone.querySelector("#screenMagnifier");
-    if (oldLens) oldLens.remove();
-
-    lensContent.innerHTML = "";
-    lensContent.appendChild(clone);
-  }
-
-    function updateMagnifier(e) {
-        if (!magnifierOn) return;
-
-        const mouseX = e.clientX;
-        const mouseY = e.clientY;
-
-        const pageX = e.pageX;
-        const pageY = e.pageY;
-
-        lens.style.display = "block";
-        lens.style.left = (mouseX + 20) + "px";
-        lens.style.top = (mouseY + 20) + "px";
-
-        lensContent.style.transform = `scale(${zoom})`;
-        lensContent.style.left = `${-(pageX * zoom - lensSize / 2)}px`;
-        lensContent.style.top = `${-(pageY * zoom - lensSize / 2)}px`;
+    const originalSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
+    function toggleFontSize(){
+        const currentSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
+        if (currentSize != 20) {
+            document.documentElement.style.fontSize = '20px';
+        } else {
+            document.documentElement.style.fontSize = originalSize + 'px';
         }
+    }
+        
+    (function magnifierSetup() {
+    const lens = document.getElementById("screenMagnifier");
+    const lensContent = document.getElementById("screenMagnifierContent");
 
-  function hideMagnifier() {
-    lens.style.display = "none";
-  }
+    const zoom = 2;
+    const lensSize = 220;
+    let magnifierOn = false;
 
-  buildClone();
+    function buildClone() {
+        const clone = document.body.cloneNode(true);
 
-  document.addEventListener("mousemove", updateMagnifier);
-  document.addEventListener("mouseleave", hideMagnifier);
+        const oldLens = clone.querySelector("#screenMagnifier");
+        if (oldLens) oldLens.remove();
 
-  window.addEventListener("scroll", buildClone);
-  window.addEventListener("resize", buildClone);
+        lensContent.innerHTML = "";
+        lensContent.appendChild(clone);
+    }
 
-  setInterval(buildClone, 1000);
+        function updateMagnifier(e) {
+            if (!magnifierOn) return;
 
-  window.toggleScreenMagnifier = function () {
-    magnifierOn = !magnifierOn;
-    if (!magnifierOn) lens.style.display = "none";
-  };
+            const mouseX = e.clientX;
+            const mouseY = e.clientY;
+
+            const pageX = e.pageX;
+            const pageY = e.pageY;
+
+            lens.style.display = "block";
+            lens.style.left = (mouseX + 20) + "px";
+            lens.style.top = (mouseY + 20) + "px";
+
+            lensContent.style.transform = `scale(${zoom})`;
+            lensContent.style.left = `${-(pageX * zoom - lensSize / 2)}px`;
+            lensContent.style.top = `${-(pageY * zoom - lensSize / 2)}px`;
+            }
+
+    function hideMagnifier() {
+        lens.style.display = "none";
+    }
+
+    buildClone();
+
+    document.addEventListener("mousemove", updateMagnifier);
+    document.addEventListener("mouseleave", hideMagnifier);
+
+    window.addEventListener("scroll", buildClone);
+    window.addEventListener("resize", buildClone);
+
+    setInterval(buildClone, 1000);
+
+    window.toggleScreenMagnifier = function () {
+        magnifierOn = !magnifierOn;
+        if (!magnifierOn) lens.style.display = "none";
+    };
 })();
 </script>
 </body>
