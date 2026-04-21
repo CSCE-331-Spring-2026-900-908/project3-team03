@@ -406,7 +406,7 @@
             </div>
 
             <div class="bottom-buttons">
-                <button id="confirm-update-drink-button" class="confirm-button" onclick="submitModification()">Add to Cart</button>
+                <button id="confirm-update-drink-button" class="confirm-button">Add to Cart</button>
                 <button id="cancel-update-drink-button" class="cancel-button">Cancel</button>
             </div>
         </dialog>
@@ -453,7 +453,7 @@
             </div>
 
             <div class="bottom-buttons">
-                <button id="confirm-add-to-order-button" class="confirm-button" onclick="submitCustomization()">Add to Cart</button>
+                <button id="confirm-add-to-order-button" class="confirm-button">Add to Cart</button>
                 <button id="cancel-add-to-order-button" class="cancel-button">Cancel</button>
             </div>
         </dialog>
@@ -697,14 +697,18 @@
         const cancelUpdateDrinkButton = document.getElementById("cancel-update-drink-button");
 
         addDrinkButton.addEventListener("click", () => {
-            addDrinkDialog.close();
-            location.reload();
+            submitCustomization().then(() => {
+                addDrinkDialog.close();
+                location.reload();
+            });
         });
 
         updateDrinkButton.addEventListener("click", () => {
-            customizeDrinkDialog.close();
-            location.reload();
-        })
+            submitModification().then(() => {
+                customizeDrinkDialog.close();
+                location.reload();
+            });
+        });
 
         cancelUpdateDrinkButton.addEventListener("click", () => {
             customizeDrinkDialog.close();
