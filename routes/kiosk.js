@@ -125,6 +125,13 @@ router.post('/submitOrder', async (req, res) => {
 
         const frontendOrder = req.body.order;
 
+        if (!Array.isArray(frontendOrder) || frontendOrder.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: 'Order is empty.'
+            });
+        }
+
         const order = {
             created_at: new Date(),
             status: "PAID",
@@ -150,16 +157,26 @@ router.post('/submitOrder', async (req, res) => {
         const result = await orderDao.submitOrder(order);
 
         if (!result.success) {
-            return res.json({ success: false });
+            return res.status(500).json({
+                success: false,
+                message: 'Could not save the order.'
+            });
         }
 
-        await orderDao.updateInventory(order, MenuItemDao, null);
+        const inventoryUpdated = await orderDao.updateInventory(order, MenuItemDao, null);
+
+        if (!inventoryUpdated) {
+            console.error('Kiosk: Inventory update failed for order', result.orderId);
+        }
 
         res.json({ success: true, orderId: result.orderId });
 
     } catch (err) {
         console.error(err);
-        res.status(500).json({ success: false });
+        res.status(500).json({
+            success: false,
+            message: 'Server error while submitting order.'
+        });
     }
 });
 

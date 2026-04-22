@@ -245,6 +245,31 @@
             gap: 10px;
             flex-wrap: wrap;
         }
+        .checkout-status {
+            margin-top: 14px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            font-weight: 700;
+            display: none;
+        }
+        .checkout-status.is-visible {
+            display: block;
+        }
+        .checkout-status.success {
+            background: #dcfce7;
+            border: 1px solid #86efac;
+            color: #166534;
+        }
+        .checkout-status.error {
+            background: #fee2e2;
+            border: 1px solid #fca5a5;
+            color: #991b1b;
+        }
+        .checkout-status.info {
+            background: #dbeafe;
+            border: 1px solid #93c5fd;
+            color: #1d4ed8;
+        }
         .section-title {
             color: #222;
         }
@@ -505,6 +530,7 @@
                     <button class="cart-btn secondary" id="clearOrder" type="button">Clear order</button>
                     <button class="cart-btn" id="checkoutOrder" type="button">Checkout</button>
                 </div>
+                <div id="checkoutStatus" class="checkout-status" aria-live="polite"></div>
             </div>
         </div>
     </div>
@@ -572,6 +598,7 @@
         const qtyValueEl = document.getElementById('qtyValue');
         const orderListEl = document.getElementById('orderList');
         const orderTotalEl = document.getElementById('orderTotal');
+        const checkoutStatusEl = document.getElementById('checkoutStatus');
         const customizeOverlay = document.getElementById('customizeOverlay');
         const customizeDrinkTitleEl = document.getElementById('customizeDrinkTitle');
         const customizeDrinkPriceEl = document.getElementById('customizeDrinkPrice');
@@ -1380,6 +1407,16 @@
             qtyValueEl.textContent = quantity;
         }
 
+        function setCheckoutStatus(message, type = 'info') {
+            checkoutStatusEl.textContent = message;
+            checkoutStatusEl.className = `checkout-status is-visible ${type}`;
+        }
+
+        function clearCheckoutStatus() {
+            checkoutStatusEl.textContent = '';
+            checkoutStatusEl.className = 'checkout-status';
+        }
+
         function renderOrder() {
             if (order.length === 0) {
                 orderListEl.innerHTML = '<div class="muted">Your order is empty</div>';
@@ -1409,7 +1446,7 @@
 
         function addToOrder() {
             if (!selectedDrink) {
-                alert('Pick a drink first');
+                setCheckoutStatus('Pick a drink first.', 'error');
                 return;
             }
 
@@ -1428,6 +1465,7 @@
 
             clearCurrentSelection();
             closeCustomizeModal(false);
+            clearCheckoutStatus();
             renderMenu();
             renderAddons();
             renderSelection();
@@ -1456,28 +1494,21 @@
 
         document.getElementById('clearOrder').onclick = () => {
             order = [];
+            clearCheckoutStatus();
             renderOrder();
-        };
-
-        document.getElementById('checkoutOrder').onclick = () => {
-            if (order.length === 0) {
-                alert('Order is empty');
-                return;
-            }
-
-            console.log('Order being processed:', order);
         };
 
         document.getElementById('checkoutOrder').onclick = async () => {
             if (order.length === 0) {
-                alert('Order is empty');
+                setCheckoutStatus('Order is empty.', 'error');
                 return;
             }
 
             const payload = { order };
+            setCheckoutStatus('Submitting order...', 'info');
 
             try {
-                const res = await fetch('/submitOrder', {
+                const res = await fetch('/kiosk/submitOrder', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -1485,18 +1516,18 @@
                     body: JSON.stringify(payload)
                 });
 
-                const data = await res.json();
+                const data = await res.json().catch(() => ({}));
 
-                if (data.success) {
-                    alert('Order submitted successfully!');
+                if (res.ok && data.success) {
+                    setCheckoutStatus(`Order submitted successfully${data.orderId ? `, ticket #${data.orderId}` : ''}.`, 'success');
                     order = [];
                     renderOrder();
                 } else {
-                    alert('Order failed');
+                    setCheckoutStatus(data.message || 'Order submission failed.', 'error');
                 }
             } catch (err) {
                 console.error(err);
-                alert('Server error');
+                setCheckoutStatus('Unable to reach the server. Please try again.', 'error');
             }
         };
 
