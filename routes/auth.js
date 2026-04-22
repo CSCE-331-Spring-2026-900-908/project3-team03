@@ -6,6 +6,19 @@ const googleAuthEnabled = Boolean(
     process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
 );
 
+function getRequestBaseUrl(req) {
+    const forwardedProto = req.get('x-forwarded-proto');
+    const forwardedHost = req.get('x-forwarded-host');
+    const protocol = forwardedProto || req.protocol;
+    const host = forwardedHost || req.get('host');
+
+    return `${protocol}://${host}`;
+}
+
+function getGoogleCallbackUrl(req) {
+    return `${getRequestBaseUrl(req)}/auth/google/callback`;
+}
+
 // ================== LOCAL LOGIN ==================
 
 // Cashier local login
@@ -36,7 +49,8 @@ router.get('/google/cashier', (req, res, next) => {
 
     passport.authenticate('google', {
         scope: ['profile', 'email'],
-        state: 'cashier'
+        state: 'cashier',
+        callbackURL: getGoogleCallbackUrl(req)
     })(req, res, next);
 });
 
@@ -48,7 +62,8 @@ router.get('/google/manager', (req, res, next) => {
 
     passport.authenticate('google', {
         scope: ['profile', 'email'],
-        state: 'manager'
+        state: 'manager',
+        callbackURL: getGoogleCallbackUrl(req)
     })(req, res, next);
 });
 
@@ -59,7 +74,8 @@ router.get('/google/callback', (req, res, next) => {
     }
 
     passport.authenticate('google', {
-        failureRedirect: '/login?error=Google+authentication+failed'
+        failureRedirect: '/login?error=Google+authentication+failed',
+        callbackURL: getGoogleCallbackUrl(req)
     })(req, res, next);
 }, async (req, res) => {
     try {
