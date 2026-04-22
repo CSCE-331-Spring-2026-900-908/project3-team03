@@ -20,6 +20,11 @@ const findEmployeeByUsername = async (username) => {
   return result.rows[0] || null;
 };
 
+const findEmployeeByEmail = async (email) => {
+  const result = await pool.query('SELECT * FROM employee WHERE email = $1', [email]);
+  return result.rows[0] || null;
+};
+
 const createEmployee = async ({ first_name, last_name, username, role, join_date, hourly_wage, active }) => {
   try {
     console.log('DAO: Creating employee with params:', { first_name, last_name, username, role, join_date, hourly_wage, active });
@@ -78,6 +83,7 @@ module.exports = {
   getEmployeeById,
   getEmployeesByRole,
   findEmployeeByUsername,
+  findEmployeeByEmail,
   createEmployee,
   updateEmployee,
   setEmployeeActive,

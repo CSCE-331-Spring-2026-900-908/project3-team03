@@ -57,6 +57,7 @@
 
         .modify-item-button {
             background: #6e6e6e;
+            color: white;
             border-radius: 15px;
         }
 
@@ -149,6 +150,161 @@
             color: black;
         }
 
+        .drink-dialog::open {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-radius: 5px;
+        }
+
+        .drink-dialog h1 {
+            text-align: center;
+            margin-left: 50px;
+            margin-right: 50px;
+        }
+
+        .panel {
+            background: #eee;
+            flex-grow: 1;
+            width: 50vw;
+            border: 1px solid black;
+            border-radius: 5px; 
+            padding: 10px;
+            text-align: center;
+            margin: 0px 50px 25px 50px;
+        }
+
+        .sugar-amount-button, .sugar-amount-button-active {
+            height: 40px;
+            width: 100px;
+            background: #f1f1f1;
+            border-radius: 5px;
+            margin: 10px;
+        }
+
+        .sugar-amount-button:hover, .sugar-amount-button-active {
+            background: #c8c8c8;
+        }
+
+        .ice-amount-button, .ice-amount-button-active {
+            height: 40px;
+            width: 100px;
+            background: #f1f1f1;
+            border-radius: 5px;
+            margin: 10px;
+        }
+
+        .ice-amount-button:hover, .ice-amount-button-active{
+            background: #c8c8c8;
+        }
+
+        .addon-panel {
+            background: #eee;
+            flex-grow: 4;
+            width: 50vw;
+            border: 1px solid black;
+            border-radius: 10px; 
+            text-align: center;
+            padding: 10px;
+            margin: 0px 50px 25px 50px;
+        }
+
+        .addon-customizer {
+            display: flex;
+            height: 30px;
+            border: 2px solid black;
+            border-radius: 5px;
+            background: #c8c8c8;
+            padding: 0px;
+            margin: 10px;
+            flex-direction: row;
+            justify-content: right;
+        }
+
+        .addon-customizer-active {
+            display: flex;
+            height: 30px;
+            border: 2px solid black;
+            border-radius: 5px;
+            background: #c2c3dc;
+            padding: 0px;
+            margin: 10px;
+            flex-direction: row;
+            justify-content: right;
+        }
+
+       
+        .addon-customizer p {
+            padding: 0;
+            height: 20px;
+            margin: 6px;
+        }
+
+        .addon-customizer-active p {
+            padding: 0;
+            height: 20px;
+            margin: 6px;
+        }
+
+        .addon-customizer select {
+            height: 20px;
+            margin: 5px;
+            background: #dfdfdf;
+        }
+
+        .addon-customizer-active select {
+            height: 20px;
+            margin: 5px;
+            background: #dfdfdf;
+        }
+
+        .button-row {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+        }
+        
+        .addon-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            
+        }
+
+        .bottom-buttons {
+            margin: 50px;
+            margin-top: 0px;
+            margin-bottom: 25px;
+            display: flex;
+            flex-direction: row-reverse;
+            
+        }
+
+        .confirm-button {
+            height: 75px;
+            background: #585a65;
+            width: 150px;
+            border-radius: 100px;
+            margin-left: 20px;
+            color: white;
+            font-size: 16px;
+        }
+
+        .confirm-button:hover {
+            background: #7b7e8c;
+        }
+
+        .cancel-button {
+            height: 75px;
+            background: #c9c9c9;
+            width: 150px;
+            border-radius: 100px;
+            color: black;
+            font-size: 16px;
+        }
+
+        .cancel-button:hover {
+            background: #e0e0e0;
+        }
 
         
         table { border-collapse: collapse; width: 50%; margin: 16px auto; }
@@ -187,11 +343,10 @@
                 <% } %>
                 
                 
-                <p>Special Notes: <%= locals.drinks && locals.drinks[i]?.specialNotes || 'None' %></p>
-
+                
 
                 <div class="order-item-buttons">
-                <button class="modify-item-button"><a href="/cashier/modify?drinkid=<%= i+1 %>">Modify</a></button>
+                <button class="modify-item-button" onclick='loadUpdateDrinkDialog(<%= i+1 %>, <%= locals.drinks[i].sugarAmount %>, <%= locals.drinks[i].iceAmount %>, <%- JSON.stringify(locals.drinks[i].addons) %>, <%= locals.drinks[i].menuItemId %>)'>Modify</button>
                 <button class="remove-item-button" onclick="removeDrink(<%= i %>)">Remove</button>
                 </div>
             </article>
@@ -201,13 +356,107 @@
         <% } %>
 
         <button class="cancel-order-button" onclick="clearCart()">Cancel Order</button>
-        <button class="checkout-button"><a href="/cashier/checkout">Checkout</a></button>
+        <button class="checkout-button" onclick="checkoutOrder()">Checkout</button>
     </aside>
+    
     
     <main>
         <header>
             <h1 id="category-header">Cashier POS Interface</h1>
         </header>
+
+        <dialog class="drink-dialog" id="customize-dialog" closedby=none>
+            <h1>Modify Drink</h1>
+
+            <div class="panel">
+                <h2>Sugar Amount</h2>
+
+                <div class="button-row">
+                <button class="sugar-amount-button" id="m-sugar-button-0" onclick="mSetSugarAmount(0, 'm-sugar-button-0')">0%</button>
+                <button class="sugar-amount-button" id="m-sugar-button-25" onclick="mSetSugarAmount(25, 'm-sugar-button-25')">25%</button>
+                <button class="sugar-amount-button-active" id="m-sugar-button-50" onclick="mSetSugarAmount(50, 'm-sugar-button-50')">50%</button>
+                <button class="sugar-amount-button" id="m-sugar-button-75" onclick="mSetSugarAmount(75, 'm-sugar-button-75')">75%</button>
+                <button class="sugar-amount-button" id="m-sugar-button-100" onclick="mSetSugarAmount(100, 'm-sugar-button-100')">100%</button>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>Ice Amount</h2>
+                <div class="button-row">
+                <button class="ice-amount-button" id="m-ice-button-none" onclick="mSetIceAmount(0, 'm-ice-button-none')">None</button>
+                <button class="ice-amount-button" id="m-ice-button-less" onclick="mSetIceAmount(30, 'm-ice-button-less')">Less</button>
+                <button class="ice-amount-button-active" id="m-ice-button-normal" onclick="mSetIceAmount(60, 'm-ice-button-normal')">Normal</button>
+                <button class="ice-amount-button" id="m-ice-button-extra" onclick="mSetIceAmount(90, 'm-ice-button-extra')">Extra</button>
+                </div>
+            </div>
+
+            <div class="addon-panel">
+                <h2>Addons</h2>
+                <div class="addon-grid" id="m-addon-grid">
+                <div class="addon-customizer">
+                    <p>Placeholder</p>
+                    <select>
+                        <option>0</option>
+                        <option>1</option>
+                        <option>2</option>
+                        <option>3</option>
+                    </select>
+                </div>
+                </div>
+            </div>
+
+            <div class="bottom-buttons">
+                <button id="confirm-update-drink-button" class="confirm-button" onclick="submitModification()">Add to Cart</button>
+                <button id="cancel-update-drink-button" class="cancel-button">Cancel</button>
+            </div>
+        </dialog>
+
+        <!--dialog for adding a new drink to the current order-->
+        <dialog class ="drink-dialog" id="new-drink-dialog" closedby=none>
+            <h1>Customize Drink</h1>
+
+            <div class="panel">
+                <h2>Sugar Amount</h2>
+
+                <div class="button-row">
+                <button class="sugar-amount-button" id="c-sugar-button-0" onclick="cSetSugarAmount(0, 'c-sugar-button-0')">0%</button>
+                <button class="sugar-amount-button" id="c-sugar-button-25" onclick="cSetSugarAmount(25, 'c-sugar-button-25')">25%</button>
+                <button class="sugar-amount-button-active" id="c-sugar-button-50" onclick="cSetSugarAmount(50, 'c-sugar-button-50')">50%</button>
+                <button class="sugar-amount-button" id="c-sugar-button-75" onclick="cSetSugarAmount(75, 'c-sugar-button-75')">75%</button>
+                <button class="sugar-amount-button" id="c-sugar-button-100" onclick="cSetSugarAmount(100, 'c-sugar-button-100')">100%</button>
+                </div>
+            </div>
+            
+            <div class="panel">
+                <h2>Ice Amount</h2>
+                <div class="button-row">
+                <button class="ice-amount-button" id="c-ice-button-none" onclick="cSetIceAmount(0, 'c-ice-button-none')">None</button>
+                <button class="ice-amount-button" id="c-ice-button-less" onclick="cSetIceAmount(30, 'c-ice-button-less')">Less</button>
+                <button class="ice-amount-button-active" id="c-ice-button-normal" onclick="cSetIceAmount(60, 'c-ice-button-normal')">Normal</button>
+                <button class="ice-amount-button" id="c-ice-button-extra" onclick="cSetIceAmount(90, 'c-ice-button-extra')">Extra</button>
+                </div>
+            </div>
+
+            <div class="addon-panel">
+                <h2>Addons</h2>
+                <div class="addon-grid" id="c-addon-grid">
+                <div class="addon-customizer">
+                    <p>Placeholder</p>
+                    <select>
+                        <option>0</option>
+                        <option>1</option>
+                        <option>2</option>
+                        <option>3</option>
+                    </select>
+                </div>
+                </div>
+            </div>
+
+            <div class="bottom-buttons">
+                <button id="confirm-add-to-order-button" class="confirm-button" onclick="submitCustomization()">Add to Cart</button>
+                <button id="cancel-add-to-order-button" class="cancel-button">Cancel</button>
+            </div>
+        </dialog>
         
         <nav class="category-select" id="category-select">
             <button class="category-button" id="all-button" onclick="setCategory('All', 'all-button')">All</button>
@@ -226,7 +475,7 @@
         <div class="add-drinks-menu" id="add-drinks-menu">
             <% if (menuItems && menuItems.length > 0) { %>
                 <% menuItems.forEach(item => { %>
-                <button class="customize-new-item-button"><a href="/cashier/customize?menuItemId=<%= item.menu_item_id %>"><%= item.name %> - $<%= item.base_price %></a></button>
+                <button class="customize-new-item-button" onclick="loadAddDrinkDialog(<%= item.menu_item_id %>)"><%= item.name %> - $<%= item.base_price %></button>
                 <% }) %>
             <% } else { %>
                 <p style="grid-column: 1/-1; text-align: center;">No menu items available</p>
@@ -236,9 +485,49 @@
     </div>
 
     <script>
+        let sugarAmount = 50;
+        let iceAmount = 60;
+        let currDrinkId = -1; //for modifying an item in the cart
+        let currMenuItemId = -1;
+
+        const addons = <%- JSON.stringify(addons) %>;
+
         const menuData = {
             categories: <%- JSON.stringify(categories || {}) %>,
         };
+
+        const menuItemIdsAndPrices = [];
+        ['Milk Tea', 'Tea', 'Fruit Tea', 'Smoothie', 'Energy', 'SEASONAL'].forEach((category) => {
+            menuData.categories[category].forEach((item) => {
+                let obj = {
+                    id: item.id,
+                    price: item.price
+                }
+                menuItemIdsAndPrices.push(obj);
+            });
+        });
+        //console.log(menuItemIdsAndPrices);
+        
+        function getDrinkPriceById(menuItemId) {
+            for (let i = 0; i < menuItemIdsAndPrices.length; i++) {
+                let obj = menuItemIdsAndPrices[i];
+                if (obj.id == menuItemId) {
+                    return obj.price;
+                }
+            }
+            return 6;
+        }
+
+        function howMany(id, idsToQuants) {
+            for (let i = 0; i < idsToQuants.length; i++) {
+                if (idsToQuants[i].id == id) {
+                    return idsToQuants[i].quantity;
+                }
+            }
+            return -1;
+        }
+        
+
         let currentCategory = 'All';
         const categorySelect = document.getElementById("category-select");
         const categorySelectButtons = [
@@ -250,6 +539,255 @@
             document.getElementById("energy-button"),
             document.getElementById("seasonal-button")
         ];
+
+        const cAddonGrid = document.getElementById('c-addon-grid');
+        const cPageHeader = document.getElementById('c-page-header');
+        const mAddonGrid = document.getElementById('m-addon-grid');
+        const mPageHeader = document.getElementById('m-page-header');
+        const cAddonCustomizers = [];
+        const mAddonCustomizers = [];
+        const cIceAmountButtons = [
+            document.getElementById("c-ice-button-none"),
+            document.getElementById("c-ice-button-less"),
+            document.getElementById("c-ice-button-normal"),
+            document.getElementById("c-ice-button-extra")
+        ];
+        const cSugarAmountButtons = [
+            document.getElementById("c-sugar-button-0"),
+            document.getElementById("c-sugar-button-25"),
+            document.getElementById("c-sugar-button-50"),
+            document.getElementById("c-sugar-button-75"),
+            document.getElementById("c-sugar-button-100")
+        ];
+        const mIceAmountButtons = [
+            document.getElementById("m-ice-button-none"),
+            document.getElementById("m-ice-button-less"),
+            document.getElementById("m-ice-button-normal"),
+            document.getElementById("m-ice-button-extra")
+        ];
+        const mSugarAmountButtons = [
+            document.getElementById("m-sugar-button-0"),
+            document.getElementById("m-sugar-button-25"),
+            document.getElementById("m-sugar-button-50"),
+            document.getElementById("m-sugar-button-75"),
+            document.getElementById("m-sugar-button-100")
+        ];
+
+
+        function cSetSugarAmount(newAmount, source) {
+            const sourceButton = document.getElementById(source);
+            sugarAmount = newAmount;
+            cSugarAmountButtons.forEach(button => {
+                button.className='sugar-amount-button';
+            });
+            sourceButton.className = 'sugar-amount-button-active';
+        }
+
+        function cSetIceAmount(newAmount, source) {
+            const sourceButton = document.getElementById(source);
+            iceAmount = newAmount;
+            cIceAmountButtons.forEach(button => {
+                button.className='ice-amount-button';
+            });
+            sourceButton.className = 'ice-amount-button-active';
+        }
+
+        function mSetSugarAmount(newAmount, source) {
+            const sourceButton = document.getElementById(source);
+            sugarAmount = newAmount;
+            mSugarAmountButtons.forEach(button => {
+                button.className='sugar-amount-button';
+            });
+            sourceButton.className = 'sugar-amount-button-active';
+        }
+
+        function mSetIceAmount(newAmount, source) {
+            const sourceButton = document.getElementById(source);
+            iceAmount = newAmount;
+            mIceAmountButtons.forEach(button => {
+                button.className='ice-amount-button';
+            });
+            sourceButton.className = 'ice-amount-button-active';
+        }
+
+        function cRenderAddons() {
+            cAddonGrid.innerHTML = '';
+
+            addons.forEach((addon) => {
+                //console.log("addon: ", addon);
+                const customizer = document.createElement('customizer');
+                customizer.className = 'addon-customizer';
+                customizer.innerHTML = `<p>${addon.name}</p>`;                
+                
+                const selector = document.createElement('select');
+                selector.type = 'select';
+                selector.innerHTML = `
+                <option>0</option>
+                <option>1</option>
+                <option>2</option>
+                <option>3</option>`;
+
+                customizer.appendChild(selector);
+
+
+                const obj = {
+                    customizer: customizer,
+                    data: {
+                        name: addon.name,
+                        id: addon.id,
+                        select: selector
+                    }
+                };
+
+                cAddonCustomizers.push(obj);
+                cAddonGrid.appendChild(customizer);
+            });
+        }
+
+
+        function mRenderAddons(addonsForThisDrink) {
+            mAddonGrid.innerHTML = '';
+
+            addons.forEach((addon) => {
+                //console.log("addon: ", addon);
+                const customizer = document.createElement('customizer');
+                let amtOfAddonInDrink = howMany(addon.id, addonsForThisDrink);
+               
+                
+                
+                customizer.innerHTML = `<p>${addon.name}</p>`;                
+                
+                const selector = document.createElement('select');
+                selector.type = 'select';
+                selector.innerHTML = `
+                <option>0</option>
+                <option>1</option>
+                <option>2</option>
+                <option>3</option>`;
+
+                customizer.appendChild(selector);
+
+                 if (amtOfAddonInDrink > 0) {
+                    customizer.className = 'addon-customizer-active';
+                    selector.value = amtOfAddonInDrink;
+                } else {
+                    customizer.className = 'addon-customizer';
+                }
+                const obj = {
+                    customizer: customizer,
+                    data: {
+                        name: addon.name,
+                        id: addon.id,
+                        select: selector
+                    }
+                };
+
+                mAddonCustomizers.push(obj);
+                mAddonGrid.appendChild(customizer);
+            });
+        }
+
+        const addDrinkDialog = document.getElementById("new-drink-dialog");
+
+        const customizeDrinkDialog = document.getElementById("customize-dialog");
+        const addDrinkButton = document.getElementById("confirm-add-to-order-button");
+        const cancelAddToOrderButton = document.getElementById("cancel-add-to-order-button");
+
+        const updateDrinkButton = document.getElementById('confirm-update-drink-button');
+        const cancelUpdateDrinkButton = document.getElementById("cancel-update-drink-button");
+
+        addDrinkButton.addEventListener("click", () => {
+            addDrinkDialog.close();
+            location.reload();
+        });
+
+        updateDrinkButton.addEventListener("click", () => {
+            customizeDrinkDialog.close();
+            location.reload();
+        })
+
+        cancelUpdateDrinkButton.addEventListener("click", () => {
+            customizeDrinkDialog.close();
+        });
+
+        console.log("HERE");
+
+        
+        function loadUpdateDrinkDialog(cartId, oldSugarAmount, oldIceAmount, addonsForThisDrink, thisDrinkMenuItemId) {
+            
+            console.log("cartid: ", cartId);
+            console.log("sugarAmount: ", oldSugarAmount);
+
+            console.log("iceAmount: ", oldIceAmount);
+            console.log("addons: ", addons);
+            currDrinkId = cartId;
+            currMenuItemId = thisDrinkMenuItemId;
+            switch (oldSugarAmount) {
+                case 0:
+                    mSetSugarAmount(0, 'm-sugar-button-0');
+                    break;
+                case 25:
+                    mSetSugarAmount(25, 'm-sugar-button-25');
+                    break;
+                case 50:
+                    mSetSugarAmount(50, 'm-sugar-button-50');
+                    break;
+                case 75:
+                    mSetSugarAmount(75, 'm-sugar-button-75');
+                    break;
+                case 100:
+                    mSetSugarAmount(100, 'm-sugar-button-100');
+                    break;
+                default: 
+                    mSetSugarAmount(50, 'm-sugar-button-50');
+                    console.log('default case sugar');
+                    break;
+                    
+            }
+
+            switch (oldIceAmount) {
+                case 0:
+                    mSetIceAmount(0, 'm-ice-button-none');
+                    break;
+                case 30:
+                    mSetIceAmount(30, 'm-ice-button-less');
+                    break;
+                case 60:
+                    mSetIceAmount(60, 'm-ice-button-normal');
+                    break;
+                case 90:
+                    mSetIceAmount(90, 'm-ice-button-extra');
+                    break;
+                default: 
+                    mSetIceAmount(60, 'm-ice-button-normal');
+                    console.log('default case ice');
+                    break;
+                    
+            }
+
+            mRenderAddons(addonsForThisDrink);
+
+            customizeDrinkDialog.showModal();
+            
+        }
+
+
+
+        function loadAddDrinkDialog(menuItemId) {
+            sugarAmount = 50;
+            iceAmount = 60;
+            cRenderAddons();
+            currMenuItemId = menuItemId;
+            addDrinkDialog.showModal();
+
+        }
+
+        console.log("HERE2");
+
+        cancelAddToOrderButton.addEventListener("click", () => {
+            //console.log("Should close dialog");
+            addDrinkDialog.close();
+        });
 
         const addDrinksMenu = document.getElementById("add-drinks-menu");
        
@@ -285,7 +823,8 @@
                         const button = document.createElement('button');
                         button.className = 'customize-new-item-button';
                         button.type = 'button';
-                        button.innerHTML = `<a href="/cashier/customize?menuItemId=${item.id}">${item.name} - $${item.price.toFixed(2)}</a>`;
+                        button.onclick = function(){loadAddDrinkDialog(item.id)};
+                        button.innerHTML = `${item.name} - $${item.price.toFixed(2)}`;
                         addDrinksMenu.appendChild(button);
                     });
                 });
@@ -300,19 +839,38 @@
                 const button = document.createElement('button');
                 button.className = 'customize-new-item-button';
                 button.type = 'button';
-                button.innerHTML = `<a href="/cashier/customize?menuItemId=${item.id}">${item.name} - $${item.price.toFixed(2)}</a>`;
+                button.onclick = function(){loadAddDrinkDialog(item.id)};
+                button.innerHTML = `${item.name} - $${item.price.toFixed(2)}`;
                 addDrinksMenu.appendChild(button);
             });
 
         }
 
-        function clearCart() {
-            if (confirm('Are you sure you want to cancel this order?')) {
-                // Clear session cart
-                fetch('/cashier/menu', { method: 'GET' })
-                    .then(r => r.text())
-                    .then(() => location.reload());
+        async function clearCart() {
+            
+            try {
+                const response = await fetch("/cashier/menu/clear-cart", {
+                    method: "POST",
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Response status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                console.log("Response: ", result);
+
+                const menuURL = new URL('./menu', window.location.href);
+
+                console.log(menuURL);
+
+                location.replace(menuURL);
+        
+
+            } catch (error) {
+                console.error(error.message);
             }
+
         }
 
         function removeDrink(index) {
@@ -335,6 +893,115 @@
                     alert('Error removing item');
                 });
             }
+        }
+
+        function checkoutOrder() {
+            const checkoutURL = new URL('./checkout', window.location.href);
+
+
+            location.replace(checkoutURL);
+        }
+
+        function cGetAddonQuantities() {
+            idsToQuants = [];
+            
+            cAddonCustomizers.forEach((item) => {
+                let curCustomizer = item.customizer;
+                let id = item.data.id;
+                let quant = item.data.select.value;
+                const obj = {
+                    id: id,
+                    quantity: quant
+                };
+                idsToQuants.push(obj);
+            });
+
+            return idsToQuants;
+        }
+
+        function mGetAddonQuantities() {
+            idsToQuants = [];
+            
+            mAddonCustomizers.forEach((item) => {
+                let curCustomizer = item.customizer;
+                let id = item.data.id;
+                let quant = item.data.select.value;
+                const obj = {
+                    id: id,
+                    quantity: quant
+                };
+                idsToQuants.push(obj);
+            });
+
+            return idsToQuants;
+        }
+
+        async function submitCustomization() {
+            
+            try {
+                console.log("ID: ", currMenuItemId);
+                console.log("Price: ", getDrinkPriceById(currMenuItemId));
+                const response = await fetch("/cashier/menu/add-to-cart", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        menuItemId: currMenuItemId,
+                        iceAmount: iceAmount,
+                        sugarAmount: sugarAmount,
+                        specialNotes: '',
+                        basePrice: getDrinkPriceById(currMenuItemId),
+                        idsToQuants: cGetAddonQuantities()
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Response status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                console.log("Response: ", result);
+        
+
+            } catch (error) {
+                console.error(error.message);
+            }
+
+        }
+
+        async function submitModification() {
+            console.log("in submitModification");
+            
+            try {
+                const response = await fetch("/cashier/menu/update-in-cart", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        drinkId: currDrinkId,
+                        menuItemId: currMenuItemId,
+                        iceAmount: iceAmount,
+                        sugarAmount: sugarAmount,
+                        specialNotes: '',
+                        basePrice: getDrinkPriceById(currMenuItemId),
+                        idsToQuants: mGetAddonQuantities()
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Response status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                console.log("Response: ", result);
+        
+
+            } catch (error) {
+                console.error(error.message);
+            }
+
         }
 
 

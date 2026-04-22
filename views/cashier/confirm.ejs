@@ -82,6 +82,7 @@
         }
         button {
             height: 50px;
+            width: 200px;
             padding: 10px 40px;
             border-radius: 25px;
             border: none;
@@ -92,13 +93,19 @@
         .finish-btn {
             background: rgb(62, 62, 113);
             color: white;
+            padding: 0;
         }
         .finish-btn:hover {
             background: rgb(114, 122, 154);
+
         }
         .finish-btn a {
+            display: block;
             text-decoration: none;
             color: white;
+            height: 30px;
+            width: 200px;
+            padding: 17px;
         }
         .status-message {
             background: #fff3cd;
@@ -151,7 +158,7 @@
     </div>
     
     <footer>
-        <button class="finish-btn"><a href="/cashier/menu" onclick="finalizeOrder()">Start New Order</a></button>
+        <button class="finish-btn" onclick="finalizeOrder()">Start New Order</a></button>
     </footer>
 </body>
 
@@ -169,6 +176,12 @@
 
                 const result = await response.json();
                 console.log("Response: ", result);
+
+                const menuURL = new URL('./menu', window.location.href);
+
+                console.log(menuURL);
+
+                location.replace(menuURL);
         
 
             } catch (error) {
