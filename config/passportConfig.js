@@ -30,11 +30,23 @@ passport.use('local-manager', new LocalStrategy({
 }));
 
 // Configure Google Strategy
-// Determine callback URL based on environment
-const isProduction = process.env.NODE_ENV === 'production';
-const callbackURL = isProduction 
-  ? 'https://project3-team03-mkg4.onrender.com/auth/google/callback'
-  : 'http://localhost:3000/auth/google/callback';
+function buildGoogleCallbackUrl() {
+    if (process.env.GOOGLE_CALLBACK_URL) {
+        return process.env.GOOGLE_CALLBACK_URL;
+    }
+
+    if (process.env.RENDER_EXTERNAL_URL) {
+        return `${process.env.RENDER_EXTERNAL_URL.replace(/\/$/, '')}/auth/google/callback`;
+    }
+
+    if (process.env.PUBLIC_BASE_URL) {
+        return `${process.env.PUBLIC_BASE_URL.replace(/\/$/, '')}/auth/google/callback`;
+    }
+
+    return 'http://localhost:3000/auth/google/callback';
+}
+
+const callbackURL = buildGoogleCallbackUrl();
 
 const hasGoogleOAuthConfig = Boolean(
     process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET

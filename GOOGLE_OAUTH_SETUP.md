@@ -144,7 +144,9 @@ Users can logout by:
 |----------|-------------|---------|
 | `GOOGLE_CLIENT_ID` | Your Google OAuth Client ID | `YOUR_CLIENT_ID.apps.googleusercontent.com` |
 | `GOOGLE_CLIENT_SECRET` | Your Google OAuth Client Secret | `GOCSPX-...` |
-| `GOOGLE_CALLBACK_URL` | URL where Google redirects after auth | `http://localhost:3000/auth/google/callback` |
+| `GOOGLE_CALLBACK_URL` | URL where Google redirects after auth | `https://project3-team03-mkg4.onrender.com/auth/google/callback` |
+
+For deployment, set `GOOGLE_CALLBACK_URL` to your live site callback URL. If it is omitted on Render, the app now falls back to `RENDER_EXTERNAL_URL/auth/google/callback`.
 | `SESSION_SECRET` | Secret for encrypting sessions | `change-me-in-production` |
 
 ## Troubleshooting
