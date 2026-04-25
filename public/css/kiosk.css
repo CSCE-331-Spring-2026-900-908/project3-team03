@@ -8,6 +8,13 @@ body {
     color: #111827;
 }
 
+button,
+input,
+select,
+textarea {
+    font: inherit;
+}
+
 .page {
     max-width: 1450px;
     margin: 0 auto;
@@ -21,6 +28,21 @@ body {
     gap: 16px;
     margin-bottom: 20px;
     flex-wrap: wrap;
+}
+
+/* Align icon and title horizontally */
+.topbar-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.topbar-logo {
+    width: 52px;
+    height: 52px;
+    object-fit: contain;
+    border-radius: 12px;
+    flex: 0 0 52px;
 }
 
 .topbar h1 {
@@ -250,6 +272,16 @@ body {
 .cart-btn.danger {
     background: #dc2626;
     color: white;
+}
+
+#checkoutOrder {
+    background: #6cc96c;
+    color: #111827;
+    box-shadow: 0 10px 20px rgba(108, 201, 108, 0.28);
+}
+
+#checkoutOrder:hover {
+    background: #5fbb5f;
 }
 
 .order-list {

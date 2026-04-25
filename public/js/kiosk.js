@@ -638,6 +638,25 @@
         return (drink.price + addonTotal) * itemQuantity;
     }
 
+    // Show price updates on customization overlay
+    function renderCustomizePrice() {
+        if (!selectedDrink) {
+            customizeDrinkPriceEl.textContent = '';
+            return;
+        }
+
+        const total = getOrderItemTotal(selectedDrink, selectedAddons, quantity);
+        const addonTotal = selectedAddons.reduce((sum, addon) => sum + addon.price, 0) * quantity;
+        const baseTotal = selectedDrink.price * quantity;
+
+        if (addonTotal > 0) {
+            customizeDrinkPriceEl.textContent = `$${money(total)} total (${quantity} x $${money(selectedDrink.price)} + $${money(addonTotal)} add ons)`;
+            return;
+        }
+
+        customizeDrinkPriceEl.textContent = `$${money(baseTotal)} total (${quantity} x $${money(selectedDrink.price)})`;
+    }
+
     function syncCubeOrderForAddons(addons, savedCubeOrder = []) {
         const selectedCubeNames = addons
             .filter((addon) => isCubeAddonName(addon.name))
@@ -689,7 +708,6 @@
         editingOrderIndex = orderIndex;
 
         customizeDrinkTitleEl.textContent = `Customize ${drink.name}`;
-        customizeDrinkPriceEl.textContent = `$${money(drink.price)}`;
         saveCustomizeBtn.textContent = editingOrderIndex === null ? 'Add to order' : 'Save changes';
         customizeOverlay.classList.remove('hidden');
 
@@ -698,6 +716,7 @@
         renderAddonCategoryTabs();
         renderAddons();
         renderQuantity();
+        renderCustomizePrice();
         renderMenu();
         updateDrinkPreviewForAddons();
     }
@@ -768,6 +787,7 @@
             selectedSugar = option;
             renderSugarOptions();
             renderQuantity();
+            renderCustomizePrice();
         });
     }
 
@@ -776,6 +796,7 @@
             selectedIce = option;
             renderIceOptions();
             renderQuantity();
+            renderCustomizePrice();
         });
     }
 
@@ -866,6 +887,7 @@
 
                 renderAddons();
                 renderQuantity();
+                renderCustomizePrice();
                 animateAddonPreviewUpdate();
             };
             addonGrid.appendChild(button);
@@ -1087,12 +1109,14 @@
             if (quantity > 1) {
                 quantity -= 1;
                 renderQuantity();
+                renderCustomizePrice();
             }
         };
 
         document.getElementById('plusQty').onclick = () => {
             quantity += 1;
             renderQuantity();
+            renderCustomizePrice();
         };
 
         document.getElementById('clearOrder').onclick = () => {
