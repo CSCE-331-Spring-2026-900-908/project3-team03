@@ -204,28 +204,6 @@ body {
     border-color: #2563eb;
 }
 
-.selected-box {
-    margin-top: 20px;
-    padding: 16px;
-    border-radius: 14px;
-    background: #eff6ff;
-    border: 1px solid #bfdbfe;
-    color: #111827;
-}
-
-.selected-box h3 {
-    margin-top: 0;
-    font-family: 'Fredoka', 'Nunito', Arial, Helvetica, sans-serif;
-    font-size: 1.4rem;
-    font-weight: 600;
-}
-
-.selected-box div,
-.selected-box span,
-.selected-box strong {
-    color: #111827;
-}
-
 .selection-options {
     margin-top: 8px;
 }
@@ -236,6 +214,11 @@ body {
     gap: 10px;
     margin-top: 12px;
     flex-wrap: wrap;
+}
+
+.modal-qty-row {
+    margin-top: 0;
+    margin-right: auto;
 }
 
 .qty-btn,
@@ -283,11 +266,83 @@ body {
     background: #f9fafb;
 }
 
+.order-item-edit {
+    width: 100%;
+    border: none;
+    background: transparent;
+    padding: 0;
+    text-align: left;
+    cursor: pointer;
+    color: inherit;
+}
+
+.order-item-main {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.order-item-thumb {
+    width: 70px;
+    height: 70px;
+    flex: 0 0 70px;
+    object-fit: contain;
+    border-radius: 12px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    padding: 3px;
+}
+
+.order-item-details {
+    min-width: 0;
+    flex: 1;
+}
+
 .order-item h3 {
     margin: 0 0 6px 0;
     font-family: 'Fredoka', 'Nunito', Arial, Helvetica, sans-serif;
     font-size: 1.25rem;
     font-weight: 600;
+}
+
+.order-item-copy {
+    color: #374151;
+    line-height: 1.4;
+}
+
+.order-item-price-row {
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+}
+
+.order-item-hint {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #2563eb;
+}
+
+.order-item-actions {
+    margin-top: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.cart-qty-row {
+    margin-top: 0;
+}
+
+.order-qty-btn {
+    padding: 8px 12px;
+}
+
+.order-remove-btn {
+    margin-left: auto;
 }
 
 .total {

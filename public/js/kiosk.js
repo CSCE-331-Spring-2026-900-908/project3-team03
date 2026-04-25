@@ -7,8 +7,6 @@
     const categoryTabs = document.getElementById('categoryTabs');
     const menuGrid = document.getElementById('menuGrid');
     const addonGrid = document.getElementById('addonGrid');
-    const selectedDrinkEl = document.getElementById('selectedDrink');
-    const selectedOptionsEl = document.getElementById('selectedOptions');
     const qtyValueEl = document.getElementById('qtyValue');
     const orderListEl = document.getElementById('orderList');
     const orderTotalEl = document.getElementById('orderTotal');
@@ -134,6 +132,7 @@
     let order = [];
     let drinkSvgTemplate = null;
     let customizationDraft = null;
+    let editingOrderIndex = null;
     const menuPreviewCache = new Map();
     let previewWaveTimer = null;
     let previewWaveCleanupTimer = null;
@@ -494,6 +493,26 @@
         return dataUrl;
     }
 
+    // Show svg image preview in the "My order" menu
+    function createOrderItemPreviewDataUrl(item) {
+        const svgRoot = createDrinkSvgInstance();
+        if (!svgRoot) return '';
+
+        setupAddonLayersOnSvg(svgRoot);
+        applyAddonsToSvg(
+            svgRoot,
+            {
+                id: item.drinkId,
+                name: item.name,
+                price: item.basePrice
+            },
+            item.addons || [],
+            item.cubeAddonOrder || []
+        );
+
+        return svgToDataUrl(svgRoot);
+    }
+
     async function loadDrinkSvg() {
         try {
             const response = await fetch('/images/DrinkFoundation.svg');
@@ -608,38 +627,77 @@
         };
     }
 
-    function openCustomizeModal(drink) {
-        customizationDraft = getDefaultCustomization(drink);
+    function getOrderItemTotal(drink, addons, itemQuantity) {
+        const addonTotal = addons.reduce((sum, addon) => sum + addon.price, 0);
+        return (drink.price + addonTotal) * itemQuantity;
+    }
+
+    function syncCubeOrderForAddons(addons, savedCubeOrder = []) {
+        const selectedCubeNames = addons
+            .filter((addon) => isCubeAddonName(addon.name))
+            .map((addon) => addon.name);
+
+        const cubeOrder = savedCubeOrder.filter((name) => selectedCubeNames.includes(name));
+        selectedCubeNames.forEach((name) => {
+            if (!cubeOrder.includes(name)) {
+                cubeOrder.push(name);
+            }
+        });
+
+        return cubeOrder;
+    }
+
+    function buildOrderItem(drink) {
+        const addons = [...selectedAddons];
+        const finalCubeOrder = syncCubeOrderForAddons(addons, [...cubeAddonOrder]);
+
+        return {
+            drinkId: drink.id,
+            name: drink.name,
+            basePrice: drink.price,
+            addons,
+            cubeAddonOrder: finalCubeOrder,
+            sugar: selectedSugar,
+            ice: selectedIce,
+            quantity,
+            total: getOrderItemTotal(drink, addons, quantity)
+        };
+    }
+
+    function openCustomizeModal(drink, existingItem = null, orderIndex = null) {
+        customizationDraft = existingItem
+            ? {
+                drink,
+                addons: [...existingItem.addons],
+                cubeAddonOrder: [...(existingItem.cubeAddonOrder || [])],
+                sugar: existingItem.sugar,
+                ice: existingItem.ice
+            }
+            : getDefaultCustomization(drink);
         selectedDrink = drink;
         selectedAddons = [...customizationDraft.addons];
         cubeAddonOrder = [...customizationDraft.cubeAddonOrder];
         selectedSugar = customizationDraft.sugar;
         selectedIce = customizationDraft.ice;
+        quantity = existingItem ? existingItem.quantity : 1;
+        editingOrderIndex = orderIndex;
 
         customizeDrinkTitleEl.textContent = `Customize ${drink.name}`;
         customizeDrinkPriceEl.textContent = `$${money(drink.price)}`;
+        saveCustomizeBtn.textContent = editingOrderIndex === null ? 'Add to order' : 'Save changes';
         customizeOverlay.classList.remove('hidden');
 
         renderSugarOptions();
         renderIceOptions();
         renderAddonCategoryTabs();
         renderAddons();
-        renderSelection();
+        renderQuantity();
         renderMenu();
         updateDrinkPreviewForAddons();
     }
 
-    function closeCustomizeModal(resetToSavedState = true) {
+    function closeCustomizeModal() {
         customizeOverlay.classList.add('hidden');
-
-        if (resetToSavedState) {
-            if (!selectedDrink) {
-                clearDrinkPreviewLayers();
-                return;
-            }
-
-            updateDrinkPreviewForAddons();
-        }
     }
 
     function saveCustomization() {
@@ -650,8 +708,26 @@
         customizationDraft.sugar = selectedSugar;
         customizationDraft.ice = selectedIce;
 
-        closeCustomizeModal(false);
-        renderSelection();
+        const orderItem = buildOrderItem(selectedDrink);
+        if (editingOrderIndex === null) {
+            order.push(orderItem);
+        } else {
+            order[editingOrderIndex] = orderItem;
+        }
+
+        closeCustomizeModal();
+        clearCurrentSelection();
+        clearCheckoutStatus();
+        renderQuantity();
+        renderMenu();
+        renderOrder();
+    }
+
+    function cancelCustomization() {
+        closeCustomizeModal();
+        clearCurrentSelection();
+        renderAddons();
+        renderQuantity();
         renderMenu();
     }
 
@@ -663,6 +739,8 @@
         selectedIce = 'Regular Ice';
         customizationDraft = null;
         quantity = 1;
+        editingOrderIndex = null;
+        saveCustomizeBtn.textContent = 'Done';
         clearDrinkPreviewLayers();
     }
 
@@ -683,7 +761,7 @@
         renderChoiceButtons(sugarGrid, sugarOptions, selectedSugar, (option) => {
             selectedSugar = option;
             renderSugarOptions();
-            renderSelection();
+            renderQuantity();
         });
     }
 
@@ -691,7 +769,7 @@
         renderChoiceButtons(iceGrid, iceOptions, selectedIce, (option) => {
             selectedIce = option;
             renderIceOptions();
-            renderSelection();
+            renderQuantity();
         });
     }
 
@@ -781,34 +859,14 @@
                 }
 
                 renderAddons();
-                renderSelection();
+                renderQuantity();
                 animateAddonPreviewUpdate();
             };
             addonGrid.appendChild(button);
         });
     }
 
-    function renderSelection() {
-        if (!selectedDrink) {
-            selectedDrinkEl.textContent = 'No drink selected yet';
-            selectedOptionsEl.textContent = 'Choose a drink to customize sugar, ice, and add ons';
-        } else {
-            selectedDrinkEl.textContent = `${translateName(selectedDrink.name)}  $${money(selectedDrink.price)}`;
-
-            const optionParts = [
-                `Sugar: ${selectedSugar}`,
-                `Ice: ${selectedIce}`
-            ];
-
-            if (selectedAddons.length > 0) {
-                optionParts.push(
-                    'Add ons: ' + selectedAddons.map((a) => `${translateName(a.name)} +$${money(a.price)}`).join(', ')
-                );
-            }
-
-            selectedOptionsEl.textContent = optionParts.join(' | ');
-        }
-
+    function renderQuantity() {
         qtyValueEl.textContent = quantity;
     }
 
@@ -820,6 +878,48 @@
     function clearCheckoutStatus() {
         checkoutStatusEl.textContent = '';
         checkoutStatusEl.className = 'checkout-status';
+    }
+
+    // ------------ Functions for "cart-my order" section ------------
+    function getItemEditSummary(item) {
+        const optionParts = [
+            `Sugar: ${item.sugar}`,
+            `Ice: ${item.ice}`
+        ];
+
+        if (item.addons.length > 0) {
+            optionParts.push(`Add ons: ${item.addons.map((addon) => translateName(addon.name)).join(', ')}`);
+        }
+
+        return optionParts.join(' | ');
+    }
+
+    function updateOrderItemQuantity(index, nextQuantity) {
+        if (!order[index]) return;
+
+        order[index].quantity = Math.max(1, nextQuantity);
+        order[index].total = getOrderItemTotal(
+            { price: order[index].basePrice },
+            order[index].addons,
+            order[index].quantity
+        );
+
+        renderOrder();
+    }
+
+    function openOrderItemEditor(index) {
+        const item = order[index];
+        if (!item) return;
+
+        openCustomizeModal(
+            {
+                id: item.drinkId,
+                name: item.name,
+                price: item.basePrice
+            },
+            item,
+            index
+        );
     }
 
     function renderOrder() {
@@ -834,47 +934,53 @@
 
         order.forEach((item, index) => {
             total += item.total;
+            const previewUrl = createOrderItemPreviewDataUrl(item);
 
             const div = document.createElement('div');
             div.className = 'order-item';
             div.innerHTML = `
-                <h3>${item.quantity} x ${item.name}</h3>
-                <div>${item.addons.length ? 'Add ons: ' + item.addons.map((a) => a.name).join(', ') : 'No add ons'}</div>
-                <div style="margin-top:8px;"><strong>$${money(item.total)}</strong></div>
-                <button class="cart-btn danger" type="button" style="margin-top:10px;" onclick="removeOrderItem(${index})">Remove</button>
+                <button class="order-item-edit" type="button">
+                    <div class="order-item-main">
+                        ${previewUrl ? `<img class="order-item-thumb" src="${previewUrl}" alt="${item.name} preview">` : ''}
+                        <div class="order-item-details">
+                            <h3>${item.quantity} x ${translateName(item.name)}</h3>
+                            <div class="order-item-copy">${getItemEditSummary(item)}</div>
+                            <div class="order-item-price-row">
+                                <strong>$${money(item.total)}</strong>
+                                <span class="order-item-hint">Tap to edit</span>
+                            </div>
+                        </div>
+                    </div>
+                </button>
+                <div class="order-item-actions">
+                    <div class="qty-row cart-qty-row">
+                        <span>Qty</span>
+                        <button class="qty-btn order-qty-btn" type="button" data-action="decrease">-</button>
+                        <strong>${item.quantity}</strong>
+                        <button class="qty-btn order-qty-btn" type="button" data-action="increase">+</button>
+                    </div>
+                    <button class="cart-btn danger order-remove-btn" type="button">Remove</button>
+                </div>
             `;
+
+            div.querySelector('.order-item-edit').onclick = () => openOrderItemEditor(index);
+            div.querySelector('[data-action="decrease"]').onclick = (event) => {
+                event.stopPropagation();
+                updateOrderItemQuantity(index, item.quantity - 1);
+            };
+            div.querySelector('[data-action="increase"]').onclick = (event) => {
+                event.stopPropagation();
+                updateOrderItemQuantity(index, item.quantity + 1);
+            };
+            div.querySelector('.order-remove-btn').onclick = (event) => {
+                event.stopPropagation();
+                removeOrderItem(index);
+            };
+
             orderListEl.appendChild(div);
         });
 
         orderTotalEl.textContent = money(total);
-    }
-
-    function addToOrder() {
-        if (!selectedDrink) {
-            setCheckoutStatus('Pick a drink first.', 'error');
-            return;
-        }
-
-        const addonTotal = selectedAddons.reduce((sum, addon) => sum + addon.price, 0);
-        const total = (selectedDrink.price + addonTotal) * quantity;
-
-        order.push({
-            drinkId: selectedDrink.id,
-            name: selectedDrink.name,
-            addons: [...selectedAddons],
-            sugar: selectedSugar,
-            ice: selectedIce,
-            quantity,
-            total
-        });
-
-        clearCurrentSelection();
-        closeCustomizeModal(false);
-        clearCheckoutStatus();
-        renderMenu();
-        renderAddons();
-        renderSelection();
-        renderOrder();
     }
 
     function removeOrderItem(index) {
@@ -916,35 +1022,32 @@
     }
 
     function bindEvents() {
-        window.removeOrderItem = removeOrderItem;
-
         document.getElementById('minusQty').onclick = () => {
             if (quantity > 1) {
                 quantity -= 1;
-                renderSelection();
+                renderQuantity();
             }
         };
 
         document.getElementById('plusQty').onclick = () => {
             quantity += 1;
-            renderSelection();
+            renderQuantity();
         };
-
-        document.getElementById('addToOrder').onclick = addToOrder;
 
         document.getElementById('clearOrder').onclick = () => {
             order = [];
+            cancelCustomization();
             clearCheckoutStatus();
             renderOrder();
         };
 
         document.getElementById('checkoutOrder').onclick = submitOrder;
-        closeCustomizeBtn.onclick = () => closeCustomizeModal(true);
-        cancelCustomizeBtn.onclick = () => closeCustomizeModal(true);
+        closeCustomizeBtn.onclick = cancelCustomization;
+        cancelCustomizeBtn.onclick = cancelCustomization;
         saveCustomizeBtn.onclick = saveCustomization;
         customizeOverlay.onclick = (event) => {
             if (event.target === customizeOverlay) {
-                closeCustomizeModal(true);
+                cancelCustomization();
             }
         };
     }
@@ -1029,7 +1132,7 @@
             renderTabs();
             renderMenu();
             renderAddons();
-            renderSelection();
+            renderQuantity();
             renderOrder();
         } else {
             document.querySelector('.section-title').textContent = 'No menu items available';

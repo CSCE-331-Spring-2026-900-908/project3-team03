@@ -13,7 +13,7 @@
     <div class="page">
         <div class="topbar">
             <div>
-                <h1>Self Service Kiosk</h1>
+                <h1>FSH Boba - Self Service Kiosk</h1>
             </div>
             <div id="google_translate_element">
                 <button onclick="toggleHighContrast()" id="highContrastBtn" type="button">High Contrast</button>
@@ -34,23 +34,10 @@
                 <h2 class="section-title">Menu items</h2>
                 <div class="menu-grid" id="menuGrid"></div>
 
-                <div class="selected-box">
-                    <h3>Current selection</h3>
-                    <div id="selectedDrink" class="muted">No drink selected yet</div>
-                    <div id="selectedOptions" class="muted selection-options">Choose a drink to customize sugar, ice, and add ons</div>
-
-                    <div class="qty-row">
-                        <span>Quantity</span>
-                        <button class="qty-btn" id="minusQty" type="button">-</button>
-                        <strong id="qtyValue">1</strong>
-                        <button class="qty-btn" id="plusQty" type="button">+</button>
-                        <button class="action-btn" id="addToOrder" type="button">Add to order</button>
-                    </div>
-                </div>
             </div>
 
             <div class="panel order-panel">
-                <h2 class="section-title">Your order</h2>
+                <h2 class="section-title">My order</h2>
                 <div id="orderList" class="order-list">
                     <div class="muted">Your order is empty</div>
                 </div>
@@ -102,6 +89,12 @@
                     </div>
 
                     <div class="customize-actions">
+                        <div class="qty-row modal-qty-row">
+                            <span>Quantity</span>
+                            <button class="qty-btn" id="minusQty" type="button">-</button>
+                            <strong id="qtyValue">1</strong>
+                            <button class="qty-btn" id="plusQty" type="button">+</button>
+                        </div>
                         <button class="cart-btn secondary" id="cancelCustomize" type="button">Cancel</button>
                         <button class="action-btn" id="saveCustomize" type="button">Done</button>
                     </div>
