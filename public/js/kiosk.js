@@ -10,7 +10,12 @@
     const qtyValueEl = document.getElementById('qtyValue');
     const orderListEl = document.getElementById('orderList');
     const orderTotalEl = document.getElementById('orderTotal');
-    const checkoutStatusEl = document.getElementById('checkoutStatus');
+    const resultOverlayEl = document.getElementById('resultOverlay');
+    const resultCardEl = document.getElementById('resultCard');
+    const resultTitleEl = document.getElementById('resultTitle');
+    const resultMessageEl = document.getElementById('resultMessage');
+    const resultTicketEl = document.getElementById('resultTicket');
+    const resultOkBtn = document.getElementById('resultOkBtn');
     const customizeOverlay = document.getElementById('customizeOverlay');
     const customizeDrinkTitleEl = document.getElementById('customizeDrinkTitle');
     const customizeDrinkPriceEl = document.getElementById('customizeDrinkPrice');
@@ -136,6 +141,7 @@
     const menuPreviewCache = new Map();
     let previewWaveTimer = null;
     let previewWaveCleanupTimer = null;
+    let resultOverlayTimer = null;
 
     function normalizeAddonName(name) {
         return String(name || '').trim().toLowerCase();
@@ -717,7 +723,7 @@
 
         closeCustomizeModal();
         clearCurrentSelection();
-        clearCheckoutStatus();
+        hideResultOverlay();
         renderQuantity();
         renderMenu();
         renderOrder();
@@ -870,14 +876,46 @@
         qtyValueEl.textContent = quantity;
     }
 
-    function setCheckoutStatus(message, type = 'info') {
-        checkoutStatusEl.textContent = message;
-        checkoutStatusEl.className = `checkout-status is-visible ${type}`;
+    function hideResultOverlay() {
+        if (resultOverlayTimer) {
+            clearTimeout(resultOverlayTimer);
+            resultOverlayTimer = null;
+        }
+
+        resultOverlayEl.classList.add('hidden');
+        resultCardEl.classList.remove('success', 'error', 'info');
+        resultTitleEl.textContent = '';
+        resultMessageEl.textContent = '';
+        resultTicketEl.textContent = '';
+        resultTicketEl.classList.add('hidden');
     }
 
-    function clearCheckoutStatus() {
-        checkoutStatusEl.textContent = '';
-        checkoutStatusEl.className = 'checkout-status';
+    function showResultOverlay({ title, message, type = 'info', ticketNumber = null, autoDismissMs = null }) {
+        if (resultOverlayTimer) {
+            clearTimeout(resultOverlayTimer);
+            resultOverlayTimer = null;
+        }
+
+        resultCardEl.classList.remove('success', 'error', 'info');
+        resultCardEl.classList.add(type);
+        resultTitleEl.textContent = title;
+        resultMessageEl.textContent = message;
+
+        if (ticketNumber) {
+            resultTicketEl.textContent = `Ticket #${ticketNumber}`;
+            resultTicketEl.classList.remove('hidden');
+        } else {
+            resultTicketEl.textContent = '';
+            resultTicketEl.classList.add('hidden');
+        }
+
+        resultOverlayEl.classList.remove('hidden');
+
+        if (autoDismissMs) {
+            resultOverlayTimer = setTimeout(() => {
+                hideResultOverlay();
+            }, autoDismissMs);
+        }
     }
 
     // ------------ Functions for "cart-my order" section ------------
@@ -988,14 +1026,23 @@
         renderOrder();
     }
 
+    // --------------- Order confirmation overlay ---------------
     async function submitOrder() {
         if (order.length === 0) {
-            setCheckoutStatus('Order is empty.', 'error');
+            showResultOverlay({
+                title: 'Order not submitted',
+                message: 'Your order is empty. Please add at least one drink before checking out.',
+                type: 'error'
+            });
             return;
         }
 
         const payload = { order };
-        setCheckoutStatus('Submitting order...', 'info');
+        showResultOverlay({
+            title: 'Submitting order...',
+            message: 'Please wait while we send your order to the kitchen.',
+            type: 'info'
+        });
 
         try {
             const res = await fetch('/kiosk/submitOrder', {
@@ -1009,15 +1056,29 @@
             const data = await res.json().catch(() => ({}));
 
             if (res.ok && data.success) {
-                setCheckoutStatus(`Order submitted successfully${data.orderId ? `, ticket #${data.orderId}` : ''}.`, 'success');
+                showResultOverlay({
+                    title: 'Order confirmed',
+                    message: 'Enjoy your boba!',
+                    type: 'success',
+                    ticketNumber: data.orderId || null,
+                    autoDismissMs: 8000
+                });
                 order = [];
                 renderOrder();
             } else {
-                setCheckoutStatus(data.message || 'Order submission failed.', 'error');
+                showResultOverlay({
+                    title: 'Order not submitted',
+                    message: data.message || 'Something went wrong while submitting your order. Please try again.',
+                    type: 'error'
+                });
             }
         } catch (err) {
             console.error(err);
-            setCheckoutStatus('Unable to reach the server. Please try again.', 'error');
+            showResultOverlay({
+                title: 'Connection problem',
+                message: 'Unable to reach the server. Please try again.',
+                type: 'error'
+            });
         }
     }
 
@@ -1037,11 +1098,12 @@
         document.getElementById('clearOrder').onclick = () => {
             order = [];
             cancelCustomization();
-            clearCheckoutStatus();
+            hideResultOverlay();
             renderOrder();
         };
 
         document.getElementById('checkoutOrder').onclick = submitOrder;
+        resultOkBtn.onclick = hideResultOverlay;
         closeCustomizeBtn.onclick = cancelCustomization;
         cancelCustomizeBtn.onclick = cancelCustomization;
         saveCustomizeBtn.onclick = saveCustomization;

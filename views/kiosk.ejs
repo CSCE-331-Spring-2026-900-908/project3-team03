@@ -46,8 +46,18 @@
                     <button class="cart-btn secondary" id="clearOrder" type="button">Clear order</button>
                     <button class="cart-btn" id="checkoutOrder" type="button">Checkout</button>
                 </div>
-                <div id="checkoutStatus" class="checkout-status" aria-live="polite"></div>
             </div>
+        </div>
+    </div>
+
+    <!-- Order confirmation overlay -->
+    <div id="resultOverlay" class="result-overlay hidden" aria-live="polite">
+        <div id="resultCard" class="result-card">
+            <div class="result-badge" id="resultBadge"></div>
+            <h2 id="resultTitle">Order confirmed</h2>
+            <p id="resultMessage" class="result-message"></p>
+            <div id="resultTicket" class="result-ticket hidden"></div>
+            <button class="action-btn result-ok-btn" id="resultOkBtn" type="button">OK</button>
         </div>
     </div>
 
