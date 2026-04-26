@@ -16,17 +16,76 @@
                 <img src="/images/favicon.ico" alt="FSH Boba icon" class="topbar-logo">
                 <h1>FSH Boba - Self Service Kiosk</h1>
             </div>
-            <div id="google_translate_element">
-                <button onclick="toggleHighContrast()" id="highContrastBtn" type="button">High Contrast</button>
-                <button onclick="toggleLowContrast()" id="lowContrastBtn" type="button">Low Contrast</button>
-                <button onclick="toggleScreenMagnifier()" type="button">Toggle Magnifier</button>
-                <button id="fontToggle" onclick="toggleFontSize()" type="button">Toggle Font Size</button>
+
+            <!-- Accessibility buttons section -->
+            <div class="accessibility-panel">
+                <div class="accessibility-actions">
+                    <div class="accessibility-item">
+                        <button onclick="toggleHighContrast()" id="highContrastBtn" class="accessibility-btn" type="button" aria-label="Increase contrast">
+                            <span class="accessibility-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" focusable="false">
+                                    <circle cx="12" cy="12" r="8"></circle>
+                                    <path d="M12 4a8 8 0 0 1 0 16Z"></path>
+                                </svg>
+                            </span>
+                        </button>
+                        <small class="accessibility-label">+ Contrast</small>
+                    </div>
+                    <div class="accessibility-item">
+                        <button onclick="toggleLowContrast()" id="lowContrastBtn" class="accessibility-btn" type="button" aria-label="Decrease contrast">
+                            <span class="accessibility-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" focusable="false">
+                                    <circle cx="12" cy="12" r="8"></circle>
+                                    <path d="M8 12h8"></path>
+                                </svg>
+                            </span>
+                        </button>
+                        <small class="accessibility-label">- Contrast</small>
+                    </div>
+                    <div class="accessibility-item">
+                        <button onclick="toggleScreenMagnifier()" id="magnifierBtn" class="accessibility-btn" type="button" aria-label="Toggle magnifier">
+                            <span class="accessibility-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" focusable="false">
+                                    <circle cx="10" cy="10" r="5.5"></circle>
+                                    <path d="M14.5 14.5 20 20"></path>
+                                </svg>
+                            </span>
+                        </button>
+                        <small class="accessibility-label">Magnified</small>
+                    </div>
+                    <div class="accessibility-item">
+                        <button id="fontToggle" onclick="toggleFontSize()" class="accessibility-btn" type="button" aria-label="Increase font size">
+                            <span class="accessibility-icon accessibility-icon-text" aria-hidden="true">A+</span>
+                        </button>
+                        <small class="accessibility-label">+ Font Size</small>
+                    </div>
+                    <div class="accessibility-item accessibility-item-translate">
+                        <button id="translateToggleBtn" onclick="toggleTranslateMenu()" class="accessibility-btn accessibility-btn-translate" type="button" aria-label="Open translation options" aria-expanded="false" aria-controls="translateTray">
+                            <span class="accessibility-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" focusable="false">
+                                    <path d="M4 7h10"></path>
+                                    <path d="M9 5v2"></path>
+                                    <path d="M7 7c0 3 2 6 5 8"></path>
+                                    <path d="M14 10h6"></path>
+                                    <path d="m17 10-3 9"></path>
+                                    <path d="m17 10 3 9"></path>
+                                </svg>
+                            </span>
+                        </button>
+                        <small class="accessibility-label">Translate</small>
+                        <div id="translateTray" class="translate-tray hidden">
+                            <div class="translate-tray-label">Choose language</div>
+                            <div id="google_translate_element"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div id="screenMagnifier">
                 <div id="screenMagnifierContent"></div>
             </div>
         </div>
 
+        <!-- Menu items panel + "My order" section -->
         <div class="layout">
             <div class="panel main-panel">
                 <h2 class="section-title">Choose a category</h2>

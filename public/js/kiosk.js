@@ -1138,9 +1138,16 @@
         };
     }
 
+    // Accessibility buttons unitlity
     function initAccessibilityControls() {
         const lens = document.getElementById('screenMagnifier');
         const lensContent = document.getElementById('screenMagnifierContent');
+        const highContrastBtn = document.getElementById('highContrastBtn');
+        const lowContrastBtn = document.getElementById('lowContrastBtn');
+        const magnifierBtn = document.getElementById('magnifierBtn');
+        const fontToggleBtn = document.getElementById('fontToggle');
+        const translateToggleBtn = document.getElementById('translateToggleBtn');
+        const translateTray = document.getElementById('translateTray');
         const zoom = 2;
         const lensSize = 220;
         let magnifierOn = false;
@@ -1149,21 +1156,50 @@
             new google.translate.TranslateElement({ pageLanguage: 'en' }, 'google_translate_element');
         };
 
+        function setButtonActiveState(button, isActive) {
+            if (!button) return;
+            button.classList.toggle('is-active', isActive);
+        }
+
+        function updateContrastButtonStates() {
+            setButtonActiveState(highContrastBtn, document.body.classList.contains('high-contrast'));
+            setButtonActiveState(lowContrastBtn, document.body.classList.contains('low-contrast'));
+        }
+
         window.toggleHighContrast = function toggleHighContrast() {
-            document.body.classList.toggle('high-contrast');
+            const willEnable = !document.body.classList.contains('high-contrast');
+            document.body.classList.toggle('high-contrast', willEnable);
+            if (willEnable) {
+                document.body.classList.remove('low-contrast');
+            }
+            updateContrastButtonStates();
         };
 
         window.toggleLowContrast = function toggleLowContrast() {
-            document.body.classList.toggle('low-contrast');
+            const willEnable = !document.body.classList.contains('low-contrast');
+            document.body.classList.toggle('low-contrast', willEnable);
+            if (willEnable) {
+                document.body.classList.remove('high-contrast');
+            }
+            updateContrastButtonStates();
         };
 
         window.toggleFontSize = function toggleFontSize() {
             const currentSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
             if (currentSize !== 20) {
                 document.documentElement.style.fontSize = '20px';
+                setButtonActiveState(fontToggleBtn, true);
             } else {
                 document.documentElement.style.fontSize = `${originalSize}px`;
+                setButtonActiveState(fontToggleBtn, false);
             }
+        };
+
+        window.toggleTranslateMenu = function toggleTranslateMenu() {
+            const isHidden = translateTray.classList.contains('hidden');
+            translateTray.classList.toggle('hidden', !isHidden);
+            translateToggleBtn.setAttribute('aria-expanded', String(isHidden));
+            setButtonActiveState(translateToggleBtn, isHidden);
         };
 
         function buildClone() {
@@ -1207,7 +1243,13 @@
         window.toggleScreenMagnifier = function toggleScreenMagnifier() {
             magnifierOn = !magnifierOn;
             if (!magnifierOn) lens.style.display = 'none';
+            setButtonActiveState(magnifierBtn, magnifierOn);
         };
+
+        updateContrastButtonStates();
+        setButtonActiveState(fontToggleBtn, false);
+        setButtonActiveState(magnifierBtn, false);
+        setButtonActiveState(translateToggleBtn, false);
     }
 
     function init() {
