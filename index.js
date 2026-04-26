@@ -3,12 +3,7 @@ const session = require('express-session');
 const passport = require('passport');
 const dotenv = require('dotenv').config();
 
-const fs = require('fs/promises');
-const path = require('path');
-
 const pool = require('./db/pool');
-const MenuItemDao = require('./dao/MenuItemDao');
-const orderDao = require('./dao/orderDao');
 const inventoryDao = require('./dao/inventoryDao');
 
 // Load Passport configuration
@@ -99,6 +94,84 @@ app.post('/login', (req, res) => {
         res.render('login', { error: 'Invalid credentials' });
     }
 });
+
+app.post('/inventoryAdd', async (req, res) => {
+    try {
+        const item = req.body;
+
+        await inventoryDao.createInventoryItem(item);
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false });
+    }
+});
+
+app.post('/updateQuantityName', async (req, res) => {
+    try {
+        const { name, quantity } = req.body;
+
+        await inventoryDao.updateInventoryQuantityByName(name, quantity);
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false });
+    }
+});
+
+app.post('/deleteInventoryItem', async (req, res) => {
+    try {
+        const { name } = req.body;
+console.log("Deleting:", name);
+        const count = await inventoryDao.deactivateInventoryItemByName(name);
+
+        if (count === 0) {
+            return res.json({ success: false, message: "Item not found" });
+        }
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false });
+    }
+});
+
+app.post('/insertIngredientReturningId', async (req, res) => {
+    try {
+        const { name } = req.body;
+
+        const id = await inventoryDao.createInventoryItem(name);
+
+        res.json({
+            success: true,
+            ingredient_id: id
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false });
+    }
+});
+
+
+/*
+app.get('/cashier', (req, res) => {
+    if (req.session.role === 'cashier') {
+        pool.query("SELECT * FROM employee WHERE role = 'CASHIER' ORDER BY employee_id;")
+            .then(query_res => {
+                res.render('cashier', { employees: query_res.rows });
+            })
+            .catch(err => {
+                console.error('Error fetching employees:', err);
+                res.status(500).send('Database error');
+            });
+    } else {
+        res.redirect('/');
+    }
+});
+*/
 
 app.get('/logout', (req, res) => {
     req.session.destroy();

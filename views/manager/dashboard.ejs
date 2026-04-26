@@ -112,5 +112,16 @@
         </section>
         </main>
     </div>
+    <section class="weather-widget" aria-label="Current weather in College Station">
+        <h3><%= weather.location %></h3>
+        <% if (weather.available) { %>
+            <div class="weather-temp"><%= weather.temperature %>F</div>
+            <p class="weather-meta"><%= weather.summary %></p>
+            <p class="weather-meta">Feels like <%= weather.feelsLike %>F</p>
+            <p class="weather-meta">Wind <%= weather.windSpeed %> mph</p>
+        <% } else { %>
+            <p class="weather-meta"><%= weather.summary %></p>
+        <% } %>
+    </section>
 </body>
 </html>

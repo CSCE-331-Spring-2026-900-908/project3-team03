@@ -182,6 +182,17 @@
             drinkStyleMap: <%- JSON.stringify(typeof drinkStyleMap !== 'undefined' ? drinkStyleMap : {}) %>
         };
     </script>
+    <section class="weather-widget" aria-label="Current weather in College Station">
+        <h3><%= weather.location %></h3>
+        <% if (weather.available) { %>
+            <div class="weather-temp"><%= weather.temperature %>F</div>
+            <p class="weather-meta"><%= weather.summary %></p>
+            <p class="weather-meta">Feels like <%= weather.feelsLike %>F</p>
+            <p class="weather-meta">Wind <%= weather.windSpeed %> mph</p>
+        <% } else { %>
+            <p class="weather-meta"><%= weather.summary %></p>
+        <% } %>
+    </section>
     <script src="/js/kiosk.js"></script>
     <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>

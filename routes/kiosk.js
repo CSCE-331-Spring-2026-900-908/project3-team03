@@ -5,6 +5,7 @@ const router = express.Router();
 const orderDao = require('../dao/orderDao');
 const inventoryDao = require('../dao/inventoryDao');
 const MenuItemDao = require('../dao/MenuItemDao');
+const { fetchCollegeStationWeather } = require('../utils/weather');
 
 // ---------------------------- Drink Style ----------------------------
 // Load color data
@@ -73,9 +74,10 @@ router.get('/', async (req, res) => {
     try {
         console.log('Kiosk: Loading menu from database');
         
-        const [menuItems, activeAddons] = await Promise.all([
+        const [menuItems, activeAddons, weather] = await Promise.all([
             MenuItemDao.get_active_drink_items(),
-            MenuItemDao.get_active_addons()
+            MenuItemDao.get_active_addons(),
+            fetchCollegeStationWeather()
         ]);
         console.log('Kiosk: Retrieved', menuItems.length, 'drink items');
         console.log('Kiosk: Retrieved', activeAddons.length, 'addons');
@@ -105,7 +107,8 @@ router.get('/', async (req, res) => {
                 price: parseFloat(item.base_price)
             })),
             drinkStyleMap,
-            statusMessage: ''
+            statusMessage: '',
+            weather
         });
     } catch (err) {
         console.error('Kiosk: Error loading menu:', err);
@@ -113,7 +116,8 @@ router.get('/', async (req, res) => {
             categories: {},
             addons: [],
             drinkStyleMap: {},
-            statusMessage: 'Error loading menu items'
+            statusMessage: 'Error loading menu items',
+            weather: await fetchCollegeStationWeather()
         });
     }
 });

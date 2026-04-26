@@ -898,6 +898,38 @@ textarea {
     transform-origin: top left;
 }
 
+.weather-widget {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    width: 220px;
+    padding: 14px 16px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid #c8e5ea;
+    box-shadow: 0 10px 24px rgba(17, 24, 39, 0.12);
+    z-index: 30;
+}
+
+.weather-widget h3 {
+    margin: 0 0 6px 0;
+    font-family: 'Fredoka', 'Nunito', Arial, Helvetica, sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.weather-temp {
+    margin: 4px 0;
+    font-size: 1.8rem;
+    font-weight: 800;
+}
+
+.weather-meta {
+    margin: 4px 0 0 0;
+    color: #4b5563;
+    font-size: 0.95rem;
+}
+
 @media (max-width: 960px) {
     .layout {
         grid-template-columns: 1fr;
@@ -923,5 +955,11 @@ textarea {
     .translate-tray {
         right: 0;
         width: min(245px, calc(100vw - 48px));
+    }
+    
+    .weather-widget {
+        position: static;
+        width: auto;
+        margin: 0 24px 24px auto;
     }
 }

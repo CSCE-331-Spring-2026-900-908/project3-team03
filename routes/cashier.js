@@ -3,6 +3,7 @@ const router = express.Router();
 const drinkDao = require('../dao/drinkDao');
 const MenuItemDAO = require('../dao/MenuItemDao');
 const orderDao = require('../dao/orderDao');
+const { fetchCollegeStationWeather } = require('../utils/weather');
 
 // Initialize session cart if it doesn't exist
 const initializeCart = (req) => {
@@ -43,7 +44,10 @@ router.get('/menu', async (req, res) => {
     initializeCart(req);
     console.log('Cashier: Loading menu page');
     
-    const menuItems = await MenuItemDAO.get_active_drink_items();
+    const [menuItems, weather] = await Promise.all([
+      MenuItemDAO.get_active_drink_items(),
+      fetchCollegeStationWeather()
+    ]);
     console.log('Cashier: Retrieved', menuItems.length, 'active drink items');
 
     const categories = {};
@@ -87,7 +91,8 @@ router.get('/menu', async (req, res) => {
       cartCount: req.session.cart.drinks.length,
       drinks: drinksWithDetails,
       addons: temp,
-      statusMessage: ''
+      statusMessage: '',
+      weather
     });
   } catch (err) {
     console.error('Cashier: Error loading menu:', err.message);
@@ -95,7 +100,8 @@ router.get('/menu', async (req, res) => {
       menuItems: [],
       cartCount: 0,
       categories: {},
-      statusMessage: 'Error loading menu items'
+      statusMessage: 'Error loading menu items',
+      weather: await fetchCollegeStationWeather()
     });
   }
 });
