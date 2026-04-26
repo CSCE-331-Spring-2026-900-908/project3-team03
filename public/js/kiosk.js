@@ -1166,6 +1166,13 @@
             setButtonActiveState(lowContrastBtn, document.body.classList.contains('low-contrast'));
         }
 
+        // Close language dropdown after 8 seconds
+        function closeTranslateMenu() {
+            translateTray.classList.remove('is-open');
+            translateToggleBtn.setAttribute('aria-expanded', 'false');
+            setButtonActiveState(translateToggleBtn, false);
+        }
+
         window.toggleHighContrast = function toggleHighContrast() {
             const willEnable = !document.body.classList.contains('high-contrast');
             document.body.classList.toggle('high-contrast', willEnable);
@@ -1196,16 +1203,32 @@
         };
 
         window.toggleTranslateMenu = function toggleTranslateMenu() {
-            const isHidden = translateTray.classList.contains('hidden');
-            translateTray.classList.toggle('hidden', !isHidden);
-            translateToggleBtn.setAttribute('aria-expanded', String(isHidden));
-            setButtonActiveState(translateToggleBtn, isHidden);
-        };
+            const willOpen = !translateTray.classList.contains('is-open');
+            if (!willOpen) {
+                closeTranslateMenu();
+                return;
+            }
 
+            translateTray.classList.add('is-open');
+            translateToggleBtn.setAttribute('aria-expanded', 'true');
+            setButtonActiveState(translateToggleBtn, true);
+        };
+        
+        // Clone screen for magnifier utility
         function buildClone() {
+            if (!magnifierOn) return;
+
             const clone = document.body.cloneNode(true);
             const oldLens = clone.querySelector('#screenMagnifier');
             if (oldLens) oldLens.remove();
+
+            const clonedTranslateTray = clone.querySelector('#translateTray');
+            if (clonedTranslateTray) clonedTranslateTray.remove();
+
+            const clonedTranslateWidget = clone.querySelector('#google_translate_element');
+            if (clonedTranslateWidget) clonedTranslateWidget.remove();
+
+            clone.querySelectorAll('iframe').forEach((iframe) => iframe.remove());
 
             lensContent.innerHTML = '';
             lensContent.appendChild(clone);
@@ -1232,8 +1255,6 @@
             lens.style.display = 'none';
         }
 
-        buildClone();
-
         document.addEventListener('mousemove', updateMagnifier);
         document.addEventListener('mouseleave', hideMagnifier);
         window.addEventListener('scroll', buildClone);
@@ -1242,7 +1263,12 @@
 
         window.toggleScreenMagnifier = function toggleScreenMagnifier() {
             magnifierOn = !magnifierOn;
-            if (!magnifierOn) lens.style.display = 'none';
+            if (!magnifierOn) {
+                lens.style.display = 'none';
+                lensContent.innerHTML = '';
+            } else {
+                buildClone();
+            }
             setButtonActiveState(magnifierBtn, magnifierOn);
         };
 

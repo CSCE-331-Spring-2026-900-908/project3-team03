@@ -168,6 +168,19 @@ textarea {
     top: calc(100% + 12px);
     right: 0;
     z-index: 40;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-6px) scale(0.98);
+    transform-origin: top right;
+    transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
+}
+
+.translate-tray.is-open {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
 }
 
 .translate-tray-label {
