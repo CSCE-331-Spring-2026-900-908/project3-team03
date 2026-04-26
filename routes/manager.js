@@ -4,6 +4,7 @@ const orderDao = require('../dao/orderDao');
 const inventoryDao = require('../dao/inventoryDao');
 const menuItemDao = require('../dao/MenuItemDao');
 const employeeDao = require('../dao/employeeDao');
+const { fetchCollegeStationWeather } = require('../utils/weather');
 
 // Hard-coded category example just for user convenience
 const MENU_CATEGORIES = [
@@ -21,10 +22,11 @@ const MENU_CATEGORIES = [
 // -------------------- DASHBOARD --------------------
 router.get('/dashboard', async (req, res) => {
     try {
-        const [summary, recentOrders, lowStock] = await Promise.all([
+        const [summary, recentOrders, lowStock, weather] = await Promise.all([
             orderDao.getTodaySummary(),
             orderDao.getRecentOrders(),
-            inventoryDao.getLowStockItems()
+            inventoryDao.getLowStockItems(),
+            fetchCollegeStationWeather()
         ]);
 
         res.render('manager/dashboard', {
@@ -32,11 +34,19 @@ router.get('/dashboard', async (req, res) => {
             ordersToday: Number(summary.orders_today ?? 0),
             avgOrderToday: Number(summary.avg_order_today ?? 0).toFixed(2),
             recentOrders,
-            lowStock
+            lowStock,
+            weather
         });
     } catch (err) {
         console.error('Error loading manager dashboard:', err);
-        res.status(500).send('Database error');
+        res.status(500).render('manager/dashboard', {
+            salesToday: '0.00',
+            ordersToday: 0,
+            avgOrderToday: '0.00',
+            recentOrders: [],
+            lowStock: [],
+            weather: await fetchCollegeStationWeather()
+        });
     }
 });
 

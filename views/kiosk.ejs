@@ -16,6 +16,7 @@
             font-size: 18px;
             background: #ccf8ff;
             color: #111827;
+            padding-bottom: 110px;
         }
         .page {
             max-width: 1450px;
@@ -506,6 +507,50 @@
         top: 0;
         left: 0;
         transform-origin: top left;
+        }
+
+        .weather-widget {
+            position: fixed;
+            right: 20px;
+            bottom: 20px;
+            width: 235px;
+            padding: 14px 16px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid #c8e5ea;
+            box-shadow: 0 10px 24px rgba(17, 24, 39, 0.12);
+            z-index: 30;
+        }
+
+        .weather-widget h3 {
+            margin: 0 0 6px 0;
+            font-family: 'Fredoka', 'Nunito', Arial, Helvetica, sans-serif;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .weather-temp {
+            margin: 4px 0;
+            font-size: 1.8rem;
+            font-weight: 800;
+        }
+
+        .weather-meta {
+            margin: 4px 0 0 0;
+            color: #4b5563;
+            font-size: 0.95rem;
+        }
+
+        @media (max-width: 900px) {
+            body {
+                padding-bottom: 24px;
+            }
+
+            .weather-widget {
+                position: static;
+                width: auto;
+                margin: 0 24px 24px auto;
+            }
         }
 
     </style>
@@ -1660,5 +1705,16 @@
     };
 })();
 </script>
+    <section class="weather-widget" aria-label="Current weather in College Station">
+        <h3><%= weather.location %></h3>
+        <% if (weather.available) { %>
+            <div class="weather-temp"><%= weather.temperature %>F</div>
+            <p class="weather-meta"><%= weather.summary %></p>
+            <p class="weather-meta">Feels like <%= weather.feelsLike %>F</p>
+            <p class="weather-meta">Wind <%= weather.windSpeed %> mph</p>
+        <% } else { %>
+            <p class="weather-meta"><%= weather.summary %></p>
+        <% } %>
+    </section>
 </body>
 </html>

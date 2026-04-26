@@ -3,6 +3,7 @@ body {
     font-family: Arial, sans-serif;
     background: #f7f7f9;
     color: #222;
+    padding-bottom: 110px;
 }
 
 .layout {
@@ -163,6 +164,36 @@ th {
     padding: 10px 0;
 }
 
+.weather-widget {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    width: 220px;
+    padding: 14px 16px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.96);
+    border: 1px solid #dddddd;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+    z-index: 20;
+}
+
+.weather-widget h3 {
+    margin: 0 0 6px 0;
+    font-size: 15px;
+}
+
+.weather-temp {
+    margin: 4px 0;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.weather-meta {
+    margin: 4px 0 0 0;
+    color: #555555;
+    font-size: 14px;
+}
+
 @media (max-width: 900px) {
     .cards {
         grid-template-columns: 1fr;
@@ -180,5 +211,15 @@ th {
         width: 100%;
         border-right: none;
         border-bottom: 1px solid #dddddd;
+    }
+
+    body {
+        padding-bottom: 24px;
+    }
+
+    .weather-widget {
+        position: static;
+        width: auto;
+        margin: 0 20px 20px auto;
     }
 }

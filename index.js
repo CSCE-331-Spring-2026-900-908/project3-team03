@@ -10,6 +10,7 @@ const pool = require('./db/pool');
 const MenuItemDao = require('./dao/MenuItemDao');
 const orderDao = require('./dao/orderDao');
 const inventoryDao = require('./dao/inventoryDao');
+const { fetchCollegeStationWeather } = require('./utils/weather');
 
 // Load Passport configuration
 require('./config/passportConfig');
@@ -164,9 +165,10 @@ app.get('/kiosk', async (req, res) => {
     try {
         console.log('Kiosk: Loading menu from database');
         
-        const [menuItems, activeAddons] = await Promise.all([
+        const [menuItems, activeAddons, weather] = await Promise.all([
             MenuItemDao.get_active_drink_items(),
-            MenuItemDao.get_active_addons()
+            MenuItemDao.get_active_addons(),
+            fetchCollegeStationWeather()
         ]);
         console.log('Kiosk: Retrieved', menuItems.length, 'drink items');
         console.log('Kiosk: Retrieved', activeAddons.length, 'addons');
@@ -196,7 +198,8 @@ app.get('/kiosk', async (req, res) => {
                 price: parseFloat(item.base_price)
             })),
             drinkStyleMap,
-            statusMessage: ''
+            statusMessage: '',
+            weather
         });
     } catch (err) {
         console.error('Kiosk: Error loading menu:', err);
@@ -204,7 +207,8 @@ app.get('/kiosk', async (req, res) => {
             categories: {},
             addons: [],
             drinkStyleMap: {},
-            statusMessage: 'Error loading menu items'
+            statusMessage: 'Error loading menu items',
+            weather: await fetchCollegeStationWeather()
         });
     }
 });
