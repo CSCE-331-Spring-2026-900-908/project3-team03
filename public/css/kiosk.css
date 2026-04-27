@@ -238,6 +238,11 @@ textarea {
     border: 1px solid #f4bfa7;
 }
 
+.order-summary-panel {
+    background: #fff1e8;
+    border: 1px solid #f4c9b6;
+}
+
 .section-title {
     margin: 0 0 14px 0;
     font-family: 'Fredoka', 'Nunito', Arial, Helvetica, sans-serif;
@@ -438,11 +443,21 @@ textarea {
     background: #5fbb5f;
 }
 
+.cart-btn:disabled,
+.cart-btn.secondary:disabled,
+#checkoutOrder:disabled {
+    background: #d1d5db;
+    color: #6b7280;
+    box-shadow: none;
+    cursor: not-allowed;
+    opacity: 1;
+}
+
 .order-list {
     display: flex;
     flex-direction: column;
     gap: 12px;
-    margin: 16px 0;
+    margin: 12px 0 0 0;
 }
 
 .order-item {

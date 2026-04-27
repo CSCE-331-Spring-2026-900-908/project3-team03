@@ -10,6 +10,8 @@
     const qtyValueEl = document.getElementById('qtyValue');
     const orderListEl = document.getElementById('orderList');
     const orderTotalEl = document.getElementById('orderTotal');
+    const clearOrderBtn = document.getElementById('clearOrder');
+    const checkoutOrderBtn = document.getElementById('checkoutOrder');
     const weatherWidgetEl = document.querySelector('.weather-widget');
     const menuColumnEl = document.getElementById('menuColumn');
     const orderColumnEl = document.getElementById('orderColumn');
@@ -985,7 +987,7 @@
         );
     }
 
-    // When ordering +3 drinks weather widget moves to bottom-left
+    // Move the weather widget between the order and menu columns.
     function updateWeatherWidgetPosition() {
         if (!weatherWidgetEl || !menuColumnEl || !orderColumnEl) return;
 
@@ -995,8 +997,15 @@
         }
     }
 
+    function updateOrderActionState() {
+        const hasItems = order.length > 0;
+        clearOrderBtn.disabled = !hasItems;
+        checkoutOrderBtn.disabled = !hasItems;
+    }
+
     function renderOrder() {
         updateWeatherWidgetPosition();
+        updateOrderActionState();
 
         if (order.length === 0) {
             orderListEl.innerHTML = '<div class="muted">Your order is empty</div>';
@@ -1134,14 +1143,14 @@
             renderCustomizePrice();
         };
 
-        document.getElementById('clearOrder').onclick = () => {
+        clearOrderBtn.onclick = () => {
             order = [];
             cancelCustomization();
             hideResultOverlay();
             renderOrder();
         };
 
-        document.getElementById('checkoutOrder').onclick = submitOrder;
+        checkoutOrderBtn.onclick = submitOrder;
         resultOkBtn.onclick = hideResultOverlay;
         closeCustomizeBtn.onclick = cancelCustomization;
         cancelCustomizeBtn.onclick = cancelCustomization;
