@@ -5,6 +5,7 @@
     const quizDrinkProfiles = pageData.quizDrinkProfiles || {};
     const sugarOptions = ['0%', '25%', '50%', '75%', '100%'];
     const iceOptions = ['No Ice', 'Light Ice', 'Regular Ice', 'Extra Ice'];
+    const ICE_CUBE_IMAGE_SRC = '/images/Ice%20Cubes.svg';
     const categoryTabs = document.getElementById('categoryTabs');
     const menuGrid = document.getElementById('menuGrid');
     const addonGrid = document.getElementById('addonGrid');
@@ -524,15 +525,19 @@
         if (!iceCubeIndicator) return;
 
         const cubeCount = selectedDrink ? getIceCubeCount(selectedIce) : 0;
+
         iceCubeIndicator.innerHTML = '';
         iceCubeIndicator.classList.toggle('is-empty', cubeCount === 0);
 
         for (let i = 0; i < cubeCount; i++) {
             const cube = document.createElement('img');
             cube.className = 'ice-cube-img';
-            cube.src = '/images/Ice%20Cubes.svg';
+            cube.src = ICE_CUBE_IMAGE_SRC;
             cube.alt = '';
-            cube.style.setProperty('--cube-rotate', `${[-10, 8, -4, 12, -14, 5, -8][i] || 0}deg`);
+
+            const rotations = [-10, 8, -4, 12, -14, 5, -8];
+            cube.style.setProperty('--cube-rotate', `${rotations[i] || 0}deg`);
+
             iceCubeIndicator.appendChild(cube);
         }
     }

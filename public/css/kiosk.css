@@ -827,20 +827,21 @@ textarea {
 }
 
 .modal-drink-preview-frame {
-    width: 320px;
-    height: 320px;
+    width: 360px;
+    height: 340px;
     position: relative;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     overflow: hidden;
     background: #ead3a2;
     border-radius: 22px;
+    padding-left: 8px;
 }
 
 .modal-drink-preview-frame img,
 .modal-drink-preview-frame svg {
-    width: 320px;
+    width: 270px;
     height: auto;
     display: block;
 }
@@ -848,14 +849,14 @@ textarea {
 .ice-cube-indicator {
     position: absolute;
     right: 12px;
-    bottom: 12px;
-    width: 112px;
-    min-height: 54px;
-    display: flex;
-    flex-wrap: wrap-reverse;
-    align-items: flex-end;
-    justify-content: flex-end;
-    gap: 3px;
+    top: 56px;
+    width: 76px;
+    height: 230px;
+    display: grid;
+    grid-template-columns: repeat(2, 34px);
+    align-content: end;
+    justify-content: end;
+    gap: 4px;
     z-index: 1;
     pointer-events: none;
 }
@@ -868,7 +869,7 @@ textarea {
     width: 34px;
     height: 34px;
     object-fit: contain;
-    opacity: 0.88;
+    opacity: 0.9;
     filter: drop-shadow(0 3px 3px rgba(45, 77, 95, 0.2));
     transform: rotate(var(--cube-rotate));
 }
