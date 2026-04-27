@@ -112,6 +112,13 @@
                     </div>
                 </div>
                 <div class="widget-dock" id="widgetDock">
+                    <button class="quiz-widget" id="openQuizWidget" type="button">
+                        <div class="quiz-widget-badge">5 Q</div>
+                        <h3>Don&apos;t know what to order today?</h3>
+                        <p>Take a quick drink quiz.</p>
+                        <span class="quiz-widget-cta">Start quiz</span>
+                    </button>
+
                     <section class="weather-widget" aria-label="Current weather in College Station">
                         <h3><%= weather.location %></h3>
                         <% if (weather.available) { %>
@@ -123,13 +130,6 @@
                             <p class="weather-meta"><%= weather.summary %></p>
                         <% } %>
                     </section>
-
-                    <button class="quiz-widget" id="openQuizWidget" type="button">
-                        <div class="quiz-widget-badge">5 Q</div>
-                        <h3>Don&apos;t know what to order today?</h3>
-                        <p>Take a quick drink quiz.</p>
-                        <span class="quiz-widget-cta">Start quiz</span>
-                    </button>
                 </div>
             </div>
         </div>
@@ -173,6 +173,9 @@
             <div id="quizResultView" class="hidden">
                 <div class="quiz-result-card">
                     <div id="quizResultBadge" class="quiz-result-badge">Recommended</div>
+                    <div class="quiz-result-preview-shell">
+                        <div id="quizResultPreviewMount" class="quiz-result-preview-mount"></div>
+                    </div>
                     <h3 id="quizResultDrinkName"></h3>
                     <p id="quizResultReason" class="quiz-result-reason"></p>
                     <div id="quizResultMeta" class="quiz-result-meta"></div>

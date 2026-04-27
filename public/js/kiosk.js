@@ -42,6 +42,7 @@
     const quizChoicesEl = document.getElementById('quizChoices');
     const quizQuestionViewEl = document.getElementById('quizQuestionView');
     const quizResultViewEl = document.getElementById('quizResultView');
+    const quizResultPreviewMountEl = document.getElementById('quizResultPreviewMount');
     const quizResultDrinkNameEl = document.getElementById('quizResultDrinkName');
     const quizResultReasonEl = document.getElementById('quizResultReason');
     const quizResultMetaEl = document.getElementById('quizResultMeta');
@@ -166,7 +167,8 @@
     let quizStepIndex = 0;
     let quizAnswers = {};
     let currentQuizRecommendation = null;
-
+    
+    // Map each quiz question and answer option to specific weights
     const quizQuestions = [
         {
             id: 'vibe',
@@ -1033,6 +1035,7 @@
         renderQuizRecommendation();
     }
 
+    // Get the total quiz score (add all weights together)
     function getQuizAggregateScores() {
         const aggregate = {};
 
@@ -1049,14 +1052,17 @@
         return quizDrinkProfiles[String(drink.id)] || {};
     }
 
+    // Score each drink on map (dot-product style scoring system)
     function calculateDrinkQuizScore(drink, aggregateScores) {
         const profile = getDrinkProfile(drink);
         let total = 0;
 
         Object.entries(aggregateScores).forEach(([key, value]) => {
             total += (profile[key] || 0) * value;
+            // The drink with the highest scaled scores is selected
         });
 
+        // Add an extra for a surprise factor
         if (quizAnswers.adventure?.id === 'surprise' && /^seasonal$/i.test(drink.category || '')) {
             total += 25;
         }
@@ -1064,6 +1070,35 @@
         return total;
     }
 
+    // Choose a drink biased towards the stronger matches (nearby matches also have a chance)
+    function pickWeightedRecommendation(rankedDrinks) {
+        if (!rankedDrinks.length) return null;
+
+        const bestScore = rankedDrinks[0].score;
+        const minScoreForPool = Math.max(bestScore - 8, 1);
+        const candidatePool = rankedDrinks
+            .filter((entry, index) => index < 4 || entry.score >= minScoreForPool)
+            .slice(0, 5);
+
+        const weightedPool = candidatePool.map((entry, index) => ({
+            ...entry,
+            weight: Math.max(entry.score, 1) * (candidatePool.length - index)
+        }));
+
+        const totalWeight = weightedPool.reduce((sum, entry) => sum + entry.weight, 0);
+        let threshold = Math.random() * totalWeight;
+
+        for (const entry of weightedPool) {
+            threshold -= entry.weight;
+            if (threshold <= 0) {
+                return entry;
+            }
+        }
+
+        return weightedPool[0];
+    }
+
+    // Map Question 3: "How do you feel about toppings?" to real add-ons
     function getRecommendedQuizAddons(drink) {
         const toppingsAnswer = quizAnswers.toppings?.id;
         const findAddon = (name) =>
@@ -1117,6 +1152,33 @@
         return `${drink.name} works because ${reasons.slice(0, 2).join(' and ')}.`;
     }
 
+    function renderQuizRecommendationPreview(recommendation) {
+        if (!quizResultPreviewMountEl) return;
+
+        if (!recommendation?.drink) {
+            quizResultPreviewMountEl.innerHTML = '<div class="muted">Preview unavailable.</div>';
+            return;
+        }
+
+        const previewUrl = createOrderItemPreviewDataUrl({
+            drinkId: recommendation.drink.id,
+            name: recommendation.drink.name,
+            basePrice: recommendation.drink.price,
+            addons: recommendation.addons || [],
+            cubeAddonOrder: syncCubeOrderForAddons(recommendation.addons || [], []),
+            sugar: recommendation.sugar,
+            ice: recommendation.ice,
+            quantity: recommendation.quantity || 1
+        });
+
+        if (!previewUrl) {
+            quizResultPreviewMountEl.innerHTML = '<div class="muted">Preview unavailable.</div>';
+            return;
+        }
+
+        quizResultPreviewMountEl.innerHTML = `<img src="${previewUrl}" alt="${recommendation.drink.name} recommended preview">`;
+    }
+
     function getQuizRecommendation() {
         const drinks = getAllAvailableDrinks();
         const aggregateScores = getQuizAggregateScores();
@@ -1127,7 +1189,8 @@
             }))
             .sort((a, b) => b.score - a.score);
 
-        const recommendedDrink = rankedDrinks[0]?.drink || drinks[0] || null;
+        const selectedMatch = pickWeightedRecommendation(rankedDrinks);
+        const recommendedDrink = selectedMatch?.drink || drinks[0] || null;
         if (!recommendedDrink) return null;
 
         const sugar = quizAnswers.sweetness?.sugar || '75%';
@@ -1140,10 +1203,12 @@
             ice,
             addons,
             quantity: 1,
-            reason: getRecommendationReason(recommendedDrink)
+            reason: getRecommendationReason(recommendedDrink),
+            score: selectedMatch?.score || 0
         };
     }
 
+    // Show dymanic order image in the recommendations results
     function renderQuizRecommendation() {
         if (!currentQuizRecommendation) return;
 
@@ -1153,6 +1218,7 @@
         quizProgressBarEl.style.width = '100%';
 
         const { drink, sugar, ice, addons, reason } = currentQuizRecommendation;
+        renderQuizRecommendationPreview(currentQuizRecommendation);
         quizResultDrinkNameEl.textContent = drink.name;
         quizResultReasonEl.textContent = reason;
         quizResultMetaEl.innerHTML = `

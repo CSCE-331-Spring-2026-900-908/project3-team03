@@ -10,9 +10,7 @@ const { fetchCollegeStationWeather } = require('../utils/weather');
 // ---------------------------- Drink Style ----------------------------
 // Load color data
 const drinkCsvPath = path.resolve(__dirname, '..', 'images', 'DrinkColorData.csv');
-const menuItemCsvPath = path.resolve(__dirname, '..', 'db', 'menu_item.csv');
 let cachedDrinkStyleMap = null;
-let cachedDrinkQuizProfiles = null;
 
 function parseSimpleCsv(text) {
     const lines = text.trim().split(/\r?\n/);
@@ -71,7 +69,7 @@ async function getDrinkStyleMap() {
     return cachedDrinkStyleMap;
 }
 
-// Drink profile category
+// Give every drink a starting profile based on its category
 function createBaseQuizProfile(category) {
     const profiles = {
         'Milk Tea': {
@@ -131,7 +129,7 @@ function createBaseQuizProfile(category) {
     return { ...(profiles[category] || { chill: 1, safe: 1 }) };
 }
 
-// Drink profile defaults for each category
+// Adjust specific drinks by name (max drink per category).
 function applyQuizProfileOverrides(name, category, profile) {
     const lowerName = name.toLowerCase();
 
@@ -202,27 +200,18 @@ function applyQuizProfileOverrides(name, category, profile) {
     return profile;
 }
 
-function buildDrinkQuizProfileMap(rows) {
+// Builds one profile per active drink from the live database menu items
+function buildDrinkQuizProfilesFromMenuItems(menuItems) {
     const map = {};
 
-    rows
-        .filter((row) => String(row.active).toUpperCase() === 'TRUE' && String(row.category).toUpperCase() !== 'ADDON')
-        .forEach((row) => {
-            const profile = createBaseQuizProfile(row.category);
-            map[row.name.toLowerCase()] = applyQuizProfileOverrides(row.name, row.category, profile);
+    menuItems
+        .filter((item) => String(item.category || '').toUpperCase() !== 'ADDON')
+        .forEach((item) => {
+            const profile = createBaseQuizProfile(item.category);
+            map[item.menu_item_id] = applyQuizProfileOverrides(item.name, item.category, profile);
         });
 
     return map;
-}
-
-async function getDrinkQuizProfiles() {
-    if (cachedDrinkQuizProfiles) return cachedDrinkQuizProfiles;
-
-    const csv = await fs.readFile(menuItemCsvPath, 'utf8');
-    const rows = parseSimpleCsv(csv);
-    cachedDrinkQuizProfiles = buildDrinkQuizProfileMap(rows);
-
-    return cachedDrinkQuizProfiles;
 }
 
 // Load starting kiosk page
@@ -230,11 +219,10 @@ router.get('/', async (req, res) => {
     try {
         console.log('Kiosk: Loading menu from database');
         
-        const [menuItems, activeAddons, weather, drinkQuizProfiles] = await Promise.all([
+        const [menuItems, activeAddons, weather] = await Promise.all([
             MenuItemDao.get_active_drink_items(),
             MenuItemDao.get_active_addons(),
-            fetchCollegeStationWeather(),
-            getDrinkQuizProfiles()
+            fetchCollegeStationWeather()
         ]);
         console.log('Kiosk: Retrieved', menuItems.length, 'drink items');
         console.log('Kiosk: Retrieved', activeAddons.length, 'addons');
@@ -256,6 +244,7 @@ router.get('/', async (req, res) => {
         console.log('Kiosk: Organized into', Object.keys(categories).length, 'categories');
         
         const drinkStyleMap = await getDrinkStyleMap();
+        const quizDrinkProfiles = buildDrinkQuizProfilesFromMenuItems(menuItems);
 
         res.render('kiosk', {
             categories,
@@ -265,12 +254,7 @@ router.get('/', async (req, res) => {
                 price: parseFloat(item.base_price)
             })),
             drinkStyleMap,
-            quizDrinkProfiles: Object.fromEntries(
-                menuItems.map((item) => [
-                    item.menu_item_id,
-                    drinkQuizProfiles[String(item.name).toLowerCase()] || createBaseQuizProfile(item.category)
-                ])
-            ),
+            quizDrinkProfiles,
             statusMessage: '',
             weather
         });
