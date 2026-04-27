@@ -16,37 +16,112 @@
                 <img src="/images/favicon.ico" alt="FSH Boba icon" class="topbar-logo">
                 <h1>FSH Boba - Self Service Kiosk</h1>
             </div>
-            <div id="google_translate_element">
-                <button onclick="toggleHighContrast()" id="highContrastBtn" type="button">High Contrast</button>
-                <button onclick="toggleLowContrast()" id="lowContrastBtn" type="button">Low Contrast</button>
-                <button onclick="toggleScreenMagnifier()" type="button">Toggle Magnifier</button>
-                <button id="fontToggle" onclick="toggleFontSize()" type="button">Toggle Font Size</button>
+
+            <!-- Accessibility buttons section -->
+            <div class="accessibility-panel">
+                <div class="accessibility-actions">
+                    <div class="accessibility-item">
+                        <button onclick="toggleHighContrast()" id="highContrastBtn" class="accessibility-btn" type="button" aria-label="Increase contrast">
+                            <span class="accessibility-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" focusable="false">
+                                    <circle cx="12" cy="12" r="8"></circle>
+                                    <path d="M12 4a8 8 0 0 1 0 16Z"></path>
+                                </svg>
+                            </span>
+                        </button>
+                        <small class="accessibility-label">+ Contrast</small>
+                    </div>
+                    <div class="accessibility-item">
+                        <button onclick="toggleLowContrast()" id="lowContrastBtn" class="accessibility-btn" type="button" aria-label="Decrease contrast">
+                            <span class="accessibility-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" focusable="false">
+                                    <circle cx="12" cy="12" r="8"></circle>
+                                    <path d="M8 12h8"></path>
+                                </svg>
+                            </span>
+                        </button>
+                        <small class="accessibility-label">- Contrast</small>
+                    </div>
+                    <div class="accessibility-item">
+                        <button onclick="toggleScreenMagnifier()" id="magnifierBtn" class="accessibility-btn" type="button" aria-label="Toggle magnifier">
+                            <span class="accessibility-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" focusable="false">
+                                    <circle cx="10" cy="10" r="5.5"></circle>
+                                    <path d="M14.5 14.5 20 20"></path>
+                                </svg>
+                            </span>
+                        </button>
+                        <small class="accessibility-label">Magnified</small>
+                    </div>
+                    <div class="accessibility-item">
+                        <button id="fontToggle" onclick="toggleFontSize()" class="accessibility-btn" type="button" aria-label="Increase font size">
+                            <span class="accessibility-icon accessibility-icon-text" aria-hidden="true">A+</span>
+                        </button>
+                        <small class="accessibility-label">+ Font Size</small>
+                    </div>
+                    <div class="accessibility-item accessibility-item-translate">
+                        <button id="translateToggleBtn" onclick="toggleTranslateMenu()" class="accessibility-btn accessibility-btn-translate" type="button" aria-label="Open translation options" aria-expanded="false" aria-controls="translateTray">
+                            <span class="accessibility-icon" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" focusable="false">
+                                    <path d="M4 7h10"></path>
+                                    <path d="M9 5v2"></path>
+                                    <path d="M7 7c0 3 2 6 5 8"></path>
+                                    <path d="M14 10h6"></path>
+                                    <path d="m17 10-3 9"></path>
+                                    <path d="m17 10 3 9"></path>
+                                </svg>
+                            </span>
+                        </button>
+                        <small class="accessibility-label">Translate</small>
+                        <div id="translateTray" class="translate-tray">
+                            <div class="translate-tray-label">Choose language</div>
+                            <div id="google_translate_element"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div id="screenMagnifier">
                 <div id="screenMagnifierContent"></div>
             </div>
         </div>
 
+        <!-- Menu items panel + "My order" section -->
         <div class="layout">
-            <div class="panel main-panel">
-                <h2 class="section-title">Choose a category</h2>
-                <div class="category-tabs" id="categoryTabs"></div>
+            <div class="layout-column" id="menuColumn">
+                <div class="panel main-panel">
+                    <h2 class="section-title">Choose a category</h2>
+                    <div class="category-tabs" id="categoryTabs"></div>
 
-                <h2 class="section-title">Menu items</h2>
-                <div class="menu-grid" id="menuGrid"></div>
-
+                    <h2 class="section-title">Menu items</h2>
+                    <div class="menu-grid" id="menuGrid"></div>
+                </div>
             </div>
 
-            <div class="panel order-panel">
-                <h2 class="section-title">My order</h2>
-                <div id="orderList" class="order-list">
-                    <div class="muted">Your order is empty</div>
+            <div class="layout-column" id="orderColumn">
+                <div class="panel order-summary-panel">
+                    <div class="section-title">Total $<span id="orderTotal">0.00</span></div>
+                    <div class="cart-actions">
+                        <button class="cart-btn secondary" id="clearOrder" type="button">Clear order</button>
+                        <button class="cart-btn" id="checkoutOrder" type="button">Checkout</button>
+                    </div>
                 </div>
-                <div class="total">Total $<span id="orderTotal">0.00</span></div>
-                <div class="cart-actions">
-                    <button class="cart-btn secondary" id="clearOrder" type="button">Clear order</button>
-                    <button class="cart-btn" id="checkoutOrder" type="button">Checkout</button>
+                <div class="panel order-panel">
+                    <h2 class="section-title">My order</h2>
+                    <div id="orderList" class="order-list">
+                        <div class="muted">Your order is empty</div>
+                    </div>
                 </div>
+                <section class="weather-widget" aria-label="Current weather in College Station">
+                    <h3><%= weather.location %></h3>
+                    <% if (weather.available) { %>
+                        <div class="weather-temp"><%= weather.temperature %>F</div>
+                        <p class="weather-meta"><%= weather.summary %></p>
+                        <p class="weather-meta">Feels like <%= weather.feelsLike %>F</p>
+                        <p class="weather-meta">Wind <%= weather.windSpeed %> mph</p>
+                    <% } else { %>
+                        <p class="weather-meta"><%= weather.summary %></p>
+                    <% } %>
+                </section>
             </div>
         </div>
     </div>
@@ -123,17 +198,6 @@
             drinkStyleMap: <%- JSON.stringify(typeof drinkStyleMap !== 'undefined' ? drinkStyleMap : {}) %>
         };
     </script>
-    <section class="weather-widget" aria-label="Current weather in College Station">
-        <h3><%= weather.location %></h3>
-        <% if (weather.available) { %>
-            <div class="weather-temp"><%= weather.temperature %>F</div>
-            <p class="weather-meta"><%= weather.summary %></p>
-            <p class="weather-meta">Feels like <%= weather.feelsLike %>F</p>
-            <p class="weather-meta">Wind <%= weather.windSpeed %> mph</p>
-        <% } else { %>
-            <p class="weather-meta"><%= weather.summary %></p>
-        <% } %>
-    </section>
     <script src="/js/kiosk.js"></script>
     <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>

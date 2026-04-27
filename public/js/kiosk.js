@@ -10,6 +10,11 @@
     const qtyValueEl = document.getElementById('qtyValue');
     const orderListEl = document.getElementById('orderList');
     const orderTotalEl = document.getElementById('orderTotal');
+    const clearOrderBtn = document.getElementById('clearOrder');
+    const checkoutOrderBtn = document.getElementById('checkoutOrder');
+    const weatherWidgetEl = document.querySelector('.weather-widget');
+    const menuColumnEl = document.getElementById('menuColumn');
+    const orderColumnEl = document.getElementById('orderColumn');
     const resultOverlayEl = document.getElementById('resultOverlay');
     const resultCardEl = document.getElementById('resultCard');
     const resultTitleEl = document.getElementById('resultTitle');
@@ -982,7 +987,26 @@
         );
     }
 
+    // Move the weather widget between the order and menu columns.
+    function updateWeatherWidgetPosition() {
+        if (!weatherWidgetEl || !menuColumnEl || !orderColumnEl) return;
+
+        const targetColumn = order.length >= 2 ? menuColumnEl : orderColumnEl;
+        if (weatherWidgetEl.parentElement !== targetColumn) {
+            targetColumn.appendChild(weatherWidgetEl);
+        }
+    }
+
+    function updateOrderActionState() {
+        const hasItems = order.length > 0;
+        clearOrderBtn.disabled = !hasItems;
+        checkoutOrderBtn.disabled = !hasItems;
+    }
+
     function renderOrder() {
+        updateWeatherWidgetPosition();
+        updateOrderActionState();
+
         if (order.length === 0) {
             orderListEl.innerHTML = '<div class="muted">Your order is empty</div>';
             orderTotalEl.textContent = '0.00';
@@ -1119,14 +1143,14 @@
             renderCustomizePrice();
         };
 
-        document.getElementById('clearOrder').onclick = () => {
+        clearOrderBtn.onclick = () => {
             order = [];
             cancelCustomization();
             hideResultOverlay();
             renderOrder();
         };
 
-        document.getElementById('checkoutOrder').onclick = submitOrder;
+        checkoutOrderBtn.onclick = submitOrder;
         resultOkBtn.onclick = hideResultOverlay;
         closeCustomizeBtn.onclick = cancelCustomization;
         cancelCustomizeBtn.onclick = cancelCustomization;
@@ -1138,9 +1162,16 @@
         };
     }
 
+    // Accessibility buttons unitlity
     function initAccessibilityControls() {
         const lens = document.getElementById('screenMagnifier');
         const lensContent = document.getElementById('screenMagnifierContent');
+        const highContrastBtn = document.getElementById('highContrastBtn');
+        const lowContrastBtn = document.getElementById('lowContrastBtn');
+        const magnifierBtn = document.getElementById('magnifierBtn');
+        const fontToggleBtn = document.getElementById('fontToggle');
+        const translateToggleBtn = document.getElementById('translateToggleBtn');
+        const translateTray = document.getElementById('translateTray');
         const zoom = 2;
         const lensSize = 220;
         let magnifierOn = false;
@@ -1149,27 +1180,95 @@
             new google.translate.TranslateElement({ pageLanguage: 'en' }, 'google_translate_element');
         };
 
+        function setButtonActiveState(button, isActive) {
+            if (!button) return;
+            button.classList.toggle('is-active', isActive);
+        }
+
+        function updateContrastButtonStates() {
+            setButtonActiveState(highContrastBtn, document.body.classList.contains('high-contrast'));
+            setButtonActiveState(lowContrastBtn, document.body.classList.contains('low-contrast'));
+        }
+
+        function closeTranslateMenu() {
+            translateTray.classList.remove('is-open');
+            translateToggleBtn.setAttribute('aria-expanded', 'false');
+            setButtonActiveState(translateToggleBtn, false);
+        }
+
         window.toggleHighContrast = function toggleHighContrast() {
-            document.body.classList.toggle('high-contrast');
+            const willEnable = !document.body.classList.contains('high-contrast');
+            document.body.classList.toggle('high-contrast', willEnable);
+            if (willEnable) {
+                document.body.classList.remove('low-contrast');
+            }
+            updateContrastButtonStates();
         };
 
         window.toggleLowContrast = function toggleLowContrast() {
-            document.body.classList.toggle('low-contrast');
+            const willEnable = !document.body.classList.contains('low-contrast');
+            document.body.classList.toggle('low-contrast', willEnable);
+            if (willEnable) {
+                document.body.classList.remove('high-contrast');
+            }
+            updateContrastButtonStates();
         };
 
         window.toggleFontSize = function toggleFontSize() {
             const currentSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
             if (currentSize !== 20) {
                 document.documentElement.style.fontSize = '20px';
+                setButtonActiveState(fontToggleBtn, true);
             } else {
                 document.documentElement.style.fontSize = `${originalSize}px`;
+                setButtonActiveState(fontToggleBtn, false);
             }
         };
 
+        window.toggleTranslateMenu = function toggleTranslateMenu() {
+            const willOpen = !translateTray.classList.contains('is-open');
+            if (!willOpen) {
+                closeTranslateMenu();
+                return;
+            }
+
+            translateTray.classList.add('is-open');
+            translateToggleBtn.setAttribute('aria-expanded', 'true');
+            setButtonActiveState(translateToggleBtn, true);
+        };
+        
+        // Clone screen for magnifier utility
         function buildClone() {
+            if (!magnifierOn) return;
+
             const clone = document.body.cloneNode(true);
+            const pageWidth = Math.max(document.documentElement.clientWidth, window.innerWidth);
+            const pageHeight = Math.max(
+                document.documentElement.scrollHeight,
+                document.body.scrollHeight,
+                window.innerHeight
+            );
+
             const oldLens = clone.querySelector('#screenMagnifier');
             if (oldLens) oldLens.remove();
+
+            const clonedTranslateTray = clone.querySelector('#translateTray');
+            if (clonedTranslateTray) clonedTranslateTray.remove();
+
+            const clonedTranslateWidget = clone.querySelector('#google_translate_element');
+            if (clonedTranslateWidget) clonedTranslateWidget.remove();
+
+            clone.querySelectorAll('iframe').forEach((iframe) => iframe.remove());
+
+            // Lock the clone to the real page size so it renders exactly like
+            // the visible page instead of reflowing to the lens width.
+            clone.style.width = `${pageWidth}px`;
+            clone.style.minWidth = `${pageWidth}px`;
+            clone.style.maxWidth = 'none';
+            clone.style.margin = '0';
+
+            lensContent.style.width = `${pageWidth}px`;
+            lensContent.style.height = `${pageHeight}px`;
 
             lensContent.innerHTML = '';
             lensContent.appendChild(clone);
@@ -1196,8 +1295,6 @@
             lens.style.display = 'none';
         }
 
-        buildClone();
-
         document.addEventListener('mousemove', updateMagnifier);
         document.addEventListener('mouseleave', hideMagnifier);
         window.addEventListener('scroll', buildClone);
@@ -1206,8 +1303,19 @@
 
         window.toggleScreenMagnifier = function toggleScreenMagnifier() {
             magnifierOn = !magnifierOn;
-            if (!magnifierOn) lens.style.display = 'none';
+            if (!magnifierOn) {
+                lens.style.display = 'none';
+                lensContent.innerHTML = '';
+            } else {
+                buildClone();
+            }
+            setButtonActiveState(magnifierBtn, magnifierOn);
         };
+
+        updateContrastButtonStates();
+        setButtonActiveState(fontToggleBtn, false);
+        setButtonActiveState(magnifierBtn, false);
+        setButtonActiveState(translateToggleBtn, false);
     }
 
     function init() {
