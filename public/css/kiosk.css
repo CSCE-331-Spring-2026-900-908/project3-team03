@@ -88,6 +88,8 @@ textarea {
 }
 
 .topbar {
+    position: relative;
+    z-index: 50;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -131,6 +133,10 @@ textarea {
     align-items: center;
     gap: 6px;
     position: relative;
+}
+
+.accessibility-item-translate {
+    z-index: 2000;
 }
 
 .accessibility-btn {
@@ -233,11 +239,11 @@ textarea {
     position: absolute;
     top: calc(100% + 12px);
     right: 0;
-    z-index: 40;
+    z-index: 2001;
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    transform: translateY(-6px) scale(0.98);
+    transform: translateY(-6px);
     transform-origin: top right;
     transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
 }
@@ -246,7 +252,7 @@ textarea {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
 }
 
 .translate-tray-label {
