@@ -4,32 +4,45 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manager Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Nunito', Arial, Helvetica, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 32px 20px;
+            background:
+                radial-gradient(circle at top left, rgba(255, 244, 208, 0.8), transparent 30%),
+                radial-gradient(circle at right center, rgba(255, 214, 194, 0.75), transparent 28%),
+                #ccf8ff;
         }
         .login-container {
-            background: white;
+            background: rgba(238, 252, 255, 0.92);
             padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            border-radius: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.75);
+            box-shadow: 0 18px 48px rgba(72, 119, 140, 0.16);
             width: 100%;
             max-width: 400px;
         }
         h1 {
             text-align: center;
-            color: #333;
+            color: #111827;
+            font-family: 'Fredoka', 'Nunito', Arial, Helvetica, sans-serif;
             margin-bottom: 10px;
         }
         .subtitle {
             text-align: center;
-            color: #666;
+            color: #4b5563;
             font-size: 14px;
             margin-bottom: 30px;
         }
@@ -47,7 +60,7 @@
         label {
             display: block;
             margin-bottom: 5px;
-            color: #333;
+            color: #1f2937;
             font-weight: bold;
         }
         input[type="text"],
@@ -55,25 +68,25 @@
             width: 100%;
             padding: 10px;
             margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            box-sizing: border-box;
+            border: 1px solid #cfe5ee;
+            border-radius: 10px;
             font-size: 14px;
+            background: rgba(255, 255, 255, 0.92);
         }
         button[type="submit"] {
             width: 100%;
             padding: 10px;
-            background-color: #667eea;
+            background-color: #2aa7bd;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 10px;
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
             transition: background-color 0.3s;
         }
         button[type="submit"]:hover {
-            background-color: #5568d3;
+            background-color: #1d90a5;
         }
         .divider {
             text-align: center;
@@ -97,10 +110,12 @@
             margin-left: 10px;
         }
         .oauth-button {
-            width: 100%;
+            width: fit-content;
+            min-width: 240px;
+            max-width: 100%;
             padding: 12px;
             border: 1px solid #db4437;
-            border-radius: 5px;
+            border-radius: 999px;
             background: white;
             cursor: pointer;
             font-size: 14px;
@@ -112,6 +127,7 @@
             transition: background-color 0.3s;
             text-decoration: none;
             color: #db4437;
+            margin: 0 auto;
         }
         .oauth-button:hover {
             background-color: #f8f8f8;
