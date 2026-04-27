@@ -215,6 +215,13 @@ textarea {
     align-items: start;
 }
 
+.layout-column {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    align-items: stretch;
+}
+
 .panel {
     background: white;
     border-radius: 16px;
@@ -314,7 +321,7 @@ textarea {
     height: 88px;
     flex: 0 0 88px;
     object-fit: contain;
-    border-radius: 12px;
+    border-radius: 10px;
     background: white;
     border: 1px solid #e5e7eb;
     padding: 2px;
@@ -466,7 +473,7 @@ textarea {
     height: 70px;
     flex: 0 0 70px;
     object-fit: contain;
-    border-radius: 12px;
+    border-radius: 10px;
     background: white;
     border: 1px solid #e5e7eb;
     padding: 3px;
@@ -899,16 +906,13 @@ textarea {
 }
 
 .weather-widget {
-    position: fixed;
-    right: 24px;
-    bottom: 24px;
+    position: static;
     width: 220px;
     padding: 14px 16px;
     border-radius: 14px;
     background: rgba(255, 255, 255, 0.95);
     border: 1px solid #c8e5ea;
     box-shadow: 0 10px 24px rgba(17, 24, 39, 0.12);
-    z-index: 30;
 }
 
 .weather-widget h3 {
@@ -958,8 +962,7 @@ textarea {
     }
     
     .weather-widget {
-        position: static;
         width: auto;
-        margin: 0 24px 24px auto;
+        align-self: stretch;
     }
 }

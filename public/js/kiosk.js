@@ -10,6 +10,9 @@
     const qtyValueEl = document.getElementById('qtyValue');
     const orderListEl = document.getElementById('orderList');
     const orderTotalEl = document.getElementById('orderTotal');
+    const weatherWidgetEl = document.querySelector('.weather-widget');
+    const menuColumnEl = document.getElementById('menuColumn');
+    const orderColumnEl = document.getElementById('orderColumn');
     const resultOverlayEl = document.getElementById('resultOverlay');
     const resultCardEl = document.getElementById('resultCard');
     const resultTitleEl = document.getElementById('resultTitle');
@@ -982,7 +985,19 @@
         );
     }
 
+    // When ordering +3 drinks weather widget moves to bottom-left
+    function updateWeatherWidgetPosition() {
+        if (!weatherWidgetEl || !menuColumnEl || !orderColumnEl) return;
+
+        const targetColumn = order.length >= 2 ? menuColumnEl : orderColumnEl;
+        if (weatherWidgetEl.parentElement !== targetColumn) {
+            targetColumn.appendChild(weatherWidgetEl);
+        }
+    }
+
     function renderOrder() {
+        updateWeatherWidgetPosition();
+
         if (order.length === 0) {
             orderListEl.innerHTML = '<div class="muted">Your order is empty</div>';
             orderTotalEl.textContent = '0.00';
@@ -1166,7 +1181,6 @@
             setButtonActiveState(lowContrastBtn, document.body.classList.contains('low-contrast'));
         }
 
-        // Close language dropdown after 8 seconds
         function closeTranslateMenu() {
             translateTray.classList.remove('is-open');
             translateToggleBtn.setAttribute('aria-expanded', 'false');
