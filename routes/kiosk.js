@@ -236,19 +236,27 @@ router.post('/submitOrder', async (req, res) => {
             subtotal: 0,
             tax: 0,
             total: 0,
-            drinks: frontendOrder.map(item => ({
-                menu_item_id: item.drinkId,
-                quantity: item.quantity,
-                ice_amount: 0,//will change to normal later but db is currently only taking ints
-                sugar_amount: 0,//will change to normal later but db is currently only taking ints
-                special_notes: "",
-                base_price: item.basePrice,
-                addons: Object.fromEntries(
-                    (item.addons || [])
-                        .filter(a => !a.included)
-                        .map(a => [a.id, 1])
-                )
-            }))
+            drinks: frontendOrder.map(item => {
+                const removedDefaultAddonNames = (item.removedDefaultAddons || [])
+                    .map(addon => addon.name)
+                    .filter(Boolean);
+
+                return {
+                    menu_item_id: item.drinkId,
+                    quantity: item.quantity,
+                    ice_amount: 0,//will change to normal later but db is currently only taking ints
+                    sugar_amount: 0,//will change to normal later but db is currently only taking ints
+                    special_notes: removedDefaultAddonNames.length
+                        ? `No ${removedDefaultAddonNames.join(', ')}`
+                        : "",
+                    base_price: item.basePrice,
+                    addons: Object.fromEntries(
+                        (item.addons || [])
+                            .filter(a => !a.included)
+                            .map(a => [a.id, 1])
+                    )
+                };
+            })
         };
 
         const result = await orderDao.submitOrder(order);

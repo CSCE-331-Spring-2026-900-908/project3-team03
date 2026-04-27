@@ -567,6 +567,42 @@ router.post('/menu/toggle-active', async (req, res) => {
   }
 });
 
+// Remove a menu item from customer-facing menus without deleting historical data
+router.post('/menu/remove-item', async (req, res) => {
+  const menuItemId = Number(req.body.menuItemId);
+
+  if (!menuItemId) {
+    try {
+      await renderMenuPage(res, {
+        statusMessage: 'Select a menu item to remove from the menu.'
+      });
+    } catch (err) {
+      console.error('Error loading menu after remove-item validation failure:', err);
+      res.status(500).send('Database error');
+    }
+    return;
+  }
+
+  try {
+    const deactivatedItem = await menuItemDao.deactivate_menu_item(menuItemId);
+
+    if (!deactivatedItem) {
+      await renderMenuPage(res, {
+        statusMessage: `Menu item #${menuItemId} was not found.`
+      });
+      return;
+    }
+
+    await renderMenuPage(res, {
+      selectedItemId: menuItemId,
+      statusMessage: `Removed ${deactivatedItem.name} from the active menu.`
+    });
+  } catch (err) {
+    console.error('Error removing menu item:', err);
+    res.status(500).send('Database error');
+  }
+});
+
 // Add menu item by name
 router.post('/menu/add', async (req, res) => {
   const { name, category, basePrice, description, active } = req.body;
@@ -697,6 +733,39 @@ router.post('/menu/add-recipe-ingredient', async (req, res) => {
     });
   } catch (err) {
     console.error('Error adding recipe ingredient:', err);
+    res.status(500).send('Database error');
+  }
+});
+
+// Remove one ingredient/topping from a menu item recipe
+router.post('/menu/remove-recipe-ingredient', async (req, res) => {
+  const menuItemId = Number(req.body.menuItemId);
+  const ingredientId = Number(req.body.ingredientId);
+
+  if (!menuItemId || !ingredientId) {
+    try {
+      await renderMenuPage(res, {
+        selectedItemId: menuItemId || null,
+        statusMessage: 'Select a recipe line to remove.'
+      });
+    } catch (err) {
+      console.error('Error loading menu after recipe remove validation failure:', err);
+      res.status(500).send('Database error');
+    }
+    return;
+  }
+
+  try {
+    const removedLine = await menuItemDao.remove_recipe_ingredient(menuItemId, ingredientId);
+
+    await renderMenuPage(res, {
+      selectedItemId: menuItemId,
+      statusMessage: removedLine
+        ? 'Removed ingredient from recipe.'
+        : 'That ingredient was not found on the selected recipe.'
+    });
+  } catch (err) {
+    console.error('Error removing recipe ingredient:', err);
     res.status(500).send('Database error');
   }
 });

@@ -95,6 +95,11 @@
                         <input type="hidden" name="menuItemId" value="<%= selectedItem ? selectedItem.menu_item_id : '' %>" />
                         <button type="submit">Toggle Active/Inactive</button>
                     </form>
+
+                    <form method="POST" action="/manager/menu/remove-item" class="stack-form">
+                        <input type="hidden" name="menuItemId" value="<%= selectedItem ? selectedItem.menu_item_id : '' %>" />
+                        <button type="submit" class="danger-btn">Remove From Menu</button>
+                    </form>
                 </section>
 
                 <section class="action-card">
@@ -216,7 +221,14 @@
                     <% if (recipeLines && recipeLines.length > 0) { %>
                         <div class="recipe-preview">
                         <% recipeLines.forEach(line => { %>
-                            <div class="recipe-line"><%= line %></div>
+                            <div class="recipe-line">
+                                <span><%= line.label %></span>
+                                <form method="POST" action="/manager/menu/remove-recipe-ingredient" class="inline-remove-form">
+                                    <input type="hidden" name="menuItemId" value="<%= selectedItem ? selectedItem.menu_item_id : '' %>" />
+                                    <input type="hidden" name="ingredientId" value="<%= line.ingredient_id %>" />
+                                    <button type="submit" class="tiny-danger-btn">Remove</button>
+                                </form>
+                            </div>
                         <% }) %>
                         </div>
                     <% } %>

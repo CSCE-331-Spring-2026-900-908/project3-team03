@@ -740,29 +740,30 @@
     }
 
     function normalizeAddonsForDrink(drink, addons = []) {
+        const includedIds = getIncludedAddonIdSet(drink);
         const normalized = new Map();
-
-        getDefaultAddonsForDrink(drink).forEach((addon) => {
-            normalized.set(getAddonIdKey(addon.id), addon);
-        });
 
         addons.forEach((addon) => {
             const key = getAddonIdKey(addon.id);
-            if (normalized.has(key)) {
-                normalized.set(key, {
-                    ...normalized.get(key),
-                    included: true
-                });
-                return;
-            }
-
             normalized.set(key, {
                 ...addon,
-                included: false
+                included: includedIds.has(key)
             });
         });
 
         return Array.from(normalized.values());
+    }
+
+    function mergeDefaultAddonsForDrink(drink, addons = []) {
+        return normalizeAddonsForDrink(drink, [
+            ...getDefaultAddonsForDrink(drink),
+            ...addons
+        ]);
+    }
+
+    function getRemovedDefaultAddonsForDrink(drink, addons = []) {
+        const selectedIds = new Set(addons.map((addon) => getAddonIdKey(addon.id)));
+        return getDefaultAddonsForDrink(drink).filter((addon) => !selectedIds.has(getAddonIdKey(addon.id)));
     }
 
     function getChargeableAddons(addons = []) {
@@ -817,8 +818,10 @@
     }
 
     // Turn quiz recommendations into real cart items
-    function buildOrderItemFromConfig(drink, addons, sugar, ice, itemQuantity, cubeOrder = []) {
-        const finalAddons = normalizeAddonsForDrink(drink, addons);
+    function buildOrderItemFromConfig(drink, addons, sugar, ice, itemQuantity, cubeOrder = [], includeDefaults = false) {
+        const finalAddons = includeDefaults
+            ? mergeDefaultAddonsForDrink(drink, addons)
+            : normalizeAddonsForDrink(drink, addons);
         const finalCubeOrder = syncCubeOrderForAddons(finalAddons, cubeOrder);
 
         return {
@@ -826,6 +829,7 @@
             name: drink.name,
             basePrice: drink.price,
             defaultAddonIds: [...(drink.defaultAddonIds || [])],
+            removedDefaultAddons: getRemovedDefaultAddonsForDrink(drink, finalAddons),
             addons: finalAddons,
             cubeAddonOrder: finalCubeOrder,
             sugar,
@@ -1062,22 +1066,28 @@
 
         filteredAddons.forEach((addon) => {
             const includedIds = getIncludedAddonIdSet(selectedDrink);
-            const isSelected = selectedAddons.some((a) => a.id === addon.id);
-            const isIncluded = includedIds.has(getAddonIdKey(addon.id));
+            const addonKey = getAddonIdKey(addon.id);
+            const isSelected = selectedAddons.some((a) => getAddonIdKey(a.id) === addonKey);
+            const isDefaultAddon = includedIds.has(addonKey);
             const button = document.createElement('button');
-            button.className = 'addon-btn' + (isSelected ? ' selected' : '') + (isIncluded ? ' included' : '');
+            button.className = 'addon-btn'
+                + (isSelected ? ' selected' : '')
+                + (isDefaultAddon ? ' default-addon' : '')
+                + (isDefaultAddon && isSelected ? ' included' : '');
             button.type = 'button';
-            button.textContent = isIncluded
-                ? `${translateName(addon.name)} Included`
+            button.textContent = isDefaultAddon
+                ? `${translateName(addon.name)} ${isSelected ? 'Included' : 'Removed'}`
                 : `${translateName(addon.name)} +$${money(addon.price)}`;
-            button.disabled = isIncluded;
             button.onclick = () => {
-                const exists = selectedAddons.some((a) => a.id === addon.id);
+                const exists = selectedAddons.some((a) => getAddonIdKey(a.id) === addonKey);
 
                 if (exists) {
-                    selectedAddons = selectedAddons.filter((a) => a.id !== addon.id);
+                    selectedAddons = selectedAddons.filter((a) => getAddonIdKey(a.id) !== addonKey);
                 } else {
-                    selectedAddons.push(addon);
+                    selectedAddons.push({
+                        ...addon,
+                        included: isDefaultAddon
+                    });
                 }
 
                 renderAddons();
@@ -1266,12 +1276,14 @@
             return;
         }
 
+        const previewAddons = mergeDefaultAddonsForDrink(recommendation.drink, recommendation.addons || []);
         const previewUrl = createOrderItemPreviewDataUrl({
             drinkId: recommendation.drink.id,
             name: recommendation.drink.name,
             basePrice: recommendation.drink.price,
-            addons: recommendation.addons || [],
-            cubeAddonOrder: syncCubeOrderForAddons(recommendation.addons || [], []),
+            defaultAddonIds: recommendation.drink.defaultAddonIds || [],
+            addons: previewAddons,
+            cubeAddonOrder: syncCubeOrderForAddons(previewAddons, []),
             sugar: recommendation.sugar,
             ice: recommendation.ice,
             quantity: recommendation.quantity || 1
@@ -1340,7 +1352,7 @@
         if (!currentQuizRecommendation) return;
 
         const { drink, addons, sugar, ice, quantity: itemQuantity } = currentQuizRecommendation;
-        order.push(buildOrderItemFromConfig(drink, addons, sugar, ice, itemQuantity));
+        order.push(buildOrderItemFromConfig(drink, addons, sugar, ice, itemQuantity, [], true));
         closeQuizOverlay();
         hideResultOverlay();
         renderOrder();
@@ -1350,11 +1362,12 @@
         if (!currentQuizRecommendation) return;
 
         const { drink, addons, sugar, ice, quantity: itemQuantity } = currentQuizRecommendation;
+        const addonsWithDefaults = mergeDefaultAddonsForDrink(drink, addons);
         openCustomizeModal(
             drink,
             {
-                addons,
-                cubeAddonOrder: syncCubeOrderForAddons(addons, []),
+                addons: addonsWithDefaults,
+                cubeAddonOrder: syncCubeOrderForAddons(addonsWithDefaults, []),
                 sugar,
                 ice,
                 quantity: itemQuantity
@@ -1415,9 +1428,14 @@
 
         const includedAddons = item.addons.filter((addon) => addon.included);
         const extraAddons = getChargeableAddons(item.addons);
+        const removedDefaultAddons = item.removedDefaultAddons || [];
 
         if (includedAddons.length > 0) {
             optionParts.push(`Included: ${includedAddons.map((addon) => translateName(addon.name)).join(', ')}`);
+        }
+
+        if (removedDefaultAddons.length > 0) {
+            optionParts.push(`Removed: ${removedDefaultAddons.map((addon) => translateName(addon.name)).join(', ')}`);
         }
 
         if (extraAddons.length > 0) {

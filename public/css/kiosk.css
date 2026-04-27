@@ -469,7 +469,13 @@ textarea {
     background: #dcfce7;
     border-color: #16a34a;
     color: #14532d;
-    cursor: default;
+    cursor: pointer;
+}
+
+.addon-btn.default-addon:not(.selected) {
+    background: #f8fff9;
+    border-color: #86efac;
+    color: #166534;
 }
 
 .addon-btn:disabled {
