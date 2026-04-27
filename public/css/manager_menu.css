@@ -194,6 +194,33 @@ body {
     gap: 10px;
 }
 
+.style-details {
+    border: 1px solid #eeeeee;
+    border-radius: 10px;
+    background: #fafafa;
+    padding: 10px 12px;
+}
+
+.style-details summary {
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.color-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.color-grid label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: #555;
+    font-size: 12px;
+    font-weight: 700;
+}
+
 input,
 select,
 textarea,
@@ -210,6 +237,12 @@ textarea {
     background: white;
     box-sizing: border-box;
     width: 100%;
+}
+
+input[type="color"] {
+    height: 42px;
+    padding: 4px;
+    cursor: pointer;
 }
 
 textarea {

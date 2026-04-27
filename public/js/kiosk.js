@@ -28,6 +28,7 @@
     const sugarGrid = document.getElementById('sugarGrid');
     const iceGrid = document.getElementById('iceGrid');
     const modalDrinkPreviewMount = document.getElementById('modalDrinkPreviewMount');
+    const iceCubeIndicator = document.getElementById('iceCubeIndicator');
     const previewWaveOverlay = document.getElementById('previewWaveOverlay');
     const addonCategoryTabs = document.getElementById('addonCategoryTabs');
     const closeCustomizeBtn = document.getElementById('closeCustomize');
@@ -508,17 +509,47 @@
         return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(serialized)}`;
     }
 
+    function getIceCubeCount(iceLevel) {
+        const counts = {
+            'No Ice': 0,
+            'Light Ice': 2,
+            'Regular Ice': 4,
+            'Extra Ice': 7
+        };
+
+        return counts[iceLevel] ?? counts['Regular Ice'];
+    }
+
+    function renderIceCubes() {
+        if (!iceCubeIndicator) return;
+
+        const cubeCount = selectedDrink ? getIceCubeCount(selectedIce) : 0;
+        iceCubeIndicator.innerHTML = '';
+        iceCubeIndicator.classList.toggle('is-empty', cubeCount === 0);
+
+        for (let i = 0; i < cubeCount; i++) {
+            const cube = document.createElement('img');
+            cube.className = 'ice-cube-img';
+            cube.src = '/images/Ice%20Cubes.svg';
+            cube.alt = '';
+            cube.style.setProperty('--cube-rotate', `${[-10, 8, -4, 12, -14, 5, -8][i] || 0}deg`);
+            iceCubeIndicator.appendChild(cube);
+        }
+    }
+
     function renderModalPreviewFromCurrentSvg() {
         if (!modalDrinkPreviewMount) return;
 
         if (!selectedDrink) {
             modalDrinkPreviewMount.innerHTML = '<div class="muted">Choose a drink to preview it here.</div>';
+            renderIceCubes();
             return;
         }
 
         const modalSvg = createDrinkSvgInstance();
         if (!modalSvg) {
             modalDrinkPreviewMount.innerHTML = '<div class="muted">Could not load preview.</div>';
+            renderIceCubes();
             return;
         }
 
@@ -531,6 +562,7 @@
 
         modalDrinkPreviewMount.innerHTML = '';
         modalDrinkPreviewMount.appendChild(img);
+        renderIceCubes();
     }
 
     function animateAddonPreviewUpdate() {
@@ -948,6 +980,7 @@
             renderIceOptions();
             renderQuantity();
             renderCustomizePrice();
+            renderIceCubes();
         });
     }
 

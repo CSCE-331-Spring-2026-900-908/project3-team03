@@ -845,6 +845,34 @@ textarea {
     display: block;
 }
 
+.ice-cube-indicator {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    width: 112px;
+    min-height: 54px;
+    display: flex;
+    flex-wrap: wrap-reverse;
+    align-items: flex-end;
+    justify-content: flex-end;
+    gap: 3px;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.ice-cube-indicator.is-empty {
+    display: none;
+}
+
+.modal-drink-preview-frame .ice-cube-img {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+    opacity: 0.88;
+    filter: drop-shadow(0 3px 3px rgba(45, 77, 95, 0.2));
+    transform: rotate(var(--cube-rotate));
+}
+
 .preview-wave-overlay {
     position: absolute;
     inset: 0;
