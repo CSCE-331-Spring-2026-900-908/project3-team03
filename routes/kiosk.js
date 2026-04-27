@@ -10,7 +10,9 @@ const { fetchCollegeStationWeather } = require('../utils/weather');
 // ---------------------------- Drink Style ----------------------------
 // Load color data
 const drinkCsvPath = path.resolve(__dirname, '..', 'images', 'DrinkColorData.csv');
+const menuItemCsvPath = path.resolve(__dirname, '..', 'db', 'menu_item.csv');
 let cachedDrinkStyleMap = null;
+let cachedDrinkQuizProfiles = null;
 
 function parseSimpleCsv(text) {
     const lines = text.trim().split(/\r?\n/);
@@ -69,15 +71,170 @@ async function getDrinkStyleMap() {
     return cachedDrinkStyleMap;
 }
 
+// Drink profile category
+function createBaseQuizProfile(category) {
+    const profiles = {
+        'Milk Tea': {
+            chill: 2,
+            treat: 1,
+            creamy: 3,
+            sweet: 1,
+            safe: 2
+        },
+        'Tea': {
+            chill: 1,
+            fresh: 2,
+            teaForward: 3,
+            safe: 2,
+            noSugar: 1
+        },
+        'Fruit Tea': {
+            fresh: 3,
+            fruity: 4,
+            slightlySweet: 2,
+            noToppings: 1,
+            safe: 1
+        },
+        'Smoothie': {
+            treat: 2,
+            fresh: 1,
+            fruity: 3,
+            rich: 1,
+            adventurous: 1
+        },
+        'Energy': {
+            energetic: 4,
+            sweet: 2,
+            extraSweet: 3,
+            lotsToppings: 2,
+            adventurous: 2
+        },
+        'Matcha': {
+            chill: 1,
+            fresh: 2,
+            teaForward: 2,
+            rich: 1,
+            adventurous: 2
+        },
+        'Seasonal': {
+            treat: 1,
+            adventurous: 3,
+            surprise: 4
+        },
+        'SEASONAL': {
+            treat: 1,
+            adventurous: 3,
+            surprise: 4
+        }
+    };
+
+    return { ...(profiles[category] || { chill: 1, safe: 1 }) };
+}
+
+// Drink profile defaults for each category
+function applyQuizProfileOverrides(name, category, profile) {
+    const lowerName = name.toLowerCase();
+
+    if (lowerName === 'misty milk') {
+        Object.assign(profile, {
+            chill: 4,
+            creamy: 5,
+            safe: 4,
+            energetic: 0,
+            fruity: 0
+        });
+    } else if (lowerName === 'glass cannon') {
+        Object.assign(profile, {
+            energetic: 6,
+            extraSweet: 5,
+            lotsToppings: 4,
+            adventurous: 3,
+            safe: 0
+        });
+    } else if (lowerName === 'chard shore') {
+        Object.assign(profile, {
+            fresh: 5,
+            fruity: 5,
+            slightlySweet: 4,
+            noToppings: 3,
+            safe: 2
+        });
+    } else if (lowerName === 'flounder creme brulee') {
+        Object.assign(profile, {
+            treat: 5,
+            rich: 5,
+            sweet: 4,
+            safe: 2,
+            fresh: 0
+        });
+    } else if (lowerName === 'coal chocolate') {
+        Object.assign(profile, {
+            treat: 4,
+            rich: 4,
+            sweet: 3
+        });
+    } else if (lowerName === 'forsaken drink') {
+        Object.assign(profile, {
+            energetic: 3,
+            adventurous: 5,
+            surprise: 3,
+            safe: 0
+        });
+    } else if (lowerName === 'mola mola matcha' || lowerName === 'islandic matcha') {
+        Object.assign(profile, {
+            fresh: 3,
+            teaForward: 3,
+            adventurous: 3
+        });
+    } else if (lowerName === 'seafoam tide') {
+        Object.assign(profile, {
+            chill: 3,
+            fresh: 2,
+            creamy: 3
+        });
+    }
+
+    if (category === 'Seasonal' || category === 'SEASONAL') {
+        profile.surprise = Math.max(profile.surprise || 0, 5);
+        profile.adventurous = Math.max(profile.adventurous || 0, 4);
+    }
+
+    return profile;
+}
+
+function buildDrinkQuizProfileMap(rows) {
+    const map = {};
+
+    rows
+        .filter((row) => String(row.active).toUpperCase() === 'TRUE' && String(row.category).toUpperCase() !== 'ADDON')
+        .forEach((row) => {
+            const profile = createBaseQuizProfile(row.category);
+            map[row.name.toLowerCase()] = applyQuizProfileOverrides(row.name, row.category, profile);
+        });
+
+    return map;
+}
+
+async function getDrinkQuizProfiles() {
+    if (cachedDrinkQuizProfiles) return cachedDrinkQuizProfiles;
+
+    const csv = await fs.readFile(menuItemCsvPath, 'utf8');
+    const rows = parseSimpleCsv(csv);
+    cachedDrinkQuizProfiles = buildDrinkQuizProfileMap(rows);
+
+    return cachedDrinkQuizProfiles;
+}
+
 // Load starting kiosk page
 router.get('/', async (req, res) => {
     try {
         console.log('Kiosk: Loading menu from database');
         
-        const [menuItems, activeAddons, weather] = await Promise.all([
+        const [menuItems, activeAddons, weather, drinkQuizProfiles] = await Promise.all([
             MenuItemDao.get_active_drink_items(),
             MenuItemDao.get_active_addons(),
-            fetchCollegeStationWeather()
+            fetchCollegeStationWeather(),
+            getDrinkQuizProfiles()
         ]);
         console.log('Kiosk: Retrieved', menuItems.length, 'drink items');
         console.log('Kiosk: Retrieved', activeAddons.length, 'addons');
@@ -91,7 +248,8 @@ router.get('/', async (req, res) => {
             categories[item.category].push({
                 id: item.menu_item_id,
                 name: item.name,
-                price: parseFloat(item.base_price)
+                price: parseFloat(item.base_price),
+                category: item.category
             });
         });
         
@@ -107,6 +265,12 @@ router.get('/', async (req, res) => {
                 price: parseFloat(item.base_price)
             })),
             drinkStyleMap,
+            quizDrinkProfiles: Object.fromEntries(
+                menuItems.map((item) => [
+                    item.menu_item_id,
+                    drinkQuizProfiles[String(item.name).toLowerCase()] || createBaseQuizProfile(item.category)
+                ])
+            ),
             statusMessage: '',
             weather
         });
@@ -116,6 +280,7 @@ router.get('/', async (req, res) => {
             categories: {},
             addons: [],
             drinkStyleMap: {},
+            quizDrinkProfiles: {},
             statusMessage: 'Error loading menu items',
             weather: await fetchCollegeStationWeather()
         });

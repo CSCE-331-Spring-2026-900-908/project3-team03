@@ -1,0 +1,44 @@
+menu_item_id,name,category,base_price,description,active
+1,Lava Flow,Milk Tea,6,,TRUE
+2,Misty Milk,Milk Tea,6,,TRUE
+3,Skilly n Duff,Milk Tea,6,,TRUE
+4,Coal Chocolate,Milk Tea,6,,TRUE
+5,Flounder Creme Brulee,Milk Tea,6,,TRUE
+6,Mola Mola Matcha,Milk Tea,6,,TRUE
+7,Black Sea,Milk Tea,6,,TRUE
+8,Ashen Cloud,Tea,6,,TRUE
+9,Tuna Tea,Tea,6,,TRUE
+10,Ruby Fall,Tea,6,,TRUE
+11,The Signal,Tea,6,,TRUE
+12,Chard Shore,Fruit Tea,6,,TRUE
+13,Clam Chowder,Fruit Tea,6,,TRUE
+14,Salmon Fruit Smoothie,Smoothie,6,,TRUE
+15,Dark Bramble,Smoothie,6,,TRUE
+16,Seafoam Tide,Milk Tea,6,,TRUE
+17,Glass Cannon,Energy,6,,TRUE
+18,Forsaken Drink,Energy,6,,TRUE
+19,Fire Dust,Tea,6,,TRUE
+20,Islandic Matcha,Matcha,6,,TRUE
+21,Jelly coffee,ADDON,0.3,,TRUE
+22,Jelly grass,ADDON,0.3,,TRUE
+23,Jelly tuna,ADDON,0.3,,TRUE
+24,Syrup chocolate,ADDON,0.1,,TRUE
+25,Syrup strawberry,ADDON,0.1,,TRUE
+26,Syrup mango,ADDON,0.1,,TRUE
+27,Syrup caramel,ADDON,0.1,,TRUE
+28,Syrup vanilla,ADDON,0.2,,TRUE
+29,Syrup brown sugar,ADDON,0.3,,TRUE
+30,Boba,ADDON,0.5,,TRUE
+31,Seeds chia,ADDON,0.25,,TRUE
+32,Eye of newt,ADDON,0.75,,TRUE
+33,Milk oat,ADDON,0.3,,TRUE
+34,Milk foam,ADDON,0.5,,TRUE
+35,Cocoa powder,ADDON,0.15,,TRUE
+36,Honey,ADDON,0.2,,TRUE
+37,Aloe vera,ADDON,0.35,,TRUE
+38,Basil seeds,ADDON,0.25,,TRUE
+39,Yogurt base,ADDON,0.4,,TRUE
+40,Strawberry popping boba,ADDON,0.5,,TRUE
+41,Lemon juice,ADDON,0.15,,TRUE
+42,Chamoy,ADDON,0.25,,TRUE
+43,Taro,ADDON,0.4,,TRUE
