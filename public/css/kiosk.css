@@ -6,6 +6,8 @@ body {
     font-size: 18px;
     background: #ccf8ff;
     color: #111827;
+    overflow-x: hidden;
+    min-height: 100vh;
 }
 
 button,
@@ -16,9 +18,73 @@ textarea {
 }
 
 .page {
+    position: relative;
     max-width: 1450px;
     margin: 0 auto;
-    padding: 24px;
+    padding: 24px 24px 136px 24px;
+}
+
+.page > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Tricks to implement a moving ocean wave */
+.ocean {
+    position: fixed;
+    left: 0;
+    width: 100vw;
+    bottom: 0;
+    height: 110px;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+    background:
+        linear-gradient(180deg, rgba(204, 248, 255, 0) 0%, rgba(162, 231, 241, 0.28) 42%, rgba(95, 191, 209, 0.46) 100%);
+    opacity: 0.88;
+}
+
+.wave {
+    --wave-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1600 198' preserveAspectRatio='none'%3E%3Cpath fill='%2375d8e8' d='M0 106C71 101 142 96 213 104C284 112 355 134 426 138C497 142 568 128 639 114C710 100 781 86 852 90C923 94 994 116 1065 129C1136 142 1207 146 1278 139C1349 132 1420 114 1491 106C1562 98 1633 100 1704 103V198H0Z'/%3E%3Cpath fill='%23bff4fb' fill-opacity='.58' d='M0 122C89 132 178 142 267 138C356 134 445 116 534 104C623 92 712 86 801 95C890 104 979 128 1068 135C1157 142 1246 132 1335 118C1424 104 1513 86 1602 84V198H0Z'/%3E%3C/svg%3E");
+    background-image: var(--wave-image);
+    background-repeat: repeat-x;
+    background-size: 1600px 198px;
+    position: absolute;
+    left: 0;
+    top: -88px;
+    width: 6400px;
+    height: 198px;
+    animation: waveSlide 18s cubic-bezier(0.36, 0.45, 0.63, 0.53) infinite;
+    transform: translate3d(0, 0, 0);
+    opacity: 0.72;
+}
+
+.wave:nth-of-type(2) {
+    top: -74px;
+    opacity: 0.42;
+    filter: blur(1px);
+    animation:
+        waveSlide 15s cubic-bezier(0.36, 0.45, 0.63, 0.53) -1.8s infinite,
+        waveSwell 11s ease -1.2s infinite;
+}
+
+@keyframes waveSlide {
+    from {
+        margin-left: 0;
+    }
+    to {
+        margin-left: -1600px;
+    }
+}
+
+@keyframes waveSwell {
+    0%,
+    100% {
+        transform: translate3d(0, -14px, 0);
+    }
+    to {
+        transform: translate3d(0, 4px, 0);
+    }
 }
 
 .topbar {
