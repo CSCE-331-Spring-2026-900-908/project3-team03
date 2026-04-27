@@ -226,6 +226,10 @@ router.get('/', async (req, res) => {
         ]);
         console.log('Kiosk: Retrieved', menuItems.length, 'drink items');
         console.log('Kiosk: Retrieved', activeAddons.length, 'addons');
+
+        const defaultAddonsByDrink = await MenuItemDao.get_default_addons_by_drink(
+            menuItems.map(item => item.menu_item_id)
+        );
         
         // Group menu items by category
         const categories = {};
@@ -237,7 +241,8 @@ router.get('/', async (req, res) => {
                 id: item.menu_item_id,
                 name: item.name,
                 price: parseFloat(item.base_price),
-                category: item.category
+                category: item.category,
+                defaultAddonIds: defaultAddonsByDrink[String(item.menu_item_id)] || []
             });
         });
         
@@ -300,9 +305,11 @@ router.post('/submitOrder', async (req, res) => {
                 ice_amount: 0,//will change to normal later but db is currently only taking ints
                 sugar_amount: 0,//will change to normal later but db is currently only taking ints
                 special_notes: "",
-                base_price: item.total / item.quantity,
+                base_price: item.basePrice,
                 addons: Object.fromEntries(
-                    item.addons.map(a => [a.id, 1])
+                    (item.addons || [])
+                        .filter(a => !a.included)
+                        .map(a => [a.id, 1])
                 )
             }))
         };

@@ -5,6 +5,7 @@ const dotenv = require('dotenv').config();
 
 const pool = require('./db/pool');
 const inventoryDao = require('./dao/inventoryDao');
+const MenuItemDao = require('./dao/MenuItemDao');
 
 // Load Passport configuration
 require('./config/passportConfig');
@@ -58,6 +59,47 @@ const credentials = {
 
 app.get('/', (req, res) => {
     res.render('index');
+});
+
+app.get('/menu-board', async (req, res) => {
+    try {
+        const menuItems = await MenuItemDao.get_active_drink_items();
+        const hiddenCategories = new Set(['ADDON', 'SPECIALTY']);
+        const categoryOrder = ['Milk Tea', 'Tea', 'Fruit Tea', 'Smoothie', 'Energy', 'Matcha', 'Sour', 'SEASONAL'];
+        const categories = {};
+
+        menuItems
+            .filter(item => !hiddenCategories.has(String(item.category || '').toUpperCase()))
+            .forEach(item => {
+                if (!categories[item.category]) {
+                    categories[item.category] = [];
+                }
+
+                categories[item.category].push({
+                    id: item.menu_item_id,
+                    name: item.name,
+                    price: Number(item.base_price)
+                });
+            });
+
+        const orderedCategories = [
+            ...categoryOrder.filter(category => categories[category]),
+            ...Object.keys(categories)
+                .filter(category => !categoryOrder.includes(category))
+                .sort()
+        ];
+
+        res.render('menu_board', {
+            categories,
+            orderedCategories
+        });
+    } catch (err) {
+        console.error('Menu board: Error loading menu:', err);
+        res.render('menu_board', {
+            categories: {},
+            orderedCategories: []
+        });
+    }
 });
 
 //separate cashier login handler

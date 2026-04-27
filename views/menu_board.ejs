@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FSH Boba Menu Board</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/menu_board.css">
+</head>
+<body>
+    <main class="board-shell">
+        <header class="board-header">
+            <p>FSH Boba</p>
+            <h1>Menu</h1>
+        </header>
+
+        <% if (!orderedCategories || orderedCategories.length === 0) { %>
+            <section class="empty-board">
+                <h2>Menu unavailable</h2>
+            </section>
+        <% } else { %>
+            <section class="category-stack">
+                <% orderedCategories.forEach((category) => { %>
+                    <section class="category-section">
+                        <h2><%= category %></h2>
+                        <ul class="menu-list">
+                            <% categories[category].forEach((item) => { %>
+                                <li>
+                                    <span class="item-name"><%= item.name %></span>
+                                    <span class="item-price">$<%= item.price.toFixed(2) %></span>
+                                </li>
+                            <% }) %>
+                        </ul>
+                    </section>
+                <% }) %>
+            </section>
+        <% } %>
+    </main>
+</body>
+</html>

@@ -459,6 +459,17 @@ textarea {
     border-color: #2563eb;
 }
 
+.addon-btn.included {
+    background: #dcfce7;
+    border-color: #16a34a;
+    color: #14532d;
+    cursor: default;
+}
+
+.addon-btn:disabled {
+    opacity: 1;
+}
+
 .selection-options {
     margin-top: 8px;
 }

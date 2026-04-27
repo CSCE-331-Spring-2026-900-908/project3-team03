@@ -561,7 +561,7 @@
     }
 
     function createMenuDrinkPreviewDataUrl(drink) {
-        const cacheKey = drink.name;
+        const cacheKey = `${drink.id}:${(drink.defaultAddonIds || []).join(',')}`;
         if (menuPreviewCache.has(cacheKey)) {
             return menuPreviewCache.get(cacheKey);
         }
@@ -570,7 +570,8 @@
         if (!svgRoot) return '';
 
         setupAddonLayersOnSvg(svgRoot);
-        applyAddonsToSvg(svgRoot, drink, [], []);
+        const defaultAddons = getDefaultAddonsForDrink(drink);
+        applyAddonsToSvg(svgRoot, drink, defaultAddons, syncCubeOrderForAddons(defaultAddons, []));
 
         const dataUrl = svgToDataUrl(svgRoot);
         menuPreviewCache.set(cacheKey, dataUrl);
@@ -583,15 +584,18 @@
         if (!svgRoot) return '';
 
         setupAddonLayersOnSvg(svgRoot);
+        const drink = findDrinkById(item.drinkId) || {
+            id: item.drinkId,
+            name: item.name,
+            price: item.basePrice,
+            defaultAddonIds: item.defaultAddonIds || []
+        };
+        const addons = normalizeAddonsForDrink(drink, item.addons || []);
         applyAddonsToSvg(
             svgRoot,
-            {
-                id: item.drinkId,
-                name: item.name,
-                price: item.basePrice
-            },
-            item.addons || [],
-            item.cubeAddonOrder || []
+            drink,
+            addons,
+            syncCubeOrderForAddons(addons, item.cubeAddonOrder || [])
         );
 
         return svgToDataUrl(svgRoot);
@@ -676,6 +680,58 @@
         return categories.length ? categories : ['ball'];
     }
 
+    function getAddonIdKey(id) {
+        return String(id);
+    }
+
+    function findDrinkById(drinkId) {
+        return getAllAvailableDrinks().find((drink) => getAddonIdKey(drink.id) === getAddonIdKey(drinkId)) || null;
+    }
+
+    function getIncludedAddonIdSet(drink) {
+        return new Set((drink?.defaultAddonIds || []).map((id) => getAddonIdKey(id)));
+    }
+
+    function getDefaultAddonsForDrink(drink) {
+        const includedIds = getIncludedAddonIdSet(drink);
+        return menuData.addons
+            .filter((addon) => includedIds.has(getAddonIdKey(addon.id)))
+            .map((addon) => ({
+                ...addon,
+                included: true
+            }));
+    }
+
+    function normalizeAddonsForDrink(drink, addons = []) {
+        const normalized = new Map();
+
+        getDefaultAddonsForDrink(drink).forEach((addon) => {
+            normalized.set(getAddonIdKey(addon.id), addon);
+        });
+
+        addons.forEach((addon) => {
+            const key = getAddonIdKey(addon.id);
+            if (normalized.has(key)) {
+                normalized.set(key, {
+                    ...normalized.get(key),
+                    included: true
+                });
+                return;
+            }
+
+            normalized.set(key, {
+                ...addon,
+                included: false
+            });
+        });
+
+        return Array.from(normalized.values());
+    }
+
+    function getChargeableAddons(addons = []) {
+        return addons.filter((addon) => !addon.included);
+    }
+
     function renderAddonCategoryTabs() {
         if (!addonCategoryTabs) return;
 
@@ -702,17 +758,18 @@
     }
 
     function getDefaultCustomization(drink) {
+        const addons = getDefaultAddonsForDrink(drink);
         return {
             drink,
-            addons: [],
-            cubeAddonOrder: [],
+            addons,
+            cubeAddonOrder: syncCubeOrderForAddons(addons, []),
             sugar: '100%',
             ice: 'Regular Ice'
         };
     }
 
     function getOrderItemTotal(drink, addons, itemQuantity) {
-        const addonTotal = addons.reduce((sum, addon) => sum + addon.price, 0);
+        const addonTotal = getChargeableAddons(addons).reduce((sum, addon) => sum + addon.price, 0);
         return (drink.price + addonTotal) * itemQuantity;
     }
 
@@ -724,18 +781,20 @@
 
     // Turn quiz recommendations into real cart items
     function buildOrderItemFromConfig(drink, addons, sugar, ice, itemQuantity, cubeOrder = []) {
-        const finalCubeOrder = syncCubeOrderForAddons(addons, cubeOrder);
+        const finalAddons = normalizeAddonsForDrink(drink, addons);
+        const finalCubeOrder = syncCubeOrderForAddons(finalAddons, cubeOrder);
 
         return {
             drinkId: drink.id,
             name: drink.name,
             basePrice: drink.price,
-            addons: [...addons],
+            defaultAddonIds: [...(drink.defaultAddonIds || [])],
+            addons: finalAddons,
             cubeAddonOrder: finalCubeOrder,
             sugar,
             ice,
             quantity: itemQuantity,
-            total: getOrderItemTotal(drink, addons, itemQuantity)
+            total: getOrderItemTotal(drink, finalAddons, itemQuantity)
         };
     }
 
@@ -747,11 +806,11 @@
         }
 
         const total = getOrderItemTotal(selectedDrink, selectedAddons, quantity);
-        const addonTotal = selectedAddons.reduce((sum, addon) => sum + addon.price, 0) * quantity;
+        const addonTotal = getChargeableAddons(selectedAddons).reduce((sum, addon) => sum + addon.price, 0) * quantity;
         const baseTotal = selectedDrink.price * quantity;
 
         if (addonTotal > 0) {
-            customizeDrinkPriceEl.textContent = `$${money(total)} total (${quantity} x $${money(selectedDrink.price)} + $${money(addonTotal)} add ons)`;
+            customizeDrinkPriceEl.textContent = `$${money(total)} total (${quantity} x $${money(selectedDrink.price)} + $${money(addonTotal)} extra add ons)`;
             return;
         }
 
@@ -782,8 +841,11 @@
         customizationDraft = existingItem
             ? {
                 drink,
-                addons: [...existingItem.addons],
-                cubeAddonOrder: [...(existingItem.cubeAddonOrder || [])],
+                addons: normalizeAddonsForDrink(drink, existingItem.addons),
+                cubeAddonOrder: syncCubeOrderForAddons(
+                    normalizeAddonsForDrink(drink, existingItem.addons),
+                    existingItem.cubeAddonOrder || []
+                ),
                 sugar: existingItem.sugar,
                 ice: existingItem.ice
             }
@@ -961,10 +1023,16 @@
         }
 
         filteredAddons.forEach((addon) => {
+            const includedIds = getIncludedAddonIdSet(selectedDrink);
+            const isSelected = selectedAddons.some((a) => a.id === addon.id);
+            const isIncluded = includedIds.has(getAddonIdKey(addon.id));
             const button = document.createElement('button');
-            button.className = 'addon-btn' + (selectedAddons.some((a) => a.id === addon.id) ? ' selected' : '');
+            button.className = 'addon-btn' + (isSelected ? ' selected' : '') + (isIncluded ? ' included' : '');
             button.type = 'button';
-            button.textContent = `${translateName(addon.name)} +$${money(addon.price)}`;
+            button.textContent = isIncluded
+                ? `${translateName(addon.name)} Included`
+                : `${translateName(addon.name)} +$${money(addon.price)}`;
+            button.disabled = isIncluded;
             button.onclick = () => {
                 const exists = selectedAddons.some((a) => a.id === addon.id);
 
@@ -1218,13 +1286,15 @@
         quizProgressBarEl.style.width = '100%';
 
         const { drink, sugar, ice, addons, reason } = currentQuizRecommendation;
+        const includedAddons = getDefaultAddonsForDrink(drink);
         renderQuizRecommendationPreview(currentQuizRecommendation);
         quizResultDrinkNameEl.textContent = drink.name;
         quizResultReasonEl.textContent = reason;
         quizResultMetaEl.innerHTML = `
             <div>Category: ${drink.category}</div>
             <div>Sugar: ${sugar} | Ice: ${ice}</div>
-            <div>${addons.length ? `Suggested toppings: ${addons.map((addon) => addon.name).join(', ')}` : 'Suggested toppings: none'}</div>
+            <div>${includedAddons.length ? `Included toppings: ${includedAddons.map((addon) => addon.name).join(', ')}` : 'Included toppings: none'}</div>
+            <div>${addons.length ? `Suggested extras: ${addons.map((addon) => addon.name).join(', ')}` : 'Suggested extras: none'}</div>
         `;
     }
 
@@ -1305,8 +1375,15 @@
             `Ice: ${item.ice}`
         ];
 
-        if (item.addons.length > 0) {
-            optionParts.push(`Add ons: ${item.addons.map((addon) => translateName(addon.name)).join(', ')}`);
+        const includedAddons = item.addons.filter((addon) => addon.included);
+        const extraAddons = getChargeableAddons(item.addons);
+
+        if (includedAddons.length > 0) {
+            optionParts.push(`Included: ${includedAddons.map((addon) => translateName(addon.name)).join(', ')}`);
+        }
+
+        if (extraAddons.length > 0) {
+            optionParts.push(`Extras: ${extraAddons.map((addon) => translateName(addon.name)).join(', ')}`);
         }
 
         return optionParts.join(' | ');
@@ -1333,7 +1410,8 @@
             {
                 id: item.drinkId,
                 name: item.name,
-                price: item.basePrice
+                price: item.basePrice,
+                defaultAddonIds: item.defaultAddonIds || []
             },
             item,
             index

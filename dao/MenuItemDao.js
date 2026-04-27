@@ -226,6 +226,52 @@ async function get_recipe_lines(menu_item_id) {
     return lines;
 }
 
+async function get_default_addons_by_drink(menu_item_ids) {
+    if (!Array.isArray(menu_item_ids) || menu_item_ids.length === 0) {
+        return {};
+    }
+
+    const res = await pool.query(`
+        WITH drink_ids AS (
+            SELECT unnest($1::bigint[]) AS drink_id
+        )
+        SELECT d.drink_id, a.menu_item_id AS addon_id
+        FROM drink_ids d
+        JOIN menu_item a
+          ON a.category = 'ADDON'
+         AND a.active = TRUE
+        WHERE EXISTS (
+            SELECT 1
+            FROM menu_item_recipe ar
+            WHERE ar.menu_item_id = a.menu_item_id
+        )
+          AND NOT EXISTS (
+            SELECT 1
+            FROM menu_item_recipe ar
+            WHERE ar.menu_item_id = a.menu_item_id
+              AND NOT EXISTS (
+                SELECT 1
+                FROM menu_item_recipe dr
+                WHERE dr.menu_item_id = d.drink_id
+                  AND dr.ingredient_id = ar.ingredient_id
+              )
+        )
+        ORDER BY d.drink_id, a.menu_item_id
+    `, [menu_item_ids]);
+
+    const addonMap = {};
+
+    for (const row of res.rows) {
+        const drinkId = String(row.drink_id);
+        if (!addonMap[drinkId]) {
+            addonMap[drinkId] = [];
+        }
+        addonMap[drinkId].push(row.addon_id);
+    }
+
+    return addonMap;
+}
+
 async function create_ingredient(name, unit, category) {
     const res = await pool.query(`
         INSERT INTO ingredient (name, unit, category, active)
@@ -254,5 +300,6 @@ module.exports = {
     insert_menu_item,
     add_recipe_ingredient,
     get_recipe_lines,
+    get_default_addons_by_drink,
     create_ingredient
 };
