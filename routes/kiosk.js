@@ -69,6 +69,151 @@ async function getDrinkStyleMap() {
     return cachedDrinkStyleMap;
 }
 
+// Give every drink a starting profile based on its category
+function createBaseQuizProfile(category) {
+    const profiles = {
+        'Milk Tea': {
+            chill: 2,
+            treat: 1,
+            creamy: 3,
+            sweet: 1,
+            safe: 2
+        },
+        'Tea': {
+            chill: 1,
+            fresh: 2,
+            teaForward: 3,
+            safe: 2,
+            noSugar: 1
+        },
+        'Fruit Tea': {
+            fresh: 3,
+            fruity: 4,
+            slightlySweet: 2,
+            noToppings: 1,
+            safe: 1
+        },
+        'Smoothie': {
+            treat: 2,
+            fresh: 1,
+            fruity: 3,
+            rich: 1,
+            adventurous: 1
+        },
+        'Energy': {
+            energetic: 4,
+            sweet: 2,
+            extraSweet: 3,
+            lotsToppings: 2,
+            adventurous: 2
+        },
+        'Matcha': {
+            chill: 1,
+            fresh: 2,
+            teaForward: 2,
+            rich: 1,
+            adventurous: 2
+        },
+        'Seasonal': {
+            treat: 1,
+            adventurous: 3,
+            surprise: 4
+        },
+        'SEASONAL': {
+            treat: 1,
+            adventurous: 3,
+            surprise: 4
+        }
+    };
+
+    return { ...(profiles[category] || { chill: 1, safe: 1 }) };
+}
+
+// Adjust specific drinks by name (max drink per category).
+function applyQuizProfileOverrides(name, category, profile) {
+    const lowerName = name.toLowerCase();
+
+    if (lowerName === 'misty milk') {
+        Object.assign(profile, {
+            chill: 4,
+            creamy: 5,
+            safe: 4,
+            energetic: 0,
+            fruity: 0
+        });
+    } else if (lowerName === 'glass cannon') {
+        Object.assign(profile, {
+            energetic: 6,
+            extraSweet: 5,
+            lotsToppings: 4,
+            adventurous: 3,
+            safe: 0
+        });
+    } else if (lowerName === 'chard shore') {
+        Object.assign(profile, {
+            fresh: 5,
+            fruity: 5,
+            slightlySweet: 4,
+            noToppings: 3,
+            safe: 2
+        });
+    } else if (lowerName === 'flounder creme brulee') {
+        Object.assign(profile, {
+            treat: 5,
+            rich: 5,
+            sweet: 4,
+            safe: 2,
+            fresh: 0
+        });
+    } else if (lowerName === 'coal chocolate') {
+        Object.assign(profile, {
+            treat: 4,
+            rich: 4,
+            sweet: 3
+        });
+    } else if (lowerName === 'forsaken drink') {
+        Object.assign(profile, {
+            energetic: 3,
+            adventurous: 5,
+            surprise: 3,
+            safe: 0
+        });
+    } else if (lowerName === 'mola mola matcha' || lowerName === 'islandic matcha') {
+        Object.assign(profile, {
+            fresh: 3,
+            teaForward: 3,
+            adventurous: 3
+        });
+    } else if (lowerName === 'seafoam tide') {
+        Object.assign(profile, {
+            chill: 3,
+            fresh: 2,
+            creamy: 3
+        });
+    }
+
+    if (category === 'Seasonal' || category === 'SEASONAL') {
+        profile.surprise = Math.max(profile.surprise || 0, 5);
+        profile.adventurous = Math.max(profile.adventurous || 0, 4);
+    }
+
+    return profile;
+}
+
+// Builds one profile per active drink from the live database menu items
+function buildDrinkQuizProfilesFromMenuItems(menuItems) {
+    const map = {};
+
+    menuItems
+        .filter((item) => String(item.category || '').toUpperCase() !== 'ADDON')
+        .forEach((item) => {
+            const profile = createBaseQuizProfile(item.category);
+            map[item.menu_item_id] = applyQuizProfileOverrides(item.name, item.category, profile);
+        });
+
+    return map;
+}
+
 // Load starting kiosk page
 router.get('/', async (req, res) => {
     try {
@@ -91,13 +236,15 @@ router.get('/', async (req, res) => {
             categories[item.category].push({
                 id: item.menu_item_id,
                 name: item.name,
-                price: parseFloat(item.base_price)
+                price: parseFloat(item.base_price),
+                category: item.category
             });
         });
         
         console.log('Kiosk: Organized into', Object.keys(categories).length, 'categories');
         
         const drinkStyleMap = await getDrinkStyleMap();
+        const quizDrinkProfiles = buildDrinkQuizProfilesFromMenuItems(menuItems);
 
         res.render('kiosk', {
             categories,
@@ -107,6 +254,7 @@ router.get('/', async (req, res) => {
                 price: parseFloat(item.base_price)
             })),
             drinkStyleMap,
+            quizDrinkProfiles,
             statusMessage: '',
             weather
         });
@@ -116,6 +264,7 @@ router.get('/', async (req, res) => {
             categories: {},
             addons: [],
             drinkStyleMap: {},
+            quizDrinkProfiles: {},
             statusMessage: 'Error loading menu items',
             weather: await fetchCollegeStationWeather()
         });

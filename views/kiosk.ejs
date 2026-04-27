@@ -111,17 +111,26 @@
                         <div class="muted">Your order is empty</div>
                     </div>
                 </div>
-                <section class="weather-widget" aria-label="Current weather in College Station">
-                    <h3><%= weather.location %></h3>
-                    <% if (weather.available) { %>
-                        <div class="weather-temp"><%= weather.temperature %>F</div>
-                        <p class="weather-meta"><%= weather.summary %></p>
-                        <p class="weather-meta">Feels like <%= weather.feelsLike %>F</p>
-                        <p class="weather-meta">Wind <%= weather.windSpeed %> mph</p>
-                    <% } else { %>
-                        <p class="weather-meta"><%= weather.summary %></p>
-                    <% } %>
-                </section>
+                <div class="widget-dock" id="widgetDock">
+                    <button class="quiz-widget" id="openQuizWidget" type="button">
+                        <div class="quiz-widget-badge">5 Q</div>
+                        <h3>Don&apos;t know what to order today?</h3>
+                        <p>Take a quick drink quiz.</p>
+                        <span class="quiz-widget-cta">Start quiz</span>
+                    </button>
+
+                    <section class="weather-widget" aria-label="Current weather in College Station">
+                        <h3><%= weather.location %></h3>
+                        <% if (weather.available) { %>
+                            <div class="weather-temp"><%= weather.temperature %>F</div>
+                            <p class="weather-meta"><%= weather.summary %></p>
+                            <p class="weather-meta">Feels like <%= weather.feelsLike %>F</p>
+                            <p class="weather-meta">Wind <%= weather.windSpeed %> mph</p>
+                        <% } else { %>
+                            <p class="weather-meta"><%= weather.summary %></p>
+                        <% } %>
+                    </section>
+                </div>
             </div>
         </div>
     </div>
@@ -134,6 +143,49 @@
             <p id="resultMessage" class="result-message"></p>
             <div id="resultTicket" class="result-ticket hidden"></div>
             <button class="action-btn result-ok-btn" id="resultOkBtn" type="button">OK</button>
+        </div>
+    </div>
+
+    <!-- "Don't know what to order today?" -->
+    <div id="quizOverlay" class="quiz-overlay hidden" aria-live="polite">
+        <div class="quiz-modal">
+            <div class="quiz-header">
+                <div>
+                    <div class="quiz-kicker">Drink finder</div>
+                    <h2 id="quizTitle">Don&apos;t know what to order today?</h2>
+                    <p id="quizSubtitle" class="muted">Answer 5 quick questions and we&apos;ll recommend a drink.</p>
+                </div>
+                <button class="close-btn" id="closeQuiz" type="button">Close</button>
+            </div>
+
+            <div class="quiz-progress">
+                <div id="quizProgressText" class="quiz-progress-text">Question 1 of 5</div>
+                <div class="quiz-progress-track">
+                    <div id="quizProgressBar" class="quiz-progress-bar"></div>
+                </div>
+            </div>
+
+            <div id="quizQuestionView">
+                <div id="quizQuestionPrompt" class="quiz-question"></div>
+                <div id="quizChoices" class="quiz-choice-grid"></div>
+            </div>
+
+            <div id="quizResultView" class="hidden">
+                <div class="quiz-result-card">
+                    <div id="quizResultBadge" class="quiz-result-badge">Recommended</div>
+                    <div class="quiz-result-preview-shell">
+                        <div id="quizResultPreviewMount" class="quiz-result-preview-mount"></div>
+                    </div>
+                    <h3 id="quizResultDrinkName"></h3>
+                    <p id="quizResultReason" class="quiz-result-reason"></p>
+                    <div id="quizResultMeta" class="quiz-result-meta"></div>
+                    <div class="quiz-result-actions">
+                        <button class="cart-btn secondary" id="retakeQuiz" type="button">Retake quiz</button>
+                        <button class="cart-btn secondary" id="quizCustomizeDrink" type="button">Customize</button>
+                        <button class="action-btn" id="quizAddDrink" type="button">Add to order</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -195,7 +247,8 @@
                 categories: <%- JSON.stringify(categories || {}) %>,
                 addons: <%- JSON.stringify(addons || []) %>
             },
-            drinkStyleMap: <%- JSON.stringify(typeof drinkStyleMap !== 'undefined' ? drinkStyleMap : {}) %>
+            drinkStyleMap: <%- JSON.stringify(typeof drinkStyleMap !== 'undefined' ? drinkStyleMap : {}) %>,
+            quizDrinkProfiles: <%- JSON.stringify(quizDrinkProfiles || {}) %>
         };
     </script>
     <script src="/js/kiosk.js"></script>

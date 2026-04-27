@@ -2,6 +2,7 @@
     const pageData = window.kioskPageData || {};
     const menuData = pageData.menuData || { categories: {}, addons: [] };
     const drinkStyleMap = pageData.drinkStyleMap || {};
+    const quizDrinkProfiles = pageData.quizDrinkProfiles || {};
     const sugarOptions = ['0%', '25%', '50%', '75%', '100%'];
     const iceOptions = ['No Ice', 'Light Ice', 'Regular Ice', 'Extra Ice'];
     const categoryTabs = document.getElementById('categoryTabs');
@@ -12,7 +13,7 @@
     const orderTotalEl = document.getElementById('orderTotal');
     const clearOrderBtn = document.getElementById('clearOrder');
     const checkoutOrderBtn = document.getElementById('checkoutOrder');
-    const weatherWidgetEl = document.querySelector('.weather-widget');
+    const widgetDockEl = document.getElementById('widgetDock');
     const menuColumnEl = document.getElementById('menuColumn');
     const orderColumnEl = document.getElementById('orderColumn');
     const resultOverlayEl = document.getElementById('resultOverlay');
@@ -32,6 +33,22 @@
     const closeCustomizeBtn = document.getElementById('closeCustomize');
     const cancelCustomizeBtn = document.getElementById('cancelCustomize');
     const saveCustomizeBtn = document.getElementById('saveCustomize');
+    const openQuizWidgetBtn = document.getElementById('openQuizWidget');
+    const quizOverlayEl = document.getElementById('quizOverlay');
+    const closeQuizBtn = document.getElementById('closeQuiz');
+    const quizProgressTextEl = document.getElementById('quizProgressText');
+    const quizProgressBarEl = document.getElementById('quizProgressBar');
+    const quizQuestionPromptEl = document.getElementById('quizQuestionPrompt');
+    const quizChoicesEl = document.getElementById('quizChoices');
+    const quizQuestionViewEl = document.getElementById('quizQuestionView');
+    const quizResultViewEl = document.getElementById('quizResultView');
+    const quizResultPreviewMountEl = document.getElementById('quizResultPreviewMount');
+    const quizResultDrinkNameEl = document.getElementById('quizResultDrinkName');
+    const quizResultReasonEl = document.getElementById('quizResultReason');
+    const quizResultMetaEl = document.getElementById('quizResultMeta');
+    const quizAddDrinkBtn = document.getElementById('quizAddDrink');
+    const quizCustomizeDrinkBtn = document.getElementById('quizCustomizeDrink');
+    const retakeQuizBtn = document.getElementById('retakeQuiz');
     const originalSize = parseFloat(getComputedStyle(document.documentElement).fontSize);
 
     const cubeStackLayers = [
@@ -147,6 +164,62 @@
     let previewWaveTimer = null;
     let previewWaveCleanupTimer = null;
     let resultOverlayTimer = null;
+    let quizStepIndex = 0;
+    let quizAnswers = {};
+    let currentQuizRecommendation = null;
+    
+    // Map each quiz question and answer option to specific weights
+    const quizQuestions = [
+        {
+            id: 'vibe',
+            prompt: 'What’s your vibe today?',
+            options: [
+                { id: 'chill', label: 'Chill / Relaxing', effects: { chill: 3, creamy: 1, safe: 1 } },
+                { id: 'energetic', label: 'Energetic / Need a boost', effects: { energetic: 4, extraSweet: 1, adventurous: 1 } },
+                { id: 'treat', label: 'Treat myself / Sweet craving', effects: { treat: 4, rich: 2, sweet: 2 } },
+                { id: 'fresh', label: 'Fresh / Light', effects: { fresh: 4, fruity: 2, noSugar: 1 } }
+            ]
+        },
+        {
+            id: 'sweetness',
+            prompt: 'How sweet do you want it?',
+            options: [
+                { id: 'none', label: 'No sugar', sugar: '0%', effects: { noSugar: 4, fresh: 1 } },
+                { id: 'slight', label: 'Slightly sweet', sugar: '25%', effects: { slightlySweet: 4, fresh: 1 } },
+                { id: 'sweet', label: 'Sweet', sugar: '75%', effects: { sweet: 4, creamy: 1 } },
+                { id: 'extra', label: 'Extra sweet', sugar: '100%', effects: { extraSweet: 4, treat: 1 } }
+            ]
+        },
+        {
+            id: 'toppings',
+            prompt: 'How do you feel about toppings?',
+            options: [
+                { id: 'none', label: 'No toppings', effects: { noToppings: 4, safe: 1 } },
+                { id: 'classic', label: 'Classic boba', effects: { classicBoba: 4, safe: 1 } },
+                { id: 'lots', label: 'Lots of toppings', effects: { lotsToppings: 4, adventurous: 1 } },
+                { id: 'surprise', label: 'Surprise me', effects: { surpriseToppings: 4, adventurous: 2, surprise: 1 } }
+            ]
+        },
+        {
+            id: 'flavor',
+            prompt: 'Pick your flavor style:',
+            options: [
+                { id: 'creamy', label: 'Creamy / milk tea', effects: { creamy: 4, chill: 1 } },
+                { id: 'fruity', label: 'Fruity', effects: { fruity: 4, fresh: 2 } },
+                { id: 'tea', label: 'Tea-forward / classic', effects: { teaForward: 4, safe: 2 } },
+                { id: 'rich', label: 'Rich / dessert-like', effects: { rich: 4, treat: 2 } }
+            ]
+        },
+        {
+            id: 'adventure',
+            prompt: 'How adventurous are you?',
+            options: [
+                { id: 'safe', label: 'Play it safe', effects: { safe: 4, chill: 1 } },
+                { id: 'new', label: 'Try something new', effects: { adventurous: 4, fresh: 1 } },
+                { id: 'surprise', label: 'Surprise me completely', effects: { surprise: 5, adventurous: 3 } }
+            ]
+        }
+    ];
 
     function normalizeAddonName(name) {
         return String(name || '').trim().toLowerCase();
@@ -643,6 +716,29 @@
         return (drink.price + addonTotal) * itemQuantity;
     }
 
+    function getAllAvailableDrinks() {
+        return Object.values(menuData.categories)
+            .flat()
+            .filter((drink) => String(drink.category || '').toUpperCase() !== 'ADDON');
+    }
+
+    // Turn quiz recommendations into real cart items
+    function buildOrderItemFromConfig(drink, addons, sugar, ice, itemQuantity, cubeOrder = []) {
+        const finalCubeOrder = syncCubeOrderForAddons(addons, cubeOrder);
+
+        return {
+            drinkId: drink.id,
+            name: drink.name,
+            basePrice: drink.price,
+            addons: [...addons],
+            cubeAddonOrder: finalCubeOrder,
+            sugar,
+            ice,
+            quantity: itemQuantity,
+            total: getOrderItemTotal(drink, addons, itemQuantity)
+        };
+    }
+
     // Show price updates on customization overlay
     function renderCustomizePrice() {
         if (!selectedDrink) {
@@ -679,19 +775,7 @@
 
     function buildOrderItem(drink) {
         const addons = [...selectedAddons];
-        const finalCubeOrder = syncCubeOrderForAddons(addons, [...cubeAddonOrder]);
-
-        return {
-            drinkId: drink.id,
-            name: drink.name,
-            basePrice: drink.price,
-            addons,
-            cubeAddonOrder: finalCubeOrder,
-            sugar: selectedSugar,
-            ice: selectedIce,
-            quantity,
-            total: getOrderItemTotal(drink, addons, quantity)
-        };
+        return buildOrderItemFromConfig(drink, addons, selectedSugar, selectedIce, quantity, [...cubeAddonOrder]);
     }
 
     function openCustomizeModal(drink, existingItem = null, orderIndex = null) {
@@ -903,6 +987,275 @@
         qtyValueEl.textContent = quantity;
     }
 
+    // --------------- "Don't know what to order today? Quiz" ---------------
+    function closeQuizOverlay() {
+        quizOverlayEl.classList.add('hidden');
+        currentQuizRecommendation = null;
+    }
+
+    function openQuizOverlay() {
+        quizStepIndex = 0;
+        quizAnswers = {};
+        currentQuizRecommendation = null;
+        quizResultViewEl.classList.add('hidden');
+        quizQuestionViewEl.classList.remove('hidden');
+        quizOverlayEl.classList.remove('hidden');
+        renderQuizQuestion();
+    }
+
+    function renderQuizQuestion() {
+        const question = quizQuestions[quizStepIndex];
+        if (!question) return;
+
+        quizProgressTextEl.textContent = `Question ${quizStepIndex + 1} of ${quizQuestions.length}`;
+        quizProgressBarEl.style.width = `${((quizStepIndex + 1) / quizQuestions.length) * 100}%`;
+        quizQuestionPromptEl.textContent = question.prompt;
+        quizChoicesEl.innerHTML = '';
+
+        question.options.forEach((option) => {
+            const button = document.createElement('button');
+            button.className = 'quiz-choice-btn';
+            button.type = 'button';
+            button.textContent = option.label;
+            button.onclick = () => handleQuizAnswer(question, option);
+            quizChoicesEl.appendChild(button);
+        });
+    }
+
+    function handleQuizAnswer(question, option) {
+        quizAnswers[question.id] = option;
+
+        if (quizStepIndex < quizQuestions.length - 1) {
+            quizStepIndex += 1;
+            renderQuizQuestion();
+            return;
+        }
+
+        currentQuizRecommendation = getQuizRecommendation();
+        renderQuizRecommendation();
+    }
+
+    // Get the total quiz score (add all weights together)
+    function getQuizAggregateScores() {
+        const aggregate = {};
+
+        Object.values(quizAnswers).forEach((answer) => {
+            Object.entries(answer.effects || {}).forEach(([key, value]) => {
+                aggregate[key] = (aggregate[key] || 0) + value;
+            });
+        });
+
+        return aggregate;
+    }
+
+    function getDrinkProfile(drink) {
+        return quizDrinkProfiles[String(drink.id)] || {};
+    }
+
+    // Score each drink on map (dot-product style scoring system)
+    function calculateDrinkQuizScore(drink, aggregateScores) {
+        const profile = getDrinkProfile(drink);
+        let total = 0;
+
+        Object.entries(aggregateScores).forEach(([key, value]) => {
+            total += (profile[key] || 0) * value;
+            // The drink with the highest scaled scores is selected
+        });
+
+        // Add an extra for a surprise factor
+        if (quizAnswers.adventure?.id === 'surprise' && /^seasonal$/i.test(drink.category || '')) {
+            total += 25;
+        }
+
+        return total;
+    }
+
+    // Choose a drink biased towards the stronger matches (nearby matches also have a chance)
+    function pickWeightedRecommendation(rankedDrinks) {
+        if (!rankedDrinks.length) return null;
+
+        const bestScore = rankedDrinks[0].score;
+        const minScoreForPool = Math.max(bestScore - 8, 1);
+        const candidatePool = rankedDrinks
+            .filter((entry, index) => index < 4 || entry.score >= minScoreForPool)
+            .slice(0, 5);
+
+        const weightedPool = candidatePool.map((entry, index) => ({
+            ...entry,
+            weight: Math.max(entry.score, 1) * (candidatePool.length - index)
+        }));
+
+        const totalWeight = weightedPool.reduce((sum, entry) => sum + entry.weight, 0);
+        let threshold = Math.random() * totalWeight;
+
+        for (const entry of weightedPool) {
+            threshold -= entry.weight;
+            if (threshold <= 0) {
+                return entry;
+            }
+        }
+
+        return weightedPool[0];
+    }
+
+    // Map Question 3: "How do you feel about toppings?" to real add-ons
+    function getRecommendedQuizAddons(drink) {
+        const toppingsAnswer = quizAnswers.toppings?.id;
+        const findAddon = (name) =>
+            menuData.addons.find((addon) => normalizeAddonName(addon.name) === normalizeAddonName(name));
+
+        if (toppingsAnswer === 'none') {
+            return [];
+        }
+
+        if (toppingsAnswer === 'classic') {
+            return [findAddon('Boba')].filter(Boolean);
+        }
+
+        if (toppingsAnswer === 'lots') {
+            return [findAddon('Boba'), findAddon('Milk foam')].filter(Boolean);
+        }
+
+        if (toppingsAnswer === 'surprise') {
+            if (/fruit tea|smoothie/i.test(drink.category || '')) {
+                return [findAddon('Aloe vera'), findAddon('Strawberry popping boba')].filter(Boolean);
+            }
+
+            if (/energy/i.test(drink.category || '')) {
+                return [findAddon('Boba'), findAddon('Eye of newt')].filter(Boolean);
+            }
+
+            return [findAddon('Boba'), findAddon('Milk foam')].filter(Boolean);
+        }
+
+        return [];
+    }
+
+    function getRecommendationReason(drink) {
+        const reasons = [];
+        const flavorAnswer = quizAnswers.flavor?.id;
+        const vibeAnswer = quizAnswers.vibe?.id;
+        const adventureAnswer = quizAnswers.adventure?.id;
+
+        if (flavorAnswer === 'creamy') reasons.push('you leaned creamy');
+        if (flavorAnswer === 'fruity') reasons.push('you wanted something fruity');
+        if (flavorAnswer === 'tea') reasons.push('you picked a tea-forward profile');
+        if (flavorAnswer === 'rich') reasons.push('you were in the mood for a dessert-style drink');
+        if (vibeAnswer === 'energetic') reasons.push('you asked for an energetic vibe');
+        if (vibeAnswer === 'fresh') reasons.push('you wanted something fresh and light');
+        if (adventureAnswer === 'surprise') reasons.push('you asked us to surprise you');
+
+        if (reasons.length === 0) {
+            return `${drink.name} fits your answers well.`;
+        }
+
+        return `${drink.name} works because ${reasons.slice(0, 2).join(' and ')}.`;
+    }
+
+    function renderQuizRecommendationPreview(recommendation) {
+        if (!quizResultPreviewMountEl) return;
+
+        if (!recommendation?.drink) {
+            quizResultPreviewMountEl.innerHTML = '<div class="muted">Preview unavailable.</div>';
+            return;
+        }
+
+        const previewUrl = createOrderItemPreviewDataUrl({
+            drinkId: recommendation.drink.id,
+            name: recommendation.drink.name,
+            basePrice: recommendation.drink.price,
+            addons: recommendation.addons || [],
+            cubeAddonOrder: syncCubeOrderForAddons(recommendation.addons || [], []),
+            sugar: recommendation.sugar,
+            ice: recommendation.ice,
+            quantity: recommendation.quantity || 1
+        });
+
+        if (!previewUrl) {
+            quizResultPreviewMountEl.innerHTML = '<div class="muted">Preview unavailable.</div>';
+            return;
+        }
+
+        quizResultPreviewMountEl.innerHTML = `<img src="${previewUrl}" alt="${recommendation.drink.name} recommended preview">`;
+    }
+
+    function getQuizRecommendation() {
+        const drinks = getAllAvailableDrinks();
+        const aggregateScores = getQuizAggregateScores();
+        const rankedDrinks = drinks
+            .map((drink) => ({
+                drink,
+                score: calculateDrinkQuizScore(drink, aggregateScores)
+            }))
+            .sort((a, b) => b.score - a.score);
+
+        const selectedMatch = pickWeightedRecommendation(rankedDrinks);
+        const recommendedDrink = selectedMatch?.drink || drinks[0] || null;
+        if (!recommendedDrink) return null;
+
+        const sugar = quizAnswers.sweetness?.sugar || '75%';
+        const addons = getRecommendedQuizAddons(recommendedDrink);
+        const ice = /smoothie/i.test(recommendedDrink.category || '') ? 'No Ice' : 'Regular Ice';
+
+        return {
+            drink: recommendedDrink,
+            sugar,
+            ice,
+            addons,
+            quantity: 1,
+            reason: getRecommendationReason(recommendedDrink),
+            score: selectedMatch?.score || 0
+        };
+    }
+
+    // Show dymanic order image in the recommendations results
+    function renderQuizRecommendation() {
+        if (!currentQuizRecommendation) return;
+
+        quizQuestionViewEl.classList.add('hidden');
+        quizResultViewEl.classList.remove('hidden');
+        quizProgressTextEl.textContent = 'Recommendation ready';
+        quizProgressBarEl.style.width = '100%';
+
+        const { drink, sugar, ice, addons, reason } = currentQuizRecommendation;
+        renderQuizRecommendationPreview(currentQuizRecommendation);
+        quizResultDrinkNameEl.textContent = drink.name;
+        quizResultReasonEl.textContent = reason;
+        quizResultMetaEl.innerHTML = `
+            <div>Category: ${drink.category}</div>
+            <div>Sugar: ${sugar} | Ice: ${ice}</div>
+            <div>${addons.length ? `Suggested toppings: ${addons.map((addon) => addon.name).join(', ')}` : 'Suggested toppings: none'}</div>
+        `;
+    }
+
+    function addQuizRecommendationToOrder() {
+        if (!currentQuizRecommendation) return;
+
+        const { drink, addons, sugar, ice, quantity: itemQuantity } = currentQuizRecommendation;
+        order.push(buildOrderItemFromConfig(drink, addons, sugar, ice, itemQuantity));
+        closeQuizOverlay();
+        hideResultOverlay();
+        renderOrder();
+    }
+
+    function customizeQuizRecommendation() {
+        if (!currentQuizRecommendation) return;
+
+        const { drink, addons, sugar, ice, quantity: itemQuantity } = currentQuizRecommendation;
+        openCustomizeModal(
+            drink,
+            {
+                addons,
+                cubeAddonOrder: syncCubeOrderForAddons(addons, []),
+                sugar,
+                ice,
+                quantity: itemQuantity
+            },
+            null
+        );
+        closeQuizOverlay();
+    }
+
     function hideResultOverlay() {
         if (resultOverlayTimer) {
             clearTimeout(resultOverlayTimer);
@@ -987,13 +1340,13 @@
         );
     }
 
-    // Move the weather widget between the order and menu columns.
-    function updateWeatherWidgetPosition() {
-        if (!weatherWidgetEl || !menuColumnEl || !orderColumnEl) return;
+    // Move the widget dock between the order and menu columns.
+    function updateWidgetDockPosition() {
+        if (!widgetDockEl || !menuColumnEl || !orderColumnEl) return;
 
         const targetColumn = order.length >= 2 ? menuColumnEl : orderColumnEl;
-        if (weatherWidgetEl.parentElement !== targetColumn) {
-            targetColumn.appendChild(weatherWidgetEl);
+        if (widgetDockEl.parentElement !== targetColumn) {
+            targetColumn.appendChild(widgetDockEl);
         }
     }
 
@@ -1004,7 +1357,7 @@
     }
 
     function renderOrder() {
-        updateWeatherWidgetPosition();
+        updateWidgetDockPosition();
         updateOrderActionState();
 
         if (order.length === 0) {
@@ -1151,10 +1504,20 @@
         };
 
         checkoutOrderBtn.onclick = submitOrder;
+        openQuizWidgetBtn.onclick = openQuizOverlay;
+        closeQuizBtn.onclick = closeQuizOverlay;
+        retakeQuizBtn.onclick = openQuizOverlay;
+        quizAddDrinkBtn.onclick = addQuizRecommendationToOrder;
+        quizCustomizeDrinkBtn.onclick = customizeQuizRecommendation;
         resultOkBtn.onclick = hideResultOverlay;
         closeCustomizeBtn.onclick = cancelCustomization;
         cancelCustomizeBtn.onclick = cancelCustomization;
         saveCustomizeBtn.onclick = saveCustomization;
+        quizOverlayEl.onclick = (event) => {
+            if (event.target === quizOverlayEl) {
+                closeQuizOverlay();
+            }
+        };
         customizeOverlay.onclick = (event) => {
             if (event.target === customizeOverlay) {
                 cancelCustomization();
