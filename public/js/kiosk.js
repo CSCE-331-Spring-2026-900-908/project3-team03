@@ -1242,6 +1242,13 @@
             if (!magnifierOn) return;
 
             const clone = document.body.cloneNode(true);
+            const pageWidth = Math.max(document.documentElement.clientWidth, window.innerWidth);
+            const pageHeight = Math.max(
+                document.documentElement.scrollHeight,
+                document.body.scrollHeight,
+                window.innerHeight
+            );
+
             const oldLens = clone.querySelector('#screenMagnifier');
             if (oldLens) oldLens.remove();
 
@@ -1252,6 +1259,16 @@
             if (clonedTranslateWidget) clonedTranslateWidget.remove();
 
             clone.querySelectorAll('iframe').forEach((iframe) => iframe.remove());
+
+            // Lock the clone to the real page size so it renders exactly like
+            // the visible page instead of reflowing to the lens width.
+            clone.style.width = `${pageWidth}px`;
+            clone.style.minWidth = `${pageWidth}px`;
+            clone.style.maxWidth = 'none';
+            clone.style.margin = '0';
+
+            lensContent.style.width = `${pageWidth}px`;
+            lensContent.style.height = `${pageHeight}px`;
 
             lensContent.innerHTML = '';
             lensContent.appendChild(clone);
