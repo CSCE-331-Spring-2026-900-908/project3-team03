@@ -194,6 +194,33 @@ body {
     gap: 10px;
 }
 
+.style-details {
+    border: 1px solid #eeeeee;
+    border-radius: 10px;
+    background: #fafafa;
+    padding: 10px 12px;
+}
+
+.style-details summary {
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.color-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.color-grid label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    color: #555;
+    font-size: 12px;
+    font-weight: 700;
+}
+
 input,
 select,
 textarea,
@@ -212,6 +239,12 @@ textarea {
     width: 100%;
 }
 
+input[type="color"] {
+    height: 42px;
+    padding: 4px;
+    cursor: pointer;
+}
+
 textarea {
     resize: vertical;
 }
@@ -227,6 +260,14 @@ button {
 
 button:hover {
     background: #333;
+}
+
+.danger-btn {
+    background: #b91c1c;
+}
+
+.danger-btn:hover {
+    background: #991b1b;
 }
 
 .checkbox-row {
@@ -251,10 +292,31 @@ button:hover {
     padding: 4px 0;
     font-size: 14px;
     border-bottom: 1px solid #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
 }
 
 .recipe-line:last-child {
     border-bottom: none;
+}
+
+.inline-remove-form {
+    margin: 0;
+    flex: 0 0 auto;
+}
+
+.tiny-danger-btn {
+    padding: 6px 8px;
+    border-radius: 6px;
+    background: #fee2e2;
+    color: #991b1b;
+    font-size: 12px;
+}
+
+.tiny-danger-btn:hover {
+    background: #fecaca;
 }
 
 @media (max-width: 1000px) {

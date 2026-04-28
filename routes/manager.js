@@ -5,6 +5,7 @@ const inventoryDao = require('../dao/inventoryDao');
 const menuItemDao = require('../dao/MenuItemDao');
 const employeeDao = require('../dao/employeeDao');
 const { fetchCollegeStationWeather } = require('../utils/weather');
+const drinkStyle = require('../utils/drinkStyle');
 
 // Hard-coded category example just for user convenience
 const MENU_CATEGORIES = [
@@ -15,6 +16,7 @@ const MENU_CATEGORIES = [
     'Matcha',
     'Energy',
     'Sour',
+    'Specialty',
     'ADDON',
     'SEASONAL'
 ];
@@ -461,6 +463,7 @@ async function renderMenuPage(res, {
     const ingredients = await menuItemDao.get_all_ingredients();
 
     let selectedItem = null;
+    let selectedDrinkStyle = null;
     let recipeLines = [];
 
     if (selectedItemId) {
@@ -476,9 +479,16 @@ async function renderMenuPage(res, {
         recipeLines = await menuItemDao.get_recipe_lines(selectedItem.menu_item_id);
     }
 
+    if (selectedItem && selectedItem.category !== 'ADDON') {
+        selectedDrinkStyle = await drinkStyle.getDrinkStyleForDrink(selectedItem.name, selectedItem.category);
+    }
+
     res.render('manager/menu', {
         statusMessage,
         selectedItem,
+        selectedDrinkStyle,
+        defaultDrinkStyle: drinkStyle.getDefaultDrinkStyle('Specialty'),
+        accentTypes: drinkStyle.accentTypes,
         categories: MENU_CATEGORIES,
         ingredients,
         recipeLines,
@@ -557,6 +567,42 @@ router.post('/menu/toggle-active', async (req, res) => {
   }
 });
 
+// Remove a menu item from customer-facing menus without deleting historical data
+router.post('/menu/remove-item', async (req, res) => {
+  const menuItemId = Number(req.body.menuItemId);
+
+  if (!menuItemId) {
+    try {
+      await renderMenuPage(res, {
+        statusMessage: 'Select a menu item to remove from the menu.'
+      });
+    } catch (err) {
+      console.error('Error loading menu after remove-item validation failure:', err);
+      res.status(500).send('Database error');
+    }
+    return;
+  }
+
+  try {
+    const deactivatedItem = await menuItemDao.deactivate_menu_item(menuItemId);
+
+    if (!deactivatedItem) {
+      await renderMenuPage(res, {
+        statusMessage: `Menu item #${menuItemId} was not found.`
+      });
+      return;
+    }
+
+    await renderMenuPage(res, {
+      selectedItemId: menuItemId,
+      statusMessage: `Removed ${deactivatedItem.name} from the active menu.`
+    });
+  } catch (err) {
+    console.error('Error removing menu item:', err);
+    res.status(500).send('Database error');
+  }
+});
+
 // Add menu item by name
 router.post('/menu/add', async (req, res) => {
   const { name, category, basePrice, description, active } = req.body;
@@ -583,12 +629,79 @@ router.post('/menu/add', async (req, res) => {
       active === 'on'
     );
 
+    if (category.trim() !== 'ADDON') {
+      await drinkStyle.upsertDrinkStyle({
+        drink: createdItem.name,
+        category: req.body.styleCategory,
+        lid_color: req.body.lidColor,
+        straw_main: req.body.strawMain,
+        straw_shadow: req.body.strawShadow,
+        liquid_top: req.body.liquidTop,
+        liquid_mid: req.body.liquidMid,
+        liquid_bottom: req.body.liquidBottom,
+        accent_type: req.body.accentType,
+        accent_color: req.body.accentColor,
+        boba_color: req.body.bobaColor
+      }, category.trim());
+    }
+
     await renderMenuPage(res, {
       selectedItemId: createdItem.menu_item_id,
       statusMessage: `Added menu item: ${createdItem.name}`
     });
   } catch (err) {
     console.error('Error adding menu item:', err);
+    res.status(500).send('Database error');
+  }
+});
+
+// Update drink SVG color data
+router.post('/menu/update-drink-style', async (req, res) => {
+  const menuItemId = Number(req.body.menuItemId);
+
+  if (!menuItemId) {
+    try {
+      await renderMenuPage(res, {
+        statusMessage: 'Select a drink before updating SVG colors.'
+      });
+    } catch (err) {
+      console.error('Error loading menu after drink-style validation failure:', err);
+      res.status(500).send('Database error');
+    }
+    return;
+  }
+
+  try {
+    const selectedItem = await menuItemDao.get_menu_item_by_id(menuItemId);
+
+    if (!selectedItem || selectedItem.category === 'ADDON') {
+      await renderMenuPage(res, {
+        selectedItemId: menuItemId,
+        statusMessage: 'SVG colors can only be edited for drinks, not add-ons.'
+      });
+      return;
+    }
+
+    await drinkStyle.upsertDrinkStyle({
+      drink: selectedItem.name,
+      category: req.body.styleCategory,
+      lid_color: req.body.lidColor,
+      straw_main: req.body.strawMain,
+      straw_shadow: req.body.strawShadow,
+      liquid_top: req.body.liquidTop,
+      liquid_mid: req.body.liquidMid,
+      liquid_bottom: req.body.liquidBottom,
+      accent_type: req.body.accentType,
+      accent_color: req.body.accentColor,
+      boba_color: req.body.bobaColor
+    }, selectedItem.category);
+
+    await renderMenuPage(res, {
+      selectedItemId: menuItemId,
+      statusMessage: `Updated SVG colors for ${selectedItem.name}.`
+    });
+  } catch (err) {
+    console.error('Error updating drink style:', err);
     res.status(500).send('Database error');
   }
 });
@@ -620,6 +733,39 @@ router.post('/menu/add-recipe-ingredient', async (req, res) => {
     });
   } catch (err) {
     console.error('Error adding recipe ingredient:', err);
+    res.status(500).send('Database error');
+  }
+});
+
+// Remove one ingredient/topping from a menu item recipe
+router.post('/menu/remove-recipe-ingredient', async (req, res) => {
+  const menuItemId = Number(req.body.menuItemId);
+  const ingredientId = Number(req.body.ingredientId);
+
+  if (!menuItemId || !ingredientId) {
+    try {
+      await renderMenuPage(res, {
+        selectedItemId: menuItemId || null,
+        statusMessage: 'Select a recipe line to remove.'
+      });
+    } catch (err) {
+      console.error('Error loading menu after recipe remove validation failure:', err);
+      res.status(500).send('Database error');
+    }
+    return;
+  }
+
+  try {
+    const removedLine = await menuItemDao.remove_recipe_ingredient(menuItemId, ingredientId);
+
+    await renderMenuPage(res, {
+      selectedItemId: menuItemId,
+      statusMessage: removedLine
+        ? 'Removed ingredient from recipe.'
+        : 'That ingredient was not found on the selected recipe.'
+    });
+  } catch (err) {
+    console.error('Error removing recipe ingredient:', err);
     res.status(500).send('Database error');
   }
 });

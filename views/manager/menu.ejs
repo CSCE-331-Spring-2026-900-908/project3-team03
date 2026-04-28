@@ -95,6 +95,11 @@
                         <input type="hidden" name="menuItemId" value="<%= selectedItem ? selectedItem.menu_item_id : '' %>" />
                         <button type="submit">Toggle Active/Inactive</button>
                     </form>
+
+                    <form method="POST" action="/manager/menu/remove-item" class="stack-form">
+                        <input type="hidden" name="menuItemId" value="<%= selectedItem ? selectedItem.menu_item_id : '' %>" />
+                        <button type="submit" class="danger-btn">Remove From Menu</button>
+                    </form>
                 </section>
 
                 <section class="action-card">
@@ -114,6 +119,32 @@
                         <input type="text" name="basePrice" placeholder="Base Price (e.g. 6.00)" required />
                         <textarea name="description" rows="3" placeholder="Description (optional)"></textarea>
 
+                        <details class="style-details">
+                            <summary>SVG colors for new drink</summary>
+                            <p class="card-helper">Used by kiosk drink previews. Ignored when adding an ADDON.</p>
+
+                            <label>Visual Category</label>
+                            <input type="text" name="styleCategory" value="<%= defaultDrinkStyle.category %>" />
+
+                            <div class="color-grid">
+                                <label>Lid <input type="color" name="lidColor" value="<%= defaultDrinkStyle.lid_color %>" /></label>
+                                <label>Straw <input type="color" name="strawMain" value="<%= defaultDrinkStyle.straw_main %>" /></label>
+                                <label>Straw Shadow <input type="color" name="strawShadow" value="<%= defaultDrinkStyle.straw_shadow %>" /></label>
+                                <label>Liquid Top <input type="color" name="liquidTop" value="<%= defaultDrinkStyle.liquid_top %>" /></label>
+                                <label>Liquid Mid <input type="color" name="liquidMid" value="<%= defaultDrinkStyle.liquid_mid %>" /></label>
+                                <label>Liquid Bottom <input type="color" name="liquidBottom" value="<%= defaultDrinkStyle.liquid_bottom %>" /></label>
+                                <label>Accent <input type="color" name="accentColor" value="<%= defaultDrinkStyle.accent_color %>" /></label>
+                                <label>Boba <input type="color" name="bobaColor" value="<%= defaultDrinkStyle.boba_color %>" /></label>
+                            </div>
+
+                            <label>Accent Type</label>
+                            <select name="accentType">
+                            <% accentTypes.forEach(type => { %>
+                                <option value="<%= type %>" <%= defaultDrinkStyle.accent_type === type ? 'selected' : '' %>><%= type %></option>
+                            <% }) %>
+                            </select>
+                        </details>
+
                         <label class="checkbox-row">
                         <input type="checkbox" name="active" checked />
                         <span>Active</span>
@@ -121,6 +152,42 @@
 
                         <button type="submit">Add Item</button>
                     </form>
+                </section>
+
+                <section class="action-card action-card-wide">
+                    <h3>Drink SVG Colors</h3>
+                    <% if (selectedItem && selectedItem.category !== 'ADDON' && selectedDrinkStyle) { %>
+                        <p class="card-helper">Controls the cup SVG colors used in kiosk previews.</p>
+
+                        <form method="POST" action="/manager/menu/update-drink-style" class="stack-form">
+                            <input type="hidden" name="menuItemId" value="<%= selectedItem.menu_item_id %>" />
+
+                            <label>Visual Category</label>
+                            <input type="text" name="styleCategory" value="<%= selectedDrinkStyle.category %>" />
+
+                            <div class="color-grid">
+                                <label>Lid <input type="color" name="lidColor" value="<%= selectedDrinkStyle.lid_color %>" /></label>
+                                <label>Straw <input type="color" name="strawMain" value="<%= selectedDrinkStyle.straw_main %>" /></label>
+                                <label>Straw Shadow <input type="color" name="strawShadow" value="<%= selectedDrinkStyle.straw_shadow %>" /></label>
+                                <label>Liquid Top <input type="color" name="liquidTop" value="<%= selectedDrinkStyle.liquid_top %>" /></label>
+                                <label>Liquid Mid <input type="color" name="liquidMid" value="<%= selectedDrinkStyle.liquid_mid %>" /></label>
+                                <label>Liquid Bottom <input type="color" name="liquidBottom" value="<%= selectedDrinkStyle.liquid_bottom %>" /></label>
+                                <label>Accent <input type="color" name="accentColor" value="<%= selectedDrinkStyle.accent_color %>" /></label>
+                                <label>Boba <input type="color" name="bobaColor" value="<%= selectedDrinkStyle.boba_color %>" /></label>
+                            </div>
+
+                            <label>Accent Type</label>
+                            <select name="accentType">
+                            <% accentTypes.forEach(type => { %>
+                                <option value="<%= type %>" <%= selectedDrinkStyle.accent_type === type ? 'selected' : '' %>><%= type %></option>
+                            <% }) %>
+                            </select>
+
+                            <button type="submit">Update SVG Colors</button>
+                        </form>
+                    <% } else { %>
+                        <p class="card-helper">Select a drink menu item to edit SVG colors.</p>
+                    <% } %>
                 </section>
 
                 <section class="action-card action-card-wide">
@@ -154,7 +221,14 @@
                     <% if (recipeLines && recipeLines.length > 0) { %>
                         <div class="recipe-preview">
                         <% recipeLines.forEach(line => { %>
-                            <div class="recipe-line"><%= line %></div>
+                            <div class="recipe-line">
+                                <span><%= line.label %></span>
+                                <form method="POST" action="/manager/menu/remove-recipe-ingredient" class="inline-remove-form">
+                                    <input type="hidden" name="menuItemId" value="<%= selectedItem ? selectedItem.menu_item_id : '' %>" />
+                                    <input type="hidden" name="ingredientId" value="<%= line.ingredient_id %>" />
+                                    <button type="submit" class="tiny-danger-btn">Remove</button>
+                                </form>
+                            </div>
                         <% }) %>
                         </div>
                     <% } %>

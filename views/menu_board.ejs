@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FSH Boba Menu Board</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/menu_board.css">
+</head>
+<body>
+    <% if (showFishSchool) { %>
+        <div class="fish-school" aria-hidden="true">
+            <div class="fish-group group-a">
+                <img class="school-fish fish-a" src="/images/Fish.svg" alt="">
+                <img class="school-fish fish-b" src="/images/Fish.svg" alt="">
+                <img class="school-fish fish-c" src="/images/Fish.svg" alt="">
+                <img class="school-fish fish-d" src="/images/Fish.svg" alt="">
+            </div>
+            <div class="fish-group group-b">
+                <img class="school-fish fish-e" src="/images/Fish.svg" alt="">
+                <img class="school-fish fish-f" src="/images/Fish.svg" alt="">
+                <img class="school-fish fish-g" src="/images/Fish.svg" alt="">
+                <img class="school-fish fish-h" src="/images/Fish.svg" alt="">
+                <img class="school-fish fish-i" src="/images/Fish.svg" alt="">
+            </div>
+            <div class="fish-group group-c">
+                <img class="school-fish fish-j" src="/images/Fish.svg" alt="">
+                <img class="school-fish fish-k" src="/images/Fish.svg" alt="">
+                <img class="school-fish fish-l" src="/images/Fish.svg" alt="">
+            </div>
+        </div>
+    <% } %>
+
+    <main class="board-shell">
+        <header class="board-header">
+            <p>FSH Boba</p>
+            <h1>Menu</h1>
+        </header>
+
+        <% if (!orderedCategories || orderedCategories.length === 0) { %>
+            <section class="empty-board">
+                <h2>Menu unavailable</h2>
+            </section>
+        <% } else { %>
+            <section class="category-stack">
+                <% orderedCategories.forEach((category) => { %>
+                    <% const art = sectionArt && sectionArt[category] ? sectionArt[category] : null; %>
+                    <% const categoryClass = `category-${category.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`; %>
+                    <section class="category-section <%= categoryClass %> <%= art ? 'has-section-art' : '' %>">
+                        <% if (art) { %>
+                            <img class="section-art" src="<%= art.image %>" alt="<%= art.alt %>" aria-hidden="true">
+                        <% } %>
+                        <h2><%= category %></h2>
+                        <ul class="menu-list">
+                            <% categories[category].forEach((item) => { %>
+                                <% const isFeatured = art && art.featuredName === item.name; %>
+                                <li class="<%= isFeatured ? 'featured-item' : '' %>">
+                                    <span class="item-name"><%= item.name %></span>
+                                    <span class="item-price">$<%= item.price.toFixed(2) %></span>
+                                </li>
+                            <% }) %>
+                        </ul>
+                    </section>
+                <% }) %>
+            </section>
+        <% } %>
+    </main>
+</body>
+</html>

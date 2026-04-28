@@ -178,6 +178,17 @@ async function toggle_active(menu_item_id) {
 
 }
 
+async function deactivate_menu_item(menu_item_id) {
+    const res = await pool.query(`
+        UPDATE menu_item
+        SET active = FALSE
+        WHERE menu_item_id = $1
+        RETURNING menu_item_id, name, category, active
+    `, [menu_item_id]);
+
+    return res.rows[0] || null;
+}
+
 async function update_price(menu_item_id, new_price) {
     const res = await pool.query(`
         UPDATE menu_item 
@@ -206,24 +217,78 @@ async function add_recipe_ingredient(menu_item_id, ingredient_id, qty_required) 
 
 }
 
+async function remove_recipe_ingredient(menu_item_id, ingredient_id) {
+    const res = await pool.query(`
+        DELETE FROM menu_item_recipe
+        WHERE menu_item_id = $1
+          AND ingredient_id = $2
+        RETURNING menu_item_id, ingredient_id
+    `, [menu_item_id, ingredient_id]);
+
+    return res.rows[0] || null;
+}
+
 async function get_recipe_lines(menu_item_id) {
     const res = await pool.query(`
-        SELECT i.name, r.quantity_required
+        SELECT i.ingredient_id, i.name, r.quantity_required
         FROM menu_item_recipe r
         JOIN ingredient i ON r.ingredient_id = i.ingredient_id
         WHERE r.menu_item_id = $1
         ORDER BY i.name
     `, [menu_item_id]);
 
-    const lines = [];
+    return res.rows.map(row => ({
+        ingredient_id: row.ingredient_id,
+        name: row.name,
+        quantity_required: row.quantity_required,
+        label: `${row.name} (${row.quantity_required})`
+    }));
+}
 
-    for (let i = 0; i < res.rows.length; i++) {
-        let row = res.rows[i];
-        let line = row.name;
-        lines.push(line.concat(" (", String(row.quantity_required), ")"));
+async function get_default_addons_by_drink(menu_item_ids) {
+    if (!Array.isArray(menu_item_ids) || menu_item_ids.length === 0) {
+        return {};
     }
 
-    return lines;
+    const res = await pool.query(`
+        WITH drink_ids AS (
+            SELECT unnest($1::bigint[]) AS drink_id
+        )
+        SELECT d.drink_id, a.menu_item_id AS addon_id
+        FROM drink_ids d
+        JOIN menu_item a
+          ON a.category = 'ADDON'
+         AND a.active = TRUE
+        WHERE EXISTS (
+            SELECT 1
+            FROM menu_item_recipe ar
+            WHERE ar.menu_item_id = a.menu_item_id
+        )
+          AND NOT EXISTS (
+            SELECT 1
+            FROM menu_item_recipe ar
+            WHERE ar.menu_item_id = a.menu_item_id
+              AND NOT EXISTS (
+                SELECT 1
+                FROM menu_item_recipe dr
+                WHERE dr.menu_item_id = d.drink_id
+                  AND dr.ingredient_id = ar.ingredient_id
+              )
+        )
+        ORDER BY d.drink_id, a.menu_item_id
+    `, [menu_item_ids]);
+
+    const addonMap = {};
+
+    for (const row of res.rows) {
+        const drinkId = String(row.drink_id);
+        if (!addonMap[drinkId]) {
+            addonMap[drinkId] = [];
+        }
+        addonMap[drinkId].push(row.addon_id);
+    }
+
+    return addonMap;
 }
 
 async function create_ingredient(name, unit, category) {
@@ -250,9 +315,12 @@ module.exports = {
     get_price,
     is_addon,
     toggle_active,
+    deactivate_menu_item,
     update_price,
     insert_menu_item,
     add_recipe_ingredient,
+    remove_recipe_ingredient,
     get_recipe_lines,
+    get_default_addons_by_drink,
     create_ingredient
 };

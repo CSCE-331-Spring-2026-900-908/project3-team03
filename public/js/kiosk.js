@@ -5,6 +5,7 @@
     const quizDrinkProfiles = pageData.quizDrinkProfiles || {};
     const sugarOptions = ['0%', '25%', '50%', '75%', '100%'];
     const iceOptions = ['No Ice', 'Light Ice', 'Regular Ice', 'Extra Ice'];
+    const ICE_CUBE_IMAGE_SRC = '/images/Ice%20Cubes.svg';
     const categoryTabs = document.getElementById('categoryTabs');
     const menuGrid = document.getElementById('menuGrid');
     const addonGrid = document.getElementById('addonGrid');
@@ -32,6 +33,7 @@
     const sugarGrid = document.getElementById('sugarGrid');
     const iceGrid = document.getElementById('iceGrid');
     const modalDrinkPreviewMount = document.getElementById('modalDrinkPreviewMount');
+    const iceCubeIndicator = document.getElementById('iceCubeIndicator');
     const previewWaveOverlay = document.getElementById('previewWaveOverlay');
     const addonCategoryTabs = document.getElementById('addonCategoryTabs');
     const closeCustomizeBtn = document.getElementById('closeCustomize');
@@ -513,17 +515,51 @@
         return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(serialized)}`;
     }
 
+    function getIceCubeCount(iceLevel) {
+        const counts = {
+            'No Ice': 0,
+            'Light Ice': 2,
+            'Regular Ice': 4,
+            'Extra Ice': 7
+        };
+
+        return counts[iceLevel] ?? counts['Regular Ice'];
+    }
+
+    function renderIceCubes() {
+        if (!iceCubeIndicator) return;
+
+        const cubeCount = selectedDrink ? getIceCubeCount(selectedIce) : 0;
+
+        iceCubeIndicator.innerHTML = '';
+        iceCubeIndicator.classList.toggle('is-empty', cubeCount === 0);
+
+        for (let i = 0; i < cubeCount; i++) {
+            const cube = document.createElement('img');
+            cube.className = 'ice-cube-img';
+            cube.src = ICE_CUBE_IMAGE_SRC;
+            cube.alt = '';
+
+            const rotations = [-10, 8, -4, 12, -14, 5, -8];
+            cube.style.setProperty('--cube-rotate', `${rotations[i] || 0}deg`);
+
+            iceCubeIndicator.appendChild(cube);
+        }
+    }
+
     function renderModalPreviewFromCurrentSvg() {
         if (!modalDrinkPreviewMount) return;
 
         if (!selectedDrink) {
             modalDrinkPreviewMount.innerHTML = '<div class="muted">Choose a drink to preview it here.</div>';
+            renderIceCubes();
             return;
         }
 
         const modalSvg = createDrinkSvgInstance();
         if (!modalSvg) {
             modalDrinkPreviewMount.innerHTML = '<div class="muted">Could not load preview.</div>';
+            renderIceCubes();
             return;
         }
 
@@ -536,6 +572,7 @@
 
         modalDrinkPreviewMount.innerHTML = '';
         modalDrinkPreviewMount.appendChild(img);
+        renderIceCubes();
     }
 
     function animateAddonPreviewUpdate() {
@@ -566,7 +603,7 @@
     }
 
     function createMenuDrinkPreviewDataUrl(drink) {
-        const cacheKey = drink.name;
+        const cacheKey = `${drink.id}:${(drink.defaultAddonIds || []).join(',')}`;
         if (menuPreviewCache.has(cacheKey)) {
             return menuPreviewCache.get(cacheKey);
         }
@@ -575,7 +612,8 @@
         if (!svgRoot) return '';
 
         setupAddonLayersOnSvg(svgRoot);
-        applyAddonsToSvg(svgRoot, drink, [], []);
+        const defaultAddons = getDefaultAddonsForDrink(drink);
+        applyAddonsToSvg(svgRoot, drink, defaultAddons, syncCubeOrderForAddons(defaultAddons, []));
 
         const dataUrl = svgToDataUrl(svgRoot);
         menuPreviewCache.set(cacheKey, dataUrl);
@@ -588,15 +626,18 @@
         if (!svgRoot) return '';
 
         setupAddonLayersOnSvg(svgRoot);
+        const drink = findDrinkById(item.drinkId) || {
+            id: item.drinkId,
+            name: item.name,
+            price: item.basePrice,
+            defaultAddonIds: item.defaultAddonIds || []
+        };
+        const addons = normalizeAddonsForDrink(drink, item.addons || []);
         applyAddonsToSvg(
             svgRoot,
-            {
-                id: item.drinkId,
-                name: item.name,
-                price: item.basePrice
-            },
-            item.addons || [],
-            item.cubeAddonOrder || []
+            drink,
+            addons,
+            syncCubeOrderForAddons(addons, item.cubeAddonOrder || [])
         );
 
         return svgToDataUrl(svgRoot);
@@ -681,6 +722,59 @@
         return categories.length ? categories : ['ball'];
     }
 
+    function getAddonIdKey(id) {
+        return String(id);
+    }
+
+    function findDrinkById(drinkId) {
+        return getAllAvailableDrinks().find((drink) => getAddonIdKey(drink.id) === getAddonIdKey(drinkId)) || null;
+    }
+
+    function getIncludedAddonIdSet(drink) {
+        return new Set((drink?.defaultAddonIds || []).map((id) => getAddonIdKey(id)));
+    }
+
+    function getDefaultAddonsForDrink(drink) {
+        const includedIds = getIncludedAddonIdSet(drink);
+        return menuData.addons
+            .filter((addon) => includedIds.has(getAddonIdKey(addon.id)))
+            .map((addon) => ({
+                ...addon,
+                included: true
+            }));
+    }
+
+    function normalizeAddonsForDrink(drink, addons = []) {
+        const includedIds = getIncludedAddonIdSet(drink);
+        const normalized = new Map();
+
+        addons.forEach((addon) => {
+            const key = getAddonIdKey(addon.id);
+            normalized.set(key, {
+                ...addon,
+                included: includedIds.has(key)
+            });
+        });
+
+        return Array.from(normalized.values());
+    }
+
+    function mergeDefaultAddonsForDrink(drink, addons = []) {
+        return normalizeAddonsForDrink(drink, [
+            ...getDefaultAddonsForDrink(drink),
+            ...addons
+        ]);
+    }
+
+    function getRemovedDefaultAddonsForDrink(drink, addons = []) {
+        const selectedIds = new Set(addons.map((addon) => getAddonIdKey(addon.id)));
+        return getDefaultAddonsForDrink(drink).filter((addon) => !selectedIds.has(getAddonIdKey(addon.id)));
+    }
+
+    function getChargeableAddons(addons = []) {
+        return addons.filter((addon) => !addon.included);
+    }
+
     function renderAddonCategoryTabs() {
         if (!addonCategoryTabs) return;
 
@@ -707,17 +801,18 @@
     }
 
     function getDefaultCustomization(drink) {
+        const addons = getDefaultAddonsForDrink(drink);
         return {
             drink,
-            addons: [],
-            cubeAddonOrder: [],
+            addons,
+            cubeAddonOrder: syncCubeOrderForAddons(addons, []),
             sugar: '100%',
             ice: 'Regular Ice'
         };
     }
 
     function getOrderItemTotal(drink, addons, itemQuantity) {
-        const addonTotal = addons.reduce((sum, addon) => sum + addon.price, 0);
+        const addonTotal = getChargeableAddons(addons).reduce((sum, addon) => sum + addon.price, 0);
         return (drink.price + addonTotal) * itemQuantity;
     }
 
@@ -728,19 +823,24 @@
     }
 
     // Turn quiz recommendations into real cart items
-    function buildOrderItemFromConfig(drink, addons, sugar, ice, itemQuantity, cubeOrder = []) {
-        const finalCubeOrder = syncCubeOrderForAddons(addons, cubeOrder);
+    function buildOrderItemFromConfig(drink, addons, sugar, ice, itemQuantity, cubeOrder = [], includeDefaults = false) {
+        const finalAddons = includeDefaults
+            ? mergeDefaultAddonsForDrink(drink, addons)
+            : normalizeAddonsForDrink(drink, addons);
+        const finalCubeOrder = syncCubeOrderForAddons(finalAddons, cubeOrder);
 
         return {
             drinkId: drink.id,
             name: drink.name,
             basePrice: drink.price,
-            addons: [...addons],
+            defaultAddonIds: [...(drink.defaultAddonIds || [])],
+            removedDefaultAddons: getRemovedDefaultAddonsForDrink(drink, finalAddons),
+            addons: finalAddons,
             cubeAddonOrder: finalCubeOrder,
             sugar,
             ice,
             quantity: itemQuantity,
-            total: getOrderItemTotal(drink, addons, itemQuantity)
+            total: getOrderItemTotal(drink, finalAddons, itemQuantity)
         };
     }
 
@@ -752,11 +852,11 @@
         }
 
         const total = getOrderItemTotal(selectedDrink, selectedAddons, quantity);
-        const addonTotal = selectedAddons.reduce((sum, addon) => sum + addon.price, 0) * quantity;
+        const addonTotal = getChargeableAddons(selectedAddons).reduce((sum, addon) => sum + addon.price, 0) * quantity;
         const baseTotal = selectedDrink.price * quantity;
 
         if (addonTotal > 0) {
-            customizeDrinkPriceEl.textContent = `$${money(total)} total (${quantity} x $${money(selectedDrink.price)} + $${money(addonTotal)} add ons)`;
+            customizeDrinkPriceEl.textContent = `$${money(total)} total (${quantity} x $${money(selectedDrink.price)} + $${money(addonTotal)} extra add ons)`;
             return;
         }
 
@@ -787,8 +887,11 @@
         customizationDraft = existingItem
             ? {
                 drink,
-                addons: [...existingItem.addons],
-                cubeAddonOrder: [...(existingItem.cubeAddonOrder || [])],
+                addons: normalizeAddonsForDrink(drink, existingItem.addons),
+                cubeAddonOrder: syncCubeOrderForAddons(
+                    normalizeAddonsForDrink(drink, existingItem.addons),
+                    existingItem.cubeAddonOrder || []
+                ),
                 sugar: existingItem.sugar,
                 ice: existingItem.ice
             }
@@ -891,6 +994,7 @@
             renderIceOptions();
             renderQuantity();
             renderCustomizePrice();
+            renderIceCubes();
         });
     }
 
@@ -966,17 +1070,29 @@
         }
 
         filteredAddons.forEach((addon) => {
+            const includedIds = getIncludedAddonIdSet(selectedDrink);
+            const addonKey = getAddonIdKey(addon.id);
+            const isSelected = selectedAddons.some((a) => getAddonIdKey(a.id) === addonKey);
+            const isDefaultAddon = includedIds.has(addonKey);
             const button = document.createElement('button');
-            button.className = 'addon-btn' + (selectedAddons.some((a) => a.id === addon.id) ? ' selected' : '');
+            button.className = 'addon-btn'
+                + (isSelected ? ' selected' : '')
+                + (isDefaultAddon ? ' default-addon' : '')
+                + (isDefaultAddon && isSelected ? ' included' : '');
             button.type = 'button';
-            button.textContent = `${translateName(addon.name)} +$${money(addon.price)}`;
+            button.textContent = isDefaultAddon
+                ? `${translateName(addon.name)} ${isSelected ? 'Included' : 'Removed'}`
+                : `${translateName(addon.name)} +$${money(addon.price)}`;
             button.onclick = () => {
-                const exists = selectedAddons.some((a) => a.id === addon.id);
+                const exists = selectedAddons.some((a) => getAddonIdKey(a.id) === addonKey);
 
                 if (exists) {
-                    selectedAddons = selectedAddons.filter((a) => a.id !== addon.id);
+                    selectedAddons = selectedAddons.filter((a) => getAddonIdKey(a.id) !== addonKey);
                 } else {
-                    selectedAddons.push(addon);
+                    selectedAddons.push({
+                        ...addon,
+                        included: isDefaultAddon
+                    });
                 }
 
                 renderAddons();
@@ -1165,12 +1281,14 @@
             return;
         }
 
+        const previewAddons = mergeDefaultAddonsForDrink(recommendation.drink, recommendation.addons || []);
         const previewUrl = createOrderItemPreviewDataUrl({
             drinkId: recommendation.drink.id,
             name: recommendation.drink.name,
             basePrice: recommendation.drink.price,
-            addons: recommendation.addons || [],
-            cubeAddonOrder: syncCubeOrderForAddons(recommendation.addons || [], []),
+            defaultAddonIds: recommendation.drink.defaultAddonIds || [],
+            addons: previewAddons,
+            cubeAddonOrder: syncCubeOrderForAddons(previewAddons, []),
             sugar: recommendation.sugar,
             ice: recommendation.ice,
             quantity: recommendation.quantity || 1
@@ -1223,13 +1341,15 @@
         quizProgressBarEl.style.width = '100%';
 
         const { drink, sugar, ice, addons, reason } = currentQuizRecommendation;
+        const includedAddons = getDefaultAddonsForDrink(drink);
         renderQuizRecommendationPreview(currentQuizRecommendation);
         quizResultDrinkNameEl.textContent = drink.name;
         quizResultReasonEl.textContent = reason;
         quizResultMetaEl.innerHTML = `
             <div>Category: ${drink.category}</div>
             <div>Sugar: ${sugar} | Ice: ${ice}</div>
-            <div>${addons.length ? `Suggested toppings: ${addons.map((addon) => addon.name).join(', ')}` : 'Suggested toppings: none'}</div>
+            <div>${includedAddons.length ? `Included toppings: ${includedAddons.map((addon) => addon.name).join(', ')}` : 'Included toppings: none'}</div>
+            <div>${addons.length ? `Suggested extras: ${addons.map((addon) => addon.name).join(', ')}` : 'Suggested extras: none'}</div>
         `;
     }
 
@@ -1237,7 +1357,7 @@
         if (!currentQuizRecommendation) return;
 
         const { drink, addons, sugar, ice, quantity: itemQuantity } = currentQuizRecommendation;
-        order.push(buildOrderItemFromConfig(drink, addons, sugar, ice, itemQuantity));
+        order.push(buildOrderItemFromConfig(drink, addons, sugar, ice, itemQuantity, [], true));
         closeQuizOverlay();
         hideResultOverlay();
         renderOrder();
@@ -1247,11 +1367,12 @@
         if (!currentQuizRecommendation) return;
 
         const { drink, addons, sugar, ice, quantity: itemQuantity } = currentQuizRecommendation;
+        const addonsWithDefaults = mergeDefaultAddonsForDrink(drink, addons);
         openCustomizeModal(
             drink,
             {
-                addons,
-                cubeAddonOrder: syncCubeOrderForAddons(addons, []),
+                addons: addonsWithDefaults,
+                cubeAddonOrder: syncCubeOrderForAddons(addonsWithDefaults, []),
                 sugar,
                 ice,
                 quantity: itemQuantity
@@ -1340,8 +1461,20 @@
             `Ice: ${item.ice}`
         ];
 
-        if (item.addons.length > 0) {
-            optionParts.push(`Add ons: ${item.addons.map((addon) => translateName(addon.name)).join(', ')}`);
+        const includedAddons = item.addons.filter((addon) => addon.included);
+        const extraAddons = getChargeableAddons(item.addons);
+        const removedDefaultAddons = item.removedDefaultAddons || [];
+
+        if (includedAddons.length > 0) {
+            optionParts.push(`Included: ${includedAddons.map((addon) => translateName(addon.name)).join(', ')}`);
+        }
+
+        if (removedDefaultAddons.length > 0) {
+            optionParts.push(`Removed: ${removedDefaultAddons.map((addon) => translateName(addon.name)).join(', ')}`);
+        }
+
+        if (extraAddons.length > 0) {
+            optionParts.push(`Extras: ${extraAddons.map((addon) => translateName(addon.name)).join(', ')}`);
         }
 
         return optionParts.join(' | ');
@@ -1368,7 +1501,8 @@
             {
                 id: item.drinkId,
                 name: item.name,
-                price: item.basePrice
+                price: item.basePrice,
+                defaultAddonIds: item.defaultAddonIds || []
             },
             item,
             index

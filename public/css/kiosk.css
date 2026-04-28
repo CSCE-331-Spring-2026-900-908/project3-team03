@@ -88,6 +88,8 @@ textarea {
 }
 
 .topbar {
+    position: relative;
+    z-index: 50;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -131,6 +133,10 @@ textarea {
     align-items: center;
     gap: 6px;
     position: relative;
+}
+
+.accessibility-item-translate {
+    z-index: 2000;
 }
 
 .accessibility-btn {
@@ -233,11 +239,11 @@ textarea {
     position: absolute;
     top: calc(100% + 12px);
     right: 0;
-    z-index: 40;
+    z-index: 2001;
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-    transform: translateY(-6px) scale(0.98);
+    transform: translateY(-6px);
     transform-origin: top right;
     transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s ease;
 }
@@ -246,7 +252,7 @@ textarea {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
 }
 
 .translate-tray-label {
@@ -457,6 +463,23 @@ textarea {
 .addon-btn.selected {
     background: #dbeafe;
     border-color: #2563eb;
+}
+
+.addon-btn.included {
+    background: #dcfce7;
+    border-color: #16a34a;
+    color: #14532d;
+    cursor: pointer;
+}
+
+.addon-btn.default-addon:not(.selected) {
+    background: #f8fff9;
+    border-color: #86efac;
+    color: #166534;
+}
+
+.addon-btn:disabled {
+    opacity: 1;
 }
 
 .selection-options {
@@ -845,22 +868,51 @@ textarea {
 }
 
 .modal-drink-preview-frame {
-    width: 320px;
-    height: 320px;
+    width: 360px;
+    height: 340px;
     position: relative;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     overflow: hidden;
     background: #ead3a2;
     border-radius: 22px;
+    padding-left: 8px;
 }
 
 .modal-drink-preview-frame img,
 .modal-drink-preview-frame svg {
-    width: 320px;
+    width: 270px;
     height: auto;
     display: block;
+}
+
+.ice-cube-indicator {
+    position: absolute;
+    right: 24px;
+    top: 38px;
+    width: 40px;
+    height: 260px;
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 4px;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.ice-cube-indicator.is-empty {
+    display: none;
+}
+
+.modal-drink-preview-frame .ice-cube-img {
+    width: 34px;
+    height: 34px;
+    object-fit: contain;
+    opacity: 0.9;
+    filter: drop-shadow(0 3px 3px rgba(45, 77, 95, 0.2));
+    transform: rotate(var(--cube-rotate));
 }
 
 .preview-wave-overlay {
