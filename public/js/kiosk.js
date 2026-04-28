@@ -20,6 +20,10 @@
     const resultCardEl = document.getElementById('resultCard');
     const resultTitleEl = document.getElementById('resultTitle');
     const resultMessageEl = document.getElementById('resultMessage');
+    const resultTotalsEl = document.getElementById('resultTotals');
+    const resultSubtotalEl = document.getElementById('resultSubtotal');
+    const resultTaxEl = document.getElementById('resultTax');
+    const resultGrandTotalEl = document.getElementById('resultGrandTotal');
     const resultTicketEl = document.getElementById('resultTicket');
     const resultOkBtn = document.getElementById('resultOkBtn');
     const customizeOverlay = document.getElementById('customizeOverlay');
@@ -167,6 +171,7 @@
     let quizStepIndex = 0;
     let quizAnswers = {};
     let currentQuizRecommendation = null;
+    const KIOSK_TAX_RATE = 0.0825;
     
     // Map each quiz question and answer option to specific weights
     const quizQuestions = [
@@ -1266,11 +1271,32 @@
         resultCardEl.classList.remove('success', 'error', 'info');
         resultTitleEl.textContent = '';
         resultMessageEl.textContent = '';
+        resultTotalsEl.classList.add('hidden');
+        resultSubtotalEl.textContent = '$0.00';
+        resultTaxEl.textContent = '$0.00';
+        resultGrandTotalEl.textContent = '$0.00';
         resultTicketEl.textContent = '';
         resultTicketEl.classList.add('hidden');
     }
 
-    function showResultOverlay({ title, message, type = 'info', ticketNumber = null, autoDismissMs = null }) {
+    function getOrderPricingSummary(items = order) {
+        const subtotal = Number(
+            items.reduce((sum, item) => sum + Number(item.total || 0), 0).toFixed(2)
+        );
+        const tax = Number((subtotal * KIOSK_TAX_RATE).toFixed(2));
+        const total = Number((subtotal + tax).toFixed(2));
+
+        return { subtotal, tax, total };
+    }
+
+    function showResultOverlay({
+        title,
+        message,
+        type = 'info',
+        ticketNumber = null,
+        totals = null,
+        autoDismissMs = null
+    }) {
         if (resultOverlayTimer) {
             clearTimeout(resultOverlayTimer);
             resultOverlayTimer = null;
@@ -1280,6 +1306,15 @@
         resultCardEl.classList.add(type);
         resultTitleEl.textContent = title;
         resultMessageEl.textContent = message;
+
+        if (totals) {
+            resultSubtotalEl.textContent = `$${money(totals.subtotal)}`;
+            resultTaxEl.textContent = `$${money(totals.tax)}`;
+            resultGrandTotalEl.textContent = `$${money(totals.total)}`;
+            resultTotalsEl.classList.remove('hidden');
+        } else {
+            resultTotalsEl.classList.add('hidden');
+        }
 
         if (ticketNumber) {
             resultTicketEl.textContent = `Ticket #${ticketNumber}`;
@@ -1455,11 +1490,13 @@
             const data = await res.json().catch(() => ({}));
 
             if (res.ok && data.success) {
+                const pricingSummary = getOrderPricingSummary(order);
                 showResultOverlay({
                     title: 'Order confirmed',
                     message: 'Enjoy your boba!',
                     type: 'success',
                     ticketNumber: data.orderId || null,
+                    totals: pricingSummary,
                     autoDismissMs: 8000
                 });
                 order = [];
