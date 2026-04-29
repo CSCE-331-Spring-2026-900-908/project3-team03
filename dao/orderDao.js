@@ -115,11 +115,7 @@ async function getRecentOrders(limit = 10) {
 
     return result.rows.map(order => ({
         ...order,
-        created_at: new Date(order.created_at).toLocaleTimeString('en-US', {
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true
-        })
+        created_at: new Date(order.created_at)
     }));
 }
 
