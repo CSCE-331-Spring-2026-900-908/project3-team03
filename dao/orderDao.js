@@ -115,11 +115,7 @@ async function getRecentOrders(limit = 10) {
 
     return result.rows.map(order => ({
         ...order,
-        created_at: new Date(order.created_at).toLocaleTimeString('en-US', {
-            hour: 'numeric',
-            minute: '2-digit',
-            hour12: true
-        })
+        created_at: new Date(order.created_at)
     }));
 }
 
@@ -265,6 +261,9 @@ async function submitOrder(order) {
         const orderSubtotal = Number(order.subtotal);
         const orderTax = Number(order.tax);
         const orderTotal = Number(order.total);
+        const taxToInsert = Number.isFinite(orderTax) && (orderTax > 0 || computedTax === 0)
+            ? orderTax
+            : computedTax;
 
         // Insert order
         const res = await client.query(`
@@ -279,7 +278,7 @@ async function submitOrder(order) {
             order.employee_id,
             order.notes,
             Number.isFinite(orderSubtotal) && orderSubtotal > 0 ? orderSubtotal : computedSubtotal,
-            Number.isFinite(orderTax) && orderTax >= 0 ? orderTax : computedTax,
+            taxToInsert,
             Number.isFinite(orderTotal) && orderTotal > 0 ? orderTotal : computedTotal
         ]);
 
