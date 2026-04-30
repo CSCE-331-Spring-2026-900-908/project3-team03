@@ -13,9 +13,7 @@ const MENU_CATEGORIES = [
     'Tea',
     'Fruit Tea',
     'Smoothie',
-    'Matcha',
-    'Energy',
-    'Sour',
+    'Hot',
     'Specialty',
     'ADDON',
     'SEASONAL'

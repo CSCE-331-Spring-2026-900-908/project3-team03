@@ -3,7 +3,7 @@
     const menuData = pageData.menuData || { categories: {}, addons: [] };
     const drinkStyleMap = pageData.drinkStyleMap || {};
     const quizDrinkProfiles = pageData.quizDrinkProfiles || {};
-    const sugarOptions = ['0%', '25%', '50%', '75%', '100%'];
+    const sugarOptions = ['0%', '25%', '50%', '75%', '100%', '125%'];
     const iceOptions = ['No Ice', 'Light Ice', 'Regular Ice', 'Extra Ice'];
     const ICE_CUBE_IMAGE_SRC = '/images/Ice%20Cubes.svg';
     const categoryTabs = document.getElementById('categoryTabs');
@@ -120,10 +120,8 @@
         'Tea': '#dff2d8',
         'Fruit Tea': '#ffe4d6',
         'Smoothie': '#f9e2ff',
+        'Hot': '#fdecc8',
         'Specialty': '#fdecc8',
-        'Energy': '#fff4b8',
-        'Sour': '#e1f7e7',
-        'Matcha': '#d7f0d3',
         'SEASONAL': '#dff4ff',
         'Seasonal': '#dff4ff'
     };
@@ -194,7 +192,7 @@
                 { id: 'none', label: 'No sugar', sugar: '0%', effects: { noSugar: 4, fresh: 1 } },
                 { id: 'slight', label: 'Slightly sweet', sugar: '25%', effects: { slightlySweet: 4, fresh: 1 } },
                 { id: 'sweet', label: 'Sweet', sugar: '75%', effects: { sweet: 4, creamy: 1 } },
-                { id: 'extra', label: 'Extra sweet', sugar: '100%', effects: { extraSweet: 4, treat: 1 } }
+                { id: 'extra', label: 'Extra sweet', sugar: '125%', effects: { extraSweet: 4, treat: 1 } }
             ]
         },
         {
@@ -722,6 +720,11 @@
         return categories.length ? categories : ['ball'];
     }
 
+    function getPreferredAddonCategory(addons = []) {
+        const firstAddon = addons.find(Boolean);
+        return firstAddon ? getAddonDisplayCategory(firstAddon.name) : null;
+    }
+
     function getAddonIdKey(id) {
         return String(id);
     }
@@ -903,6 +906,7 @@
         selectedIce = customizationDraft.ice;
         quantity = existingItem ? existingItem.quantity : 1;
         editingOrderIndex = orderIndex;
+        currentAddonCategory = getPreferredAddonCategory(selectedAddons) || currentAddonCategory;
 
         customizeDrinkTitleEl.textContent = `Customize ${drink.name}`;
         saveCustomizeBtn.textContent = editingOrderIndex === null ? 'Add to order' : 'Save changes';
@@ -1240,10 +1244,6 @@
         if (toppingsAnswer === 'surprise') {
             if (/fruit tea|smoothie/i.test(drink.category || '')) {
                 return [findAddon('Aloe vera'), findAddon('Strawberry popping boba')].filter(Boolean);
-            }
-
-            if (/energy/i.test(drink.category || '')) {
-                return [findAddon('Boba'), findAddon('Eye of newt')].filter(Boolean);
             }
 
             return [findAddon('Boba'), findAddon('Milk foam')].filter(Boolean);

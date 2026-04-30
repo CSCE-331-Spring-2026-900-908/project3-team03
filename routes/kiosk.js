@@ -37,19 +37,12 @@ function createBaseQuizProfile(category) {
             rich: 1,
             adventurous: 1
         },
-        'Energy': {
-            energetic: 4,
-            sweet: 2,
-            extraSweet: 3,
-            lotsToppings: 2,
-            adventurous: 2
-        },
-        'Matcha': {
-            chill: 1,
-            fresh: 2,
-            teaForward: 2,
-            rich: 1,
-            adventurous: 2
+        'Hot': {
+            chill: 2,
+            treat: 2,
+            creamy: 2,
+            rich: 2,
+            safe: 2
         },
         'Seasonal': {
             treat: 1,
@@ -151,6 +144,15 @@ function buildDrinkQuizProfilesFromMenuItems(menuItems) {
     return map;
 }
 
+function parsePercentChoice(value, fallback = 100) {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+        return value;
+    }
+
+    const parsed = Number.parseInt(String(value || '').replace('%', ''), 10);
+    return Number.isNaN(parsed) ? fallback : parsed;
+}
+
 // Load starting kiosk page
 router.get('/', async (req, res) => {
     try {
@@ -245,7 +247,7 @@ router.post('/submitOrder', async (req, res) => {
                     menu_item_id: item.drinkId,
                     quantity: item.quantity,
                     ice_amount: 0,//will change to normal later but db is currently only taking ints
-                    sugar_amount: 0,//will change to normal later but db is currently only taking ints
+                    sugar_amount: parsePercentChoice(item.sugar, 100),
                     special_notes: removedDefaultAddonNames.length
                         ? `No ${removedDefaultAddonNames.join(', ')}`
                         : "",
