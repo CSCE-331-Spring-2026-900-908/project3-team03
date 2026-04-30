@@ -31,9 +31,7 @@
             list-style: none;
         }
 
-        .order-item h2 {
-            margin-top: 10px;
-        }
+        
 
         .order-item ul {
             list-style: none;
@@ -98,8 +96,6 @@
         .cancel-order-button:hover {
             background: rgb(203, 203, 203);
         }
-
-        
 
         main {
             padding: 20px;
@@ -348,6 +344,14 @@
             background: #e0e0e0;
         }
 
+        .order-item-head-row {
+            margin: 5px;
+            margin-top: 0px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
         
         table { border-collapse: collapse; width: 50%; margin: 16px auto; }
         th, td { border: 1px solid #aaa; padding: 8px; text-align: left; }
@@ -363,8 +367,14 @@
         <% if (cartCount && cartCount > 0) { %>
             <% for (let i = 0; i < cartCount; i++) { %>
             <article class="order-item">
-                <h2><%= locals.drinks && locals.drinks[i]?.menuItemName || 'Item ' + (i+1) %></h2>
-
+                <div class="order-item-head-row">
+                    <h2><%= locals.drinks && locals.drinks[i]?.menuItemName || 'Item ' + (i+1) %></h2>
+                    <div class="qty-row">
+                        <button class="qty-btn" type="button" onclick='minusOne(<%=i%>)'>-</button>
+                        <strong id="drink_<%=i%>_qty_label"><%=locals.drinks[i]?.drinkQuantity%></strong>
+                        <button class="qty-btn" type="button" onclick='plusOne(<%=i%>)'>+</button>
+                    </div>
+                </div>
                 <p>$<%= locals.drinks && locals.drinks[i]?.basePrice ? locals.drinks[i].basePrice.toFixed(2) : '0.00' %></p>
 
                 <p>Sugar: <%= locals.drinks && locals.drinks[i]?.sugarAmount%></p>
@@ -419,6 +429,7 @@
                 <button class="sugar-amount-button-active" id="m-sugar-button-50" onclick="mSetSugarAmount(50, 'm-sugar-button-50')">50%</button>
                 <button class="sugar-amount-button" id="m-sugar-button-75" onclick="mSetSugarAmount(75, 'm-sugar-button-75')">75%</button>
                 <button class="sugar-amount-button" id="m-sugar-button-100" onclick="mSetSugarAmount(100, 'm-sugar-button-100')">100%</button>
+                <button class="sugar-amount-button" id="m-sugar-button-125" onclick="mSetSugarAmount(125, 'm-sugar-button-125')">125%</button>
                 </div>
             </div>
             
@@ -466,6 +477,7 @@
                 <button class="sugar-amount-button-active" id="c-sugar-button-50" onclick="cSetSugarAmount(50, 'c-sugar-button-50')">50%</button>
                 <button class="sugar-amount-button" id="c-sugar-button-75" onclick="cSetSugarAmount(75, 'c-sugar-button-75')">75%</button>
                 <button class="sugar-amount-button" id="c-sugar-button-100" onclick="cSetSugarAmount(100, 'c-sugar-button-100')">100%</button>
+                <button class="sugar-amount-button" id="c-sugar-button-125" onclick="cSetSugarAmount(125, 'c-sugar-button-125')">125%</button>
                 </div>
             </div>
             
@@ -506,7 +518,7 @@
             <button class="category-button" id="tea-button" onclick="setCategory('Tea', 'tea-button')">Teas</button>
             <button class="category-button" id="fruit-tea-button" onclick="setCategory('Fruit Tea', 'fruit-tea-button')">Fruit Teas</button>
             <button class="category-button" id="smoothie-button" onclick="setCategory('Smoothie', 'smoothie-button')">Smoothies</button>
-            <button class="category-button" id="energy-button" onclick="setCategory('Energy', 'energy-button')">Energy</button>
+            <button class="category-button" id="hot-button" onclick="setCategory('Hot', 'hot-button')">Hot</button>
             <button class="category-button" id="seasonal-button" onclick="setCategory('SEASONAL', 'seasonal-button')">Seasonal</button>
         </nav>
         
@@ -538,8 +550,10 @@
             categories: <%- JSON.stringify(categories || {}) %>,
         };
 
+        //const drinksInOrder = <%- JSON.stringify(drinks) %>;
+
         const menuItemIdsAndPrices = [];
-        ['Milk Tea', 'Tea', 'Fruit Tea', 'Smoothie', 'Energy', 'SEASONAL'].forEach((category) => {
+        ['Milk Tea', 'Tea', 'Fruit Tea', 'Smoothie', 'Hot', 'SEASONAL'].forEach((category) => {
             menuData.categories[category].forEach((item) => {
                 let obj = {
                     id: item.id,
@@ -578,7 +592,7 @@
             document.getElementById("tea-button"),
             document.getElementById("fruit-tea-button"),
             document.getElementById("smoothie-button"),
-            document.getElementById("energy-button"),
+            document.getElementById("hot-button"),
             document.getElementById("seasonal-button")
         ];
 
@@ -599,7 +613,8 @@
             document.getElementById("c-sugar-button-25"),
             document.getElementById("c-sugar-button-50"),
             document.getElementById("c-sugar-button-75"),
-            document.getElementById("c-sugar-button-100")
+            document.getElementById("c-sugar-button-100"),
+            document.getElementById("c-sugar-button-125")
         ];
         const mIceAmountButtons = [
             document.getElementById("m-ice-button-none"),
@@ -612,7 +627,8 @@
             document.getElementById("m-sugar-button-25"),
             document.getElementById("m-sugar-button-50"),
             document.getElementById("m-sugar-button-75"),
-            document.getElementById("m-sugar-button-100")
+            document.getElementById("m-sugar-button-100"),
+            document.getElementById("m-sugar-button-125")
         ];
 
 
@@ -756,7 +772,56 @@
             customizeDrinkDialog.close();
         });
 
-        console.log("HERE");
+        //console.log("HELLO");
+
+        async function plusOne(drinkId){
+            //console.log("plusOne(", drinkId, ")");
+            const response = await fetch("/cashier/menu/plus-one", {
+                method: "POST",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    drinkId: drinkId,
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Response status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log("Response: ", result);
+
+            const menuURL = new URL('./menu', window.location.href);
+
+            //console.log(menuURL);
+
+            location.replace(menuURL);
+        }
+
+        //console.log("HI");
+
+        async function minusOne(drinkId){
+            const response = await fetch("/cashier/menu/minus-one", {
+                method: "POST",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    drinkId: drinkId,
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Response status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            console.log("Response: ", result);
+
+            const menuURL = new URL('./menu', window.location.href);
+
+            //console.log(menuURL);
+
+            location.replace(menuURL);
+        }
 
         
         function loadUpdateDrinkDialog(cartId, oldSugarAmount, oldIceAmount, addonsForThisDrink, thisDrinkMenuItemId) {
@@ -828,7 +893,7 @@
 
         }
 
-        console.log("HERE2");
+        //console.log("HERE2");
 
         cancelAddToOrderButton.addEventListener("click", () => {
             //console.log("Should close dialog");
@@ -864,7 +929,7 @@
             addDrinksMenu.innerHTML = '';
             
             if (currentCategory.localeCompare("All") == 0) {
-                ['Milk Tea', 'Tea', 'Fruit Tea', 'Smoothie', 'Energy', 'SEASONAL'].forEach((category) => {
+                ['Milk Tea', 'Tea', 'Fruit Tea', 'Smoothie', 'Hot', 'SEASONAL'].forEach((category) => {
                     menuData.categories[category].forEach((item) => {
                         const button = document.createElement('button');
                         button.className = 'customize-new-item-button';
@@ -940,8 +1005,31 @@
                 });
             }
         }
+        
+        /*
+        function getDrinkQuants() {
+            const drinksToQuants = [];
+            for (let i = 0; i < drinksInOrder.length; i++) {
+                //strings.push("".concat(name, " (", quant, ")"));
+                let ident = "drink_".concat(i, "_qty_label");
+                console.log(ident);
+                let elem = document.getElementById(ident);
+                let quant = parseInt(elem.innerHTML);
+                drinksToQuants.push({
+                    drink_id: i,
+                    quantity: quant
+                });
+            }
+            console.log(drinksToQuants);
+            return drinksToQuants;
+        }
+        */
+        
 
         function checkoutOrder() {
+
+
+
             const checkoutURL = new URL('./checkout', window.location.href);
 
 
@@ -998,7 +1086,8 @@
                         sugarAmount: sugarAmount,
                         specialNotes: '',
                         basePrice: getDrinkPriceById(currMenuItemId),
-                        idsToQuants: cGetAddonQuantities()
+                        idsToQuants: cGetAddonQuantities(),
+                        drinkQuantity: 1
                     })
                 });
 
