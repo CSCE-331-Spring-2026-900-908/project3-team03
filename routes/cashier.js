@@ -83,6 +83,22 @@ async function getTotalCostOfAddons(idsToQuants) {
   return total;
 }
 
+
+async function getCartSubtotal(drinks) {
+  subtotal = 0;
+  console.log(drinks);
+  for (let i = 0; i < drinks.length; i++) {
+    let drink_total = 0;
+    drink_total += drinks[i].basePrice;
+    addonsPrice = await getTotalCostOfAddons(drinks[i].addons);
+    drink_total += addonsPrice;
+    drink_total = drink_total * drinks[i].drinkQuantity;
+    subtotal += drink_total;
+  }
+  return subtotal;
+}
+
+
 function objToMap(obj) {
   newMap = new Map();
   for (const item in obj) {
@@ -206,13 +222,58 @@ router.get('/customize', async (req, res) => {
   }
 });
 
+router.post('/menu/plus-one', async (req, res) => {
+  try {
+    initializeCart(req);
+    const { drinkId } = req.body;
+    //console.log("DRINK ID: ", drinkId);
+    req.session.cart.drinks[drinkId].drinkQuantity = req.session.cart.drinks[drinkId].drinkQuantity+1;
+    //console.log("increased by one, new drinkQuantity ", req.session.cart.drinks[drinkId].drinkQuantity);
+    
+    res.json({
+      success: true
+    });
+
+  } catch (err) {
+    console.error('Cashier: Error adding to drink quant:', err.message);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error adding item to cart' 
+    });
+  }
+});
+
+router.post('/menu/minus-one', async (req, res) => {
+  try {
+    initializeCart(req);
+    const { drinkId } = req.body;
+    //console.log("DRINK ID: ", drinkId);
+    if (req.session.cart.drinks[drinkId].drinkQuantity > 1) {
+      req.session.cart.drinks[drinkId].drinkQuantity = req.session.cart.drinks[drinkId].drinkQuantity-1;
+    }
+    
+    //console.log("increased by one, new drinkQuantity ", req.session.cart.drinks[drinkId].drinkQuantity);
+    
+    res.json({
+      success: true
+    });
+    
+  } catch (err) {
+    console.error('Cashier: Error subtracting from  drink quant:', err.message);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error adding item to cart' 
+    });
+  }
+});
+
 // Add drink to cart
 router.post('/menu/add-to-cart', async (req, res) => {
   try {
     initializeCart(req);
-    const { menuItemId, iceAmount, sugarAmount, specialNotes, basePrice, idsToQuants } = req.body;
+    const { menuItemId, iceAmount, sugarAmount, specialNotes, basePrice, idsToQuants, drinkQuantity } = req.body;
     
-    console.log('Cashier: Adding to cart:', { menuItemId, iceAmount, sugarAmount, specialNotes, basePrice, idsToQuants });
+    console.log('Cashier: Adding to cart:', { menuItemId, iceAmount, sugarAmount, specialNotes, basePrice, idsToQuants, drinkQuantity });
     
     if (!menuItemId || !basePrice) {
       console.error('Cashier: Missing required fields for add-to-cart');
@@ -225,6 +286,7 @@ router.post('/menu/add-to-cart', async (req, res) => {
     addonStrings = await getAddonList(idsToQuants);
 
     // Create drink object and add to session cart
+    //console.log("ABOUT TO ADD NEW DRINK");
     const newDrink = {
       drinkId: req.session.cart.drinks.length + 1, // Temp ID for UI
       menuItemId,
@@ -233,7 +295,8 @@ router.post('/menu/add-to-cart', async (req, res) => {
       specialNotes: specialNotes || '',
       basePrice: Number(basePrice),
       addons: idsToQuants,
-      addonStrings: addonStrings
+      addonStrings: addonStrings,
+      drinkQuantity: drinkQuantity
     };
 
     
@@ -342,6 +405,7 @@ router.post('/menu/update-in-cart', async (req, res) => {
     addonStrings = await getAddonList(idsToQuants);
 
     // Create drink object and add to session cart
+    /*
     const updatedDrink = {
       drinkId: drinkId,
       menuItemId,
@@ -350,13 +414,20 @@ router.post('/menu/update-in-cart', async (req, res) => {
       specialNotes: specialNotes || '',
       basePrice: Number(basePrice),
       addons: idsToQuants,
-      addonStrings: addonStrings
+      addonStrings: addonStrings,
+      drinkQuantity: drinkQuantity
     };
+    */
+
+
 
     //console.log("Cashier: updated drink: ", updatedDrink);
 
     //console.log("about to set ice amount");
-    req.session.cart.drinks[drinkId-1] = updatedDrink;
+    req.session.cart.drinks[drinkId-1].iceAmount = iceAmount;
+    req.session.cart.drinks[drinkId-1].sugarAmount = sugarAmount;
+    req.session.cart.drinks[drinkId-1].addons = idsToQuants;
+    req.session.cart.drinks[drinkId-1].addonStrings = addonStrings;   
     
     //req.session.cart.drinks.push(newDrink);
     console.log('Cashier: Drink updated in cart. Cart size:', req.session.cart.drinks.length);
@@ -394,11 +465,13 @@ router.get('/checkout', async (req, res) => {
       })
     );
     
-    const cartTotal = drinksWithDetails.reduce((sum, drink) => sum + drink.basePrice, 0);
+    //const cartTotal = drinksWithDetails.reduce((sum, drink) => sum + drink.basePrice, 0);
+    const cartSubtotal = await getCartSubtotal(req.session.cart.drinks);
+    console.log(cartSubtotal);
     
     res.render('cashier/checkout', {
       drinks: drinksWithDetails,
-      cartTotal: cartTotal.toFixed(2),
+      cartSubtotal: cartSubtotal.toFixed(2),
       cartCount: req.session.cart.drinks.length,
       statusMessage: ''
     });
@@ -406,7 +479,7 @@ router.get('/checkout', async (req, res) => {
     console.error('Cashier: Error loading checkout:', err.message);
     res.render('cashier/checkout', {
       drinks: [],
-      cartTotal: '0.00',
+      cartSubtotal: '0.00',
       cartCount: 0,
       statusMessage: 'Error loading cart'
     });
@@ -446,16 +519,18 @@ router.post('/checkout/remove-drink', (req, res) => {
 });
 
 // -------------------- CONFIRM --------------------
-router.get('/confirm', (req, res) => {
+router.get('/confirm', async (req, res) => {
   try {
     initializeCart(req);
     console.log('Cashier: Loading confirm page with', req.session.cart.drinks.length, 'drinks');
     
-    const cartTotal = req.session.cart.drinks.reduce((sum, drink) => sum + drink.basePrice, 0);
+    //const cartTotal = req.session.cart.drinks.reduce((sum, drink) => sum + drink.basePrice, 0);
+    const cartSubtotal = await getCartSubtotal(req.session.cart.drinks);
+    console.log("cartSubtotal: ", cartSubtotal);
     
     res.render('cashier/confirm', {
       drinks: req.session.cart.drinks,
-      cartTotal: cartTotal.toFixed(2),
+      cartSubtotal: cartSubtotal.toFixed(2),
       cartCount: req.session.cart.drinks.length,
       statusMessage: ''
     });
@@ -463,7 +538,7 @@ router.get('/confirm', (req, res) => {
     console.error('Cashier: Error loading confirm:', err.message);
     res.render('cashier/confirm', {
       drinks: [],
-      cartTotal: '0.00',
+      cartSubtotal: '0.00',
       cartCount: 0,
       statusMessage: 'Error loading order confirmation'
     });
@@ -524,6 +599,7 @@ router.post('/confirm/finalize-order', async (req, res) => {
     
     // TODO: Save order to database using orderDao
     // For now, just clear the cart and return success
+    let subtotal = await getCartSubtotal(req.session.cart.drinks);
 
     const order = {
       created_at: new Date(),
@@ -531,12 +607,12 @@ router.post('/confirm/finalize-order', async (req, res) => {
       payment_method: "CARD",
       employee_id: 1,
       notes: "",
-      subtotal: 0,
-      tax: 0,
-      total: 0,
+      subtotal: subtotal,
+      tax: 0.085 * subtotal,
+      total: 1.085 * subtotal,
       drinks: req.session.cart.drinks.map(item => ({
         menu_item_id: item.menuItemId,
-        quantity: 1,
+        quantity: item.drinkQuantity,
         ice_amount: item.iceAmount, 
         sugar_amount: item.sugarAmount, 
         special_notes: "",

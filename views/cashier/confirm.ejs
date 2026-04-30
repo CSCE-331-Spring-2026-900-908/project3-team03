@@ -150,7 +150,9 @@
             
             <div class="order-total">
                 Total Items: <%= cartCount %><br>
-                Total: $<%= cartTotal %>
+                Subtotal: $<%= cartSubtotal %><br>
+                Tax: $<%= (cartSubtotal * 0.085).toFixed(2) %><br>
+                Total: $<%= (cartSubtotal * 1.085).toFixed(2) %>
             </div>
         <% } else { %>
             <div class="empty-message">No order to confirm.</div>

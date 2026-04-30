@@ -84,3 +84,69 @@ Libraries like [date-fns](https://date-fns.org/) or [moment.js](https://momentjs
 ---
 
 **Let me know if you want a ready-to-use helper script or a guide on pretty formats (like 'X minutes ago' or date strings) on the client!**
+
+
+# AI Debugging
+I used AI to help debug on various occasions. Here is an example prompt/response (not exhaustive; I asked several more questions before the AI found a typo in another section of my code, and then I asked a few more questions before finding another typo...):
+
+# Prompt
+Total Items: <%= cartCount %><br>
+Subtotal: $<%= cartSubtotal %><br>
+                Tax: $<%= (cartSubtotal * 0.085).toFixed(2) %><br>
+                Total: $<%= (cartSubtotal * 1.085).toFixed(2) %>
+This snippet of an .ejs file is throwing an error,cartSubtotal is undefined. What might be causing this?
+
+# Response
+The error `cartSubtotal is undefined` means that when your EJS view is rendered, the variable `cartSubtotal` is not present in the object passed to `res.render`.
+
+**Why could this happen?**
+
+1. **Variable Missing From Data:** In your server-side code (likely Node.js + Express), when you call `res.render('yourfile', data)`, the `data` object does not include a `cartSubtotal` property.
+
+2. **Incorrect Property Name:** Maybe your code has a typo or you are passing a property with a different name (e.g. `subtotal` instead of `cartSubtotal`).
+
+3. **No Cart Data:** If the cart is empty or not initialized, the cart subtotal may not be set.
+
+---
+
+**How to fix:**
+
+Check your server code where you render the EJS template. For example:
+
+```js
+res.render('cart', {
+  cartCount: cart.items.length,
+  cartSubtotal: cart.subtotal // <-- Make sure this exists!
+});
+```
+
+If `cart.subtotal` is `undefined`, set it to `0` or compute it before passing.
+
+**Example Fix:**
+
+```js
+const cartSubtotal = cart && cart.subtotal ? cart.subtotal : 0;
+
+res.render('cart', {
+  cartSubtotal: cartSubtotal,
+  cartCount: cartCount, // or whatever your count variable is
+  // ...other variables
+});
+```
+
+**Summary:**  
+`cartSubtotal` must be defined and passed to EJS from your server code. Review your controller or route handler to make sure it's there. If not, define and compute it before rendering.
+
+**Bonus:**  
+If you want to avoid errors when variables are missing, you can add a default in EJS:
+
+```html
+Subtotal: $<%= typeof cartSubtotal === 'undefined' ? '0.00' : cartSubtotal %><br>
+```
+
+But the real fix is to make sure your backend always provides all variables used by your template.
+
+---
+
+**Let me know if you need help with the server code!**
+
