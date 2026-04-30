@@ -261,6 +261,9 @@ async function submitOrder(order) {
         const orderSubtotal = Number(order.subtotal);
         const orderTax = Number(order.tax);
         const orderTotal = Number(order.total);
+        const taxToInsert = Number.isFinite(orderTax) && (orderTax > 0 || computedTax === 0)
+            ? orderTax
+            : computedTax;
 
         // Insert order
         const res = await client.query(`
@@ -275,7 +278,7 @@ async function submitOrder(order) {
             order.employee_id,
             order.notes,
             Number.isFinite(orderSubtotal) && orderSubtotal > 0 ? orderSubtotal : computedSubtotal,
-            Number.isFinite(orderTax) && orderTax >= 0 ? orderTax : computedTax,
+            taxToInsert,
             Number.isFinite(orderTotal) && orderTotal > 0 ? orderTotal : computedTotal
         ]);
 

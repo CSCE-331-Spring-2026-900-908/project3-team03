@@ -1,6 +1,7 @@
 const fs = require('fs/promises');
 const path = require('path');
 const pool = require('../db/pool');
+const pool = require('../db/pool');
 
 const drinkCsvPath = path.resolve(__dirname, '..', 'images', 'DrinkColorData.csv');
 const headers = [
@@ -16,6 +17,7 @@ const headers = [
     'accent_color',
     'boba_color'
 ];
+let setupPromise = null;
 
 const accentTypes = ['none', 'seeds', 'cube', 'syrup', 'powder', 'caramel'];
 
