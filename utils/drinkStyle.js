@@ -1,5 +1,7 @@
 const fs = require('fs/promises');
 const path = require('path');
+const pool = require('../db/pool');
+const pool = require('../db/pool');
 
 const drinkCsvPath = path.resolve(__dirname, '..', 'images', 'DrinkColorData.csv');
 const headers = [
@@ -15,6 +17,7 @@ const headers = [
     'accent_color',
     'boba_color'
 ];
+let setupPromise = null;
 
 const accentTypes = ['none', 'seeds', 'cube', 'syrup', 'powder', 'caramel'];
 
@@ -152,9 +155,127 @@ function formatCsv(rows) {
     ].join('\n') + '\n';
 }
 
-async function getDrinkStyleRows() {
+let drinkStyleTableReady = null;
+
+async function ensureDrinkStyleTable() {
+    if (drinkStyleTableReady) {
+        return drinkStyleTableReady;
+    }
+
+    drinkStyleTableReady = (async () => {
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS drink_style (
+                drink_style_id SERIAL PRIMARY KEY,
+                drink TEXT NOT NULL UNIQUE,
+                category TEXT NOT NULL,
+                lid_color TEXT NOT NULL,
+                straw_main TEXT NOT NULL,
+                straw_shadow TEXT NOT NULL,
+                liquid_top TEXT NOT NULL,
+                liquid_mid TEXT NOT NULL,
+                liquid_bottom TEXT NOT NULL,
+                accent_type TEXT NOT NULL,
+                accent_color TEXT,
+                boba_color TEXT NOT NULL,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            )
+        `);
+
+        const countResult = await pool.query('SELECT COUNT(*)::int AS count FROM drink_style');
+        if (Number(countResult.rows[0]?.count || 0) === 0) {
+            const csvRows = await getDrinkStyleRowsFromCsv();
+            await writeDrinkStyleRowsToDb(csvRows);
+        }
+    })();
+
+    return drinkStyleTableReady;
+}
+
+async function getDrinkStyleRowsFromCsv() {
     const csv = await fs.readFile(drinkCsvPath, 'utf8');
     return parseSimpleCsv(csv);
+}
+
+async function writeDrinkStyleRowsToDb(rows) {
+    for (const row of rows) {
+        const style = normalizeDrinkStyleInput(row, row.category);
+        if (!style.drink) continue;
+
+        await pool.query(`
+            INSERT INTO drink_style (
+                drink,
+                category,
+                lid_color,
+                straw_main,
+                straw_shadow,
+                liquid_top,
+                liquid_mid,
+                liquid_bottom,
+                accent_type,
+                accent_color,
+                boba_color
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            ON CONFLICT (drink)
+            DO UPDATE SET
+                category = EXCLUDED.category,
+                lid_color = EXCLUDED.lid_color,
+                straw_main = EXCLUDED.straw_main,
+                straw_shadow = EXCLUDED.straw_shadow,
+                liquid_top = EXCLUDED.liquid_top,
+                liquid_mid = EXCLUDED.liquid_mid,
+                liquid_bottom = EXCLUDED.liquid_bottom,
+                accent_type = EXCLUDED.accent_type,
+                accent_color = EXCLUDED.accent_color,
+                boba_color = EXCLUDED.boba_color,
+                updated_at = NOW()
+        `, [
+            style.drink,
+            style.category,
+            style.lid_color,
+            style.straw_main,
+            style.straw_shadow,
+            style.liquid_top,
+            style.liquid_mid,
+            style.liquid_bottom,
+            style.accent_type,
+            style.accent_color,
+            style.boba_color
+        ]);
+    }
+}
+
+async function getDrinkStyleRowsFromDb() {
+    await ensureDrinkStyleTable();
+
+    const result = await pool.query(`
+        SELECT
+            drink,
+            category,
+            lid_color,
+            straw_main,
+            straw_shadow,
+            liquid_top,
+            liquid_mid,
+            liquid_bottom,
+            accent_type,
+            accent_color,
+            boba_color
+        FROM drink_style
+        ORDER BY drink
+    `);
+
+    return result.rows;
+}
+
+async function getDrinkStyleRows() {
+    try {
+        return await getDrinkStyleRowsFromDb();
+    } catch (err) {
+        console.error('Drink style database unavailable; falling back to CSV:', err.message);
+        return getDrinkStyleRowsFromCsv();
+    }
 }
 
 function buildDrinkStyleMap(rows) {
@@ -238,7 +359,14 @@ async function upsertDrinkStyle(input, fallbackCategory) {
         throw new Error('Drink name is required for drink style.');
     }
 
-    const rows = await getDrinkStyleRows();
+    try {
+        await ensureDrinkStyleTable();
+        await writeDrinkStyleRowsToDb([style]);
+    } catch (err) {
+        console.error('Could not save drink style to database; saving CSV only:', err.message);
+    }
+
+    const rows = await getDrinkStyleRowsFromCsv();
     const index = rows.findIndex(row => row.drink === style.drink);
 
     if (index >= 0) {

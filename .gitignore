@@ -11,6 +11,6 @@ coverage/
 *.swp
 *.swo
 *~
-
+.codex
 db/data
 db/sql/

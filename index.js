@@ -65,17 +65,12 @@ app.get('/menu-board', async (req, res) => {
     try {
         const menuItems = await MenuItemDao.get_active_menu_items();
         const hiddenCategories = new Set(['SPECIALTY']);
-        const categoryOrder = ['Milk Tea', 'Tea', 'Fruit Tea', 'Smoothie', 'Energy', 'Matcha', 'Sour', 'SEASONAL', 'ADDON'];
+        const categoryOrder = ['Milk Tea', 'Tea', 'Fruit Tea', 'Smoothie', 'Hot', 'SEASONAL', 'ADDON'];
         const sectionArt = {
             'Milk Tea': {
                 image: '/images/ThaiMilkTea.svg',
                 alt: 'Milk tea',
                 featuredName: 'Lava Flow'
-            },
-            Energy: {
-                image: '/images/Energy%20bolt.svg',
-                alt: 'Energy bolt',
-                featuredName: 'Glass Cannon'
             },
             Tea: {
                 image: '/images/Fish.svg',
