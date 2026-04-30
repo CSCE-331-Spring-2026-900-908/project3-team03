@@ -1,7 +1,6 @@
 const fs = require('fs/promises');
 const path = require('path');
 const pool = require('../db/pool');
-const pool = require('../db/pool');
 
 const drinkCsvPath = path.resolve(__dirname, '..', 'images', 'DrinkColorData.csv');
 const headers = [
