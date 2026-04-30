@@ -5,6 +5,8 @@ const MenuItemDAO = require('../dao/MenuItemDao');
 const orderDao = require('../dao/orderDao');
 const { fetchCollegeStationWeather } = require('../utils/weather');
 
+
+
 // Initialize session cart if it doesn't exist
 const initializeCart = (req) => {
   if (!req.session.cart) {
@@ -15,17 +17,70 @@ const initializeCart = (req) => {
   }
 };
 
-function getAddonList(idsToQuants) {
-  strings = [];
-  idsToQuants.forEach(item => {
+async function getAddonName(id) {
+  //console.log("in getAddonName");
+  const active_addon_list = await MenuItemDAO.get_active_addons()
+  //console.log(active_addon_list);
+  
+  for (let i = 0; i < active_addon_list.length; i++) {
+    item = active_addon_list[i];
     //console.log(item);
+    if (item.menu_item_id == id) {
+      //console.log('name is', item.name);
+      return item.name;
+    }
+  }
+}
+
+async function getAddonPrice(id) {
+  const active_addon_list = await MenuItemDAO.get_active_addons()
+  //console.log(active_addon_list);
+  
+  for (let i = 0; i < active_addon_list.length; i++) {
+    item = active_addon_list[i];
+    //console.log(item);
+    if (item.menu_item_id == id) {
+      //console.log('name is', item.name);
+      return parseFloat(item.base_price);
+    }
+  }
+}
+
+async function getAddonList(idsToQuants) {
+  strings = [];
+
+  for (let i = 0; i < idsToQuants.length; i++) {
+    var item = idsToQuants[i];
+    let name = await getAddonName(item.id);
+    let quant = item.quantity;
+    if (quant > 0) {
+      strings.push("".concat(name, " (", quant, ")"));
+    }
+  }
+  /*
+  idsToQuants.forEach(async item => {
+    //console.log(item);
+    let name = "PLACEHOLDER";
+    name = await getAddonName(item.id);
+
     let quant = item.quantity;
     if (quant > 0) {
       //console.log(quant);
-      strings.push("".concat(item.id, " (", quant, ")"));
+      strings.push("".concat(name, " (", quant, ")"));
     }
   });
+  */
   return strings;
+}
+
+async function getTotalCostOfAddons(idsToQuants) {
+  total = 0;
+  for (let i = 0; i < idsToQuants.length; i++) {
+    let item = idsToQuants[i];
+    item_price = await getAddonPrice(item.id);
+    total = total + (item.quantity * item_price);
+  }
+  return total;
 }
 
 function objToMap(obj) {
@@ -167,7 +222,7 @@ router.post('/menu/add-to-cart', async (req, res) => {
       });
     }
     
-    addonStrings = getAddonList(idsToQuants);
+    addonStrings = await getAddonList(idsToQuants);
 
     // Create drink object and add to session cart
     const newDrink = {
@@ -284,7 +339,7 @@ router.post('/menu/update-in-cart', async (req, res) => {
 
     console.log("Old drink: ", req.session.cart.drinks[0]);
     
-    addonStrings = getAddonList(idsToQuants);
+    addonStrings = await getAddonList(idsToQuants);
 
     // Create drink object and add to session cart
     const updatedDrink = {
