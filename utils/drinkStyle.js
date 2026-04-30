@@ -1,5 +1,6 @@
 const fs = require('fs/promises');
 const path = require('path');
+const pool = require('../db/pool');
 
 const drinkCsvPath = path.resolve(__dirname, '..', 'images', 'DrinkColorData.csv');
 const headers = [
@@ -15,6 +16,7 @@ const headers = [
     'accent_color',
     'boba_color'
 ];
+let setupPromise = null;
 
 const accentTypes = ['none', 'seeds', 'cube', 'syrup', 'powder', 'caramel'];
 
@@ -145,16 +147,111 @@ function parseSimpleCsv(text) {
     });
 }
 
-function formatCsv(rows) {
-    return [
-        headers.join(','),
-        ...rows.map(row => headers.map(header => row[header] ?? '').join(','))
-    ].join('\n') + '\n';
+async function getDrinkStyleRowsFromCsv() {
+    const csv = await fs.readFile(drinkCsvPath, 'utf8');
+    return parseSimpleCsv(csv);
+}
+
+async function ensureDrinkStyleTable() {
+    if (!setupPromise) {
+        setupPromise = (async () => {
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS drink_style (
+                    drink TEXT PRIMARY KEY,
+                    category TEXT NOT NULL,
+                    lid_color TEXT NOT NULL,
+                    straw_main TEXT NOT NULL,
+                    straw_shadow TEXT NOT NULL,
+                    liquid_top TEXT NOT NULL,
+                    liquid_mid TEXT NOT NULL,
+                    liquid_bottom TEXT NOT NULL,
+                    accent_type TEXT NOT NULL DEFAULT 'none',
+                    accent_color TEXT NOT NULL DEFAULT '#000000',
+                    boba_color TEXT NOT NULL DEFAULT '#1A0F0B',
+                    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                )
+            `);
+
+            const countResult = await pool.query('SELECT COUNT(*)::int AS count FROM drink_style');
+
+            if (countResult.rows[0].count === 0) {
+                const csvRows = await getDrinkStyleRowsFromCsv();
+                for (const row of csvRows) {
+                    await upsertDrinkStyleRow(row);
+                }
+            }
+        })();
+    }
+
+    return setupPromise;
+}
+
+async function upsertDrinkStyleRow(style) {
+    await pool.query(`
+        INSERT INTO drink_style (
+            drink,
+            category,
+            lid_color,
+            straw_main,
+            straw_shadow,
+            liquid_top,
+            liquid_mid,
+            liquid_bottom,
+            accent_type,
+            accent_color,
+            boba_color,
+            updated_at
+        )
+        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,NOW())
+        ON CONFLICT (drink)
+        DO UPDATE SET
+            category = EXCLUDED.category,
+            lid_color = EXCLUDED.lid_color,
+            straw_main = EXCLUDED.straw_main,
+            straw_shadow = EXCLUDED.straw_shadow,
+            liquid_top = EXCLUDED.liquid_top,
+            liquid_mid = EXCLUDED.liquid_mid,
+            liquid_bottom = EXCLUDED.liquid_bottom,
+            accent_type = EXCLUDED.accent_type,
+            accent_color = EXCLUDED.accent_color,
+            boba_color = EXCLUDED.boba_color,
+            updated_at = NOW()
+    `, [
+        style.drink,
+        style.category,
+        style.lid_color,
+        style.straw_main,
+        style.straw_shadow,
+        style.liquid_top,
+        style.liquid_mid,
+        style.liquid_bottom,
+        style.accent_type,
+        style.accent_color,
+        style.boba_color
+    ]);
 }
 
 async function getDrinkStyleRows() {
-    const csv = await fs.readFile(drinkCsvPath, 'utf8');
-    return parseSimpleCsv(csv);
+    await ensureDrinkStyleTable();
+
+    const result = await pool.query(`
+        SELECT
+            drink,
+            category,
+            lid_color,
+            straw_main,
+            straw_shadow,
+            liquid_top,
+            liquid_mid,
+            liquid_bottom,
+            accent_type,
+            accent_color,
+            boba_color
+        FROM drink_style
+        ORDER BY drink ASC
+    `);
+
+    return result.rows;
 }
 
 function buildDrinkStyleMap(rows) {
@@ -238,16 +335,8 @@ async function upsertDrinkStyle(input, fallbackCategory) {
         throw new Error('Drink name is required for drink style.');
     }
 
-    const rows = await getDrinkStyleRows();
-    const index = rows.findIndex(row => row.drink === style.drink);
-
-    if (index >= 0) {
-        rows[index] = style;
-    } else {
-        rows.push(style);
-    }
-
-    await fs.writeFile(drinkCsvPath, formatCsv(rows), 'utf8');
+    await ensureDrinkStyleTable();
+    await upsertDrinkStyleRow(style);
     return style;
 }
 
